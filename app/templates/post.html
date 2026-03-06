@@ -33,7 +33,7 @@
       <a href="/profile/{{ post.username }}" class="btn-profile">@{{ post.username }}</a>
       {% if session.user_id == post.user_id %}
       <a href="/posts/{{ post.id }}/edit" class="btn-edit">edit</a>
-      <form button="POST" action="/posts/{{ post.id }}/delete"
+      <form method="POST" action="/posts/{{ post.id }}/delete"
         onsubmit="return confirm('delete this stack?')">
         <button class="btn-delete">delete</button>
       </form>
