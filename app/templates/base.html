@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Devstack{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Fraunces:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <nav class="topbar">
+    <a href="/" class="logo">⬡ devstack</a>
+    <div class="nav-topics">
+      {% for t in topics | default([]) %}
+        <a href="/t/{{ t.name }}" class="topic-pill">/t/{{ t.name }}</a>
+      {% endfor %}
+    </div>
+    <div class="nav-actions">
+      {% if session.username %}
+        <a href="/topics" class="nav-link">topics</a>
+        <a href="/posts/new" class="btn-new">+ new stack</a>
+        <a href="/profile/{{ session.username }}" class="nav-link">{{ session.username }}</a>
+        <a href="/auth/logout" class="nav-link">logout</a>
+      {% else %}
+        <a href="/auth/login" class="nav-link">login</a>
+        <a href="/auth/register" class="nav-link">register</a>
+      {% endif %}
+    </div>
+  </nav>
+<div class="layout">
+    <main class="main-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

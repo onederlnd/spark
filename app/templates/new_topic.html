@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}new topic — devstack{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <h1 class="form-title">new topic</h1>
+  <p class="form-subtitle">Topics are permanent and shared by everyone. Choose carefully.</p>
+
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+  {% endfor %}
+
+  <form method="POST" class="post-form">
+    <label>name</label>
+    <input type="text" name="name" 
+           placeholder="e.g. python, devops, databases" 
+           pattern="[a-z0-9-]+"
+           maxlength="30"
+           required>
+    <span class="field-hint">lowercase letters, numbers, hyphens only</span>
+
+    <label>description</label>
+    <input type="text" name="description" 
+           placeholder="what is this topic about?"
+           maxlength="100">
+
+    <button type="submit" class="btn-submit">create topic</button>
+  </form>
+</div>
+{% endblock %}

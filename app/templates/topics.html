@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}topics — devstack{% endblock %}
+
+{% block content %}
+<div class="feed-header">
+  <h1 class="feed-title">all topics</h1>
+  <a href="/topics/new" class="btn-new">+ new topic</a>
+</div>
+
+<div class="topics-grid">
+  {% for topic in topics %}
+  <a href="/t/{{ topic.name }}" class="topic-card">
+    <div class="topic-card-name">/t/{{ topic.name }}</div>
+    <div class="topic-card-desc">{{ topic.description or "no description" }}</div>
+    <div class="topic-card-count">{{ topic.post_count }} stacks</div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}@{{ profile_user.username }} — devstack{% endblock %}
+
+{% block content %}
+<div class="profile-header">
+  <div class="profile-avatar">{{ profile_user.username[0].upper() }}</div>
+  <div class="profile-info">
+    <h1 class="profile-username">@{{ profile_user.username }}</h1>
+    {% if profile_user.bio %}
+      <p class="profile-bio">{{ profile_user.bio }}</p>
+    {% endif %}
+    <span class="profile-meta">joined {{ profile_user.created_at }}</span>
+  </div>
+</div>
+
+<div class="profile-sections">
+  <div class="profile-section">
+    <h2 class="section-heading">stacks ({{ posts | length }})</h2>
+    {% if posts %}
+      <div class="post-list">
+        {% for post in posts %}
+        <div class="post-card">
+          <div class="vote-col">
+            <span class="vote-count">{{ post.votes }}</span>
+          </div>
+          <div class="post-body">
+            <div class="post-meta">
+              {% if post.topic_name %}
+                <a href="/t/{{ post.topic_name }}" class="post-topic">/t/{{ post.topic_name }}</a>
+              {% endif %}
+              <span class="post-time">{{ post.created_at }}</span>
+            </div>
+            <a href="/posts/{{ post.id }}" class="post-title">{{ post.title }}</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="empty-state">no stacks yet.</p>
+    {% endif %}
+  </div>
+
+  {% if bookmarks %}
+  <div class="profile-section">
+    <h2 class="section-heading">bookmarks ({{ bookmarks | length }})</h2>
+    <div class="post-list">
+      {% for post in bookmarks %}
+      <div class="post-card">
+        <div class="vote-col">
+          <span class="vote-count">{{ post.votes }}</span>
+        </div>
+        <div class="post-body">
+          <div class="post-meta">
+            {% if post.topic_name %}
+              <a href="/t/{{ post.topic_name }}" class="post-topic">/t/{{ post.topic_name }}</a>
+            {% endif %}
+            <span class="post-author">@{{ post.username }}</span>
+          </div>
+          <a href="/posts/{{ post.id }}" class="post-title">{{ post.title }}</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

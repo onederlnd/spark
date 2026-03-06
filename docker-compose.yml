@@ -1,0 +1,15 @@
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+      - /app/.venv
+      - ./data:/app/data
+    environment:
+      - FLASK_ENV=development
+      - SECRET_KEY=23sdjkf2e0ijlkasjoaijf
+      - DATABASE_URL=data/devstack.db
+    restart: unless-stopped

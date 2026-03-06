@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}
+  {% if active_topic %}
+    /t/{{ active_topic.name }} — devstack
+  {% else %}
+    feed — devstack
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="feed-header">
+  <h1 class="feed-title">
+    {% if active_topic %}
+      /t/{{ active_topic.name }}
+      <span class="feed-desc">{{ active_topic.description }}</span>
+    {% else %}
+      all stacks
+    {% endif %}
+  </h1>
+  <a href="/posts/new" class="btn-new">+ new stack</a>
+</div>
+
+{% if posts %}
+  <div class="post-list">
+    {% for post in posts %}
+    <div class="post-card">
+      <div class="vote-col">
+        <form method="POST" action="/posts/{{ post.id }}/vote">
+          <input type="hidden" name="value" value="1">
+          <button class="vote-btn up" title="upvote">▲</button>
+        </form>
+        <span class="vote-count">{{ post.votes }}</span>
+        <form method="POST" action="/posts/{{ post.id }}/vote">
+          <input type="hidden" name="value" value="-1">
+          <button class="vote-btn down" title="downvote">▼</button>
+        </form>
+      </div>
+      <div class="post-body">
+        <div class="post-meta">
+          {% if post.topic_name %}
+            <a href="/t/{{ post.topic_name }}" class="post-topic">/t/{{ post.topic_name }}</a>
+          {% endif %}
+          <span class="post-author">@{{ post.username }}</span>
+          <span class="post-time">{{ post.created_at }}</span>
+        </div>
+        <a href="/posts/{{ post.id }}" class="post-title">{{ post.title }}</a>
+        <p class="post-preview">{{ post.body | truncate(140) }}</p>
+        <div class="post-footer">
+          <a href="/posts/{{ post.id }}" class="reply-count">
+            💬 {{ post.reply_count }} replies
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <p>no stacks yet.</p>
+    <a href="/posts/new">be the first to post →</a>
+  </div>
+{% endif %}
+{% endblock %}

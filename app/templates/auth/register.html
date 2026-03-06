@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}register — devstack{% endblock %}
+{% block content %}
+<div class="auth-form">
+  <h1>join devstack</h1>
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+  {% endfor %}
+  <form method="POST">
+    <input name="username" placeholder="username" required>
+    <input name="password" type="password" placeholder="password" required>
+    <button type="submit" class="btn-submit">create account</button>
+  </form>
+  <a href="/auth/login">already have an account? log in →</a>
+</div>
+{% endblock %}

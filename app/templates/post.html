@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} — devstack{% endblock %}
+
+{% block content %}
+<div class="post-full">
+  <div class="vote-col">
+    <form method="POST" action="/posts/{{ post.id }}/vote">
+      <input type="hidden" name="value" value="1">
+      <button class="vote-btn up">▲</button>
+    </form>
+    <span class="vote-count">{{ post.votes }}</span>
+    <form method="POST" action="/posts/{{ post.id }}/vote">
+      <input type="hidden" name="value" value="-1">
+      <button class="vote-btn down">▼</button>
+    </form>
+  </div>
+  <div class="post-content">
+    <div class="post-meta">
+      {% if post.topic_name %}
+        <a href="/t/{{ post.topic_name }}" class="post-topic">/t/{{ post.topic_name }}</a>
+      {% endif %}
+      <span class="post-author">@{{ post.username }}</span>
+      <span class="post-time">{{ post.created_at }}</span>
+    </div>
+    <h1 class="post-title-full">{{ post.title }}</h1>
+    <div class="post-body-full">{{ post.body }}</div>
+<div class="post-actions">
+  <form method="POST" action="/posts/{{ post.id }}/bookmark">
+    <button class="btn-bookmark {% if bookmarked %}bookmarked{% endif %}">
+      {% if bookmarked %}⊗ bookmarked{% else %}⊕ bookmark{% endif %}
+    </button>
+  </form>
+  <a href="/profile/{{ post.username }}" class="btn-profile">@{{ post.username }}</a>
+</div>
+
+  </div>
+</div>
+
+<div class="replies-section">
+  <h2 class="replies-heading">{{ post.reply_count }} replies</h2>
+
+  <form method="POST" action="/posts/{{ post.id }}/reply" class="reply-form">
+    <textarea name="body" placeholder="write a reply..." rows="3" required></textarea>
+    <button type="submit" class="btn-submit">post reply</button>
+  </form>
+
+  {% for reply in replies %}
+  <div class="reply-card">
+    <div class="vote-col">
+      <form method="POST" action="/posts/{{ reply.id }}/vote">
+        <input type="hidden" name="value" value="1">
+        <button class="vote-btn up">▲</button>
+      </form>
+      <span class="vote-count">{{ reply.votes }}</span>
+      <form method="POST" action="/posts/{{ reply.id }}/vote">
+        <input type="hidden" name="value" value="-1">
+        <button class="vote-btn down">▼</button>
+      </form>
+    </div>
+    <div class="reply-body">
+      <div class="post-meta">
+        <span class="post-author">@{{ reply.username }}</span>
+        <span class="post-time">{{ reply.created_at }}</span>
+      </div>
+      <p>{{ reply.body }}</p>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

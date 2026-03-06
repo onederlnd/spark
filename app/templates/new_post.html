@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}new stack — devstack{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <h1 class="form-title">new stack</h1>
+
+  {% if error %}
+    <div class="flash flash-error">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST" class="post-form">
+    <label>topic</label>
+    <select name="topic_id">
+      <option value="">— no topic —</option>
+      {% for t in topics %}
+        <option value="{{ t.id }}">/t/{{ t.name }}</option>
+      {% endfor %}
+    </select>
+
+    <label>title</label>
+    <input type="text" name="title" placeholder="what's your stack about?" required>
+
+    <label>body</label>
+    <textarea name="body" rows="8" placeholder="write something worth reading..." required></textarea>
+
+    <button type="submit" class="btn-submit">post stack</button>
+  </form>
+</div>
+{% endblock %}
