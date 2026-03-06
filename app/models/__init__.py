@@ -10,10 +10,10 @@ sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
 def get_db():
     if "db" not in g:
         db_path = current_app.config.get("DATABASE_URL", "devstack.db")
-
+        # fmt: off
         if db_path.startswith("sqlite:///"):
-            db_path = db_path[len("sqlite:///") :]
-
+            db_path = db_path[len("sqlite:///"):]
+        # fmt: on
         if db_path != ":memory:" and not os.path.isabs(db_path):
             db_path = os.path.join(current_app.root_path, "..", db_path)
             db_path = os.path.abspath(db_path)

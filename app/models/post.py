@@ -27,7 +27,7 @@ def get_feed(limit=50, topic_id=None):
                       LEFT JOIN topics on posts.topic_id = topics.id
                       WHERE posts.parent_id IS NULL
                       ORDER BY posts.votes DESC, posts.created_at DESC
-                      LIMIT ?    
+                      LIMIT ?
     """,
         (limit,),
     ).fetchall()

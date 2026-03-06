@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request, session, redirect, url_for, flash
-from app.models.topic import get_all_topics_with_counts, get_topic_by_name, create_topic
+from flask import Blueprint, render_template, request, redirect, url_for, flash
+from app.models.topic import get_all_topics_with_counts, create_topic
 from app.routes.feed import login_required
 
 topics_bp = Blueprint("topics", __name__, url_prefix="/topics")

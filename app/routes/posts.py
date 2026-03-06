@@ -7,7 +7,6 @@ from flask import (
     session,
     redirect,
     url_for,
-    jsonify,
 )
 from app.models.post import create_post, get_post, get_replies, vote_post, is_bookmarked
 from app.models.topic import get_all_topics

@@ -33,7 +33,7 @@ def get_topic_with_count(name):
                       FROM topics
                       LEFT JOIN posts ON posts.topic_id = topics.id
                       WHERE topics.name = ?
-                      GROUP BY topics.id                  
+                      GROUP BY topics.id             
     """,
         (name,),
     ).fetchone()
