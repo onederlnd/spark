@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}edit stack — devstack{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <h1 class="form-title">edit stack</h1>
+
+  {% if error %}
+    <div class="flash flash-error">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST" class="post-form">
+    <label>title</label>
+    <input type="text" name="title" value="{{ post.title }}" required>
+
+    <label>body</label>
+    <textarea name="body" rows="8" required>{{ post.body }}</textarea>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-submit">save changes</button>
+      <a href="/posts/{{ post.id }}" class="btn-cancel">cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -24,14 +24,21 @@
     </div>
     <h1 class="post-title-full">{{ post.title }}</h1>
     <div class="post-body-full">{{ post.body }}</div>
-<div class="post-actions">
-  <form method="POST" action="/posts/{{ post.id }}/bookmark">
-    <button class="btn-bookmark {% if bookmarked %}bookmarked{% endif %}">
-      {% if bookmarked %}⊗ bookmarked{% else %}⊕ bookmark{% endif %}
-    </button>
-  </form>
-  <a href="/profile/{{ post.username }}" class="btn-profile">@{{ post.username }}</a>
-</div>
+    <div class="post-actions">
+      <form method="POST" action="/posts/{{ post.id }}/bookmark">
+        <button class="btn-bookmark {% if bookmarked %}bookmarked{% endif %}">
+          {% if bookmarked %}⊗ bookmarked{% else %}⊕ bookmark{% endif %}
+        </button>
+      </form>
+      <a href="/profile/{{ post.username }}" class="btn-profile">@{{ post.username }}</a>
+      {% if session.user_id == post.user_id %}
+      <a href="/posts/{{ post.id }}/edit" class="btn-edit">edit</a>
+      <form button="POST" action="/posts/{{ post.id }}/delete"
+        onsubmit="return confirm('delete this stack?')">
+        <button class="btn-delete">delete</button>
+      </form>
+      {% endif %}
+    </div>
 
   </div>
 </div>

@@ -8,13 +8,23 @@ from flask import (
     redirect,
     url_for,
 )
-from app.models.post import create_post, get_post, get_replies, vote_post, is_bookmarked
+from app.models.post import (
+    create_post,
+    get_post,
+    get_replies,
+    vote_post,
+    is_bookmarked,
+    update_post,
+    delete_post,
+)
 from app.models.topic import get_all_topics
 from app.routes.feed import login_required
 
+# define blueprint
 posts_bp = Blueprint("posts", __name__, url_prefix="/posts")
 
 
+# --- posts
 @posts_bp.route("/new", methods=["GET", "POST"])
 @login_required
 def new_post():
@@ -49,6 +59,49 @@ def view_post(post_id):
     )
 
 
+@posts_bp.route("/<int:post_id>/edit", methods=["GET", "POST"])
+@login_required
+def edit_post(post_id):
+    post = get_post(post_id)
+    if not post:
+        return "Post not found", 404
+
+    # only the author can edit
+    if post["user_id"] != session["user_id"]:
+        return "Forbidden", 403
+
+    if request.method == "POST":
+        title = request.form["title"].strip()
+        body = request.form["body"].strip()
+
+        # if title or body are empty
+        if not title or not body:
+            return render_template(
+                "edit_post.html", post=post, error="Title and body required"
+            )
+
+        update_post(post_id, title, body)
+        return redirect(url_for("posts.view_post", post_id=post_id))
+
+    return render_template("edit_post.html", post=post)
+
+
+@posts_bp.route("/<int:post_id>/delete", methods=["POST"])
+@login_required
+def delete(post_id):
+    post = get_post(post_id)
+    if not post:
+        return "Post not found", 404
+
+    # check if author (only author can delete)
+    if post["user_id"] != session["user_id"]:
+        return "Forbidden", 403
+
+    delete_post(post_id)
+    return redirect(url_for("feed.index"))
+
+
+# --- reply
 @posts_bp.route("/<int:post_id>/reply", methods=["POST"])
 @login_required
 def reply(post_id):

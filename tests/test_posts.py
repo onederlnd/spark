@@ -61,3 +61,75 @@ def test_reply_to_post(auth_client):
 def test_post_not_found(auth_client):
     response = auth_client.get("/posts/99999")
     assert response.status_code == 404
+
+
+def test_edit_post(auth_client):
+    response = auth_client.post(
+        "posts/new",
+        data={"title": "Original Title", "body": "Original body", "topic_id": ""},
+    )
+    post_url = response.headers["Location"]
+    post_id = post_url.split("/")[-1]
+
+    response = auth_client.post(
+        f"/posts/{post_id}/edit",
+        data={"title": "Updated Title", "body": "Updated body"},
+    )
+
+    assert response.status_code == 302
+
+    response = auth_client.get(post_url)
+    assert b"Updated Title" in response.data
+    assert b"Updated body" in response.data
+
+
+def test_delete_post(auth_client):
+    response = auth_client.post(
+        "/posts/new",
+        data={
+            "title": "To Be Deleted",
+            "body": "This post will be deleted",
+            "topic_id": "",
+        },
+    )
+    post_url = response.headers["Location"]
+    post_id = post_url.split("/")[-1]
+
+    response = auth_client.post(f"/posts/{post_id}/delete")
+    assert response.status_code == 302
+
+    response = auth_client.get(post_url)
+    assert response.status_code == 404
+
+
+def test_edit_post_forbidden(auth_client, app):
+    response = auth_client.post(
+        "/posts/new",
+        data={
+            "title": "Testuser Post",
+            "body": "Only Testuser can edit this",
+            "topic_id": "",
+        },
+    )
+    post_id = response.headers["Location"].split("/")[-1]
+
+    other = app.test_client(use_cookies=True)
+
+    reg_response = other.post(
+        "/auth/register",
+        data={"username": "otheruser", "password": "pass123", "bio": ""},
+    )
+    print(f"DEBUG register status: {reg_response.status_code}")
+    print(f"DEBUG register location: {reg_response.headers.get('Location')}")
+
+    login_response = other.post(
+        "/auth/login", data={"username": "otheruser", "password": "pass123"}
+    )
+    print(f"DEBUG login status: {login_response.status_code}")
+    print(f"DEBUG login location: {login_response.headers.get('Location')}")
+
+    response = other.post(
+        f"/posts/{post_id}/edit", data={"title": "Hacked!", "body": "Hacked!"}
+    )
+    print(f"DEBUG edit status: {response.status_code}")
+    assert response.status_code == 403
