@@ -1,8 +1,39 @@
 import os
 from flask import Flask
 from dotenv import load_dotenv
+from datetime import datetime, timezone
 
 load_dotenv()
+
+
+def time_ago(dt_str):
+    if not dt_str:
+        return ""
+    try:
+        if isinstance(dt_str, str):
+            dt = datetime.strptime(dt_str[:19], "%Y-%m-%d %H:%M:%S")
+        else:
+            dt = dt_str
+        dt = dt.replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
+        diff = now - dt
+        seconds = int(diff.total_seconds())
+
+        if seconds < 60:
+            return "just now"
+        elif seconds < 3600:
+            m = seconds // 60
+            return f"{m}m ago"
+        elif seconds < 86400:
+            h = seconds // 3600
+            return f"{h}h ago"
+        elif seconds < 604800:
+            d = seconds // 86400
+            return f"{d}d ago"
+        else:
+            return dt.strftime("%b %d, %Y")
+    except Exception:
+        return str(dt_str)
 
 
 def create_app(config=None):
@@ -32,5 +63,6 @@ def create_app(config=None):
     app.register_blueprint(posts_bp)
     app.register_blueprint(profile_bp)
     app.register_blueprint(topics_bp)
+    app.jinja_env.filters["time_ago"] = time_ago
 
     return app

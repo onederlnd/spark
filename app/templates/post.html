@@ -44,7 +44,9 @@
 </div>
 
 <div class="replies-section">
-  <h2 class="replies-heading">{{ post.reply_count }} replies</h2>
+  <h2 class="replies-heading">
+    {{ post.reply_count }} {{ 'reply' if post.reply_count == 1 else 'replies'}}
+  </h2>
 
   <form method="POST" action="/posts/{{ post.id }}/reply" class="reply-form">
     <textarea name="body" placeholder="write a reply..." rows="3" required></textarea>

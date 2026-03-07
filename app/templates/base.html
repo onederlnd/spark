@@ -20,11 +20,14 @@
     {% if session.username %}
       <a href="/topics" class="nav-link">topics</a>
       <a href="/posts/new" class="btn-new">+ new stack</a>
-      <a href="/profile/{{ session.username }}" class="nav-link">{{ session.username }}</a>
+      <a href="/profile/{{ session.username }}" 
+        class="nav-link {% if '/profile/' + session.username in request.path %}active{% endif %}">
+        {{ session.username }}
+      </a>
       <a href="/auth/logout" class="nav-link">logout</a>
     {% else %}
-      <a href="/auth/login" class="nav-link">login</a>
-      <a href="/auth/register" class="nav-link">register</a>
+      <a href="/auth/login" class="nav-link {% if request.path == '/auth/login' %}active{% endif %}">login</a>
+      <a href="/auth/register" class="nav-link {% if request.path == '/auth/register' %}active{% endif %}">register</a>
     {% endif %}
   </div>
   </nav>

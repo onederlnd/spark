@@ -1,10 +1,41 @@
 # app/models/__init__.py
 import os
 import sqlite3
+from datetime import datetime, timezone
 from flask import g, current_app
 
 sqlite3.register_adapter(bool, int)
 sqlite3.register_converter("BOOLEAN", lambda v: bool(int(v)))
+
+
+def time_ago(dt_str):
+    if not dt_str:
+        return ""
+    try:
+        if isinstance(dt_str, str):
+            dt = datetime.strptime(dt_str[:19], "%Y-%m-%d %H:%M:%S")
+        else:
+            dt = dt_str
+        dt = dt.replace(tzinfo=timezone.utc)
+        now = datetime.now(timezone.utc)
+        diff = now - dt
+        seconds = int(diff.total_seconds())
+
+        if seconds < 60:
+            return "just now"
+        elif seconds < 3600:
+            m = seconds // 60
+            return f"{m}m ago"
+        elif seconds < 86400:
+            h = seconds // 3600
+            return f"{h}h ago"
+        elif seconds < 604800:
+            d = seconds // 86400
+            return f"{d}d ago"
+        else:
+            return dt.strftime("%b %d, %Y")
+    except Exception:
+        return str(dt_str)
 
 
 def get_db():

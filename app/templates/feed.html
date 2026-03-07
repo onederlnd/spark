@@ -47,7 +47,7 @@
         <p class="post-preview">{{ post.body | truncate(140) }}</p>
         <div class="post-footer">
           <a href="/posts/{{ post.id }}" class="reply-count">
-            💬 {{ post.reply_count }} replies
+            💬 {{ post.reply_count }} {{ 'reply' if post.reply_count == 1 else 'replies' }}
           </a>
         </div>
       </div>

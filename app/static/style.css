@@ -625,3 +625,7 @@ a:hover { text-decoration: underline; }
   color: var(--muted);
   font-size: 12px;
 }
+
+.nav-link.active {
+  color: var(--accent);
+}

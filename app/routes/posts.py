@@ -25,6 +25,10 @@ posts_bp = Blueprint("posts", __name__, url_prefix="/posts")
 
 
 # --- posts
+TITLE_MAX = 200
+BODY_MAX = 10000
+
+
 @posts_bp.route("/new", methods=["GET", "POST"])
 @login_required
 def new_post():
@@ -32,6 +36,13 @@ def new_post():
     if request.method == "POST":
         title = request.form["title"].strip()
         body = request.form["body"].strip()
+        if len(title) > TITLE_MAX:
+            error = f"Title must be under {TITLE_MAX} characters"
+            return render_template("new_post.html", topics=topics, error=error)
+        if len(body) > BODY_MAX:
+            error = f"Body must be under {BODY_MAX} character"
+            return render_template("new_post.html", topics=topics, error=error)
+
         topic_id = request.form.get("topic_id") or None
 
         if not title or not body:
