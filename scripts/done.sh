@@ -10,8 +10,11 @@ if [ "$branch" = "main" ]; then
 fi
 
 git checkout main
-git pull # sync with remote after merging PR
+git pull origin main
+git merge "$branch"
+git push origin main
 git branch -d $branch
+git push origin --delete "$branch"
 
-echo "== merged and cleaned up: $branch"
+echo "== merged '$branch' into main and pushed"
 echo "== start your next feature with: ./scripts/feature.sh"

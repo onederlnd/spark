@@ -37,3 +37,55 @@ def check_password(username, password):
     if user["password_hash"] == password_hash:
         return user
     return None
+
+
+# --- following
+def follow_user(follower_id, followed_id):
+    """Insert a follow relationship, returns False if already following"""
+    db = get_db()
+    try:
+        db.execute(
+            "INSERT INTO follows (follower_id, followed_id) VALUES (?, ?, ?)",
+            (follower_id, followed_id),
+        )
+        db.connect()
+        return True
+    except Exception:
+        # composite PK prevents duplicates
+        return False
+
+
+def unfollow_user(follower_id, followed_id):
+    """Removes a follow relationship"""
+    db = get_db()
+    db.execute(
+        "DELETE FROM follows WHERE follower_id=? AND followed_id=?",
+        (follower_id, followed_id),
+    )
+    db.commit()
+
+
+def is_following(follower_id, followed_id):
+    """Returns True if follower_id follows followed_id"""
+    db = get_db()
+    result = db.execute(
+        "SELECT 1 FROM follows WHERE follower_id=? AND followed_id=?",
+        (follower_id, followed_id),
+    ).fetchone()
+    return result is not None
+
+
+def get_followers_count(user_id):
+    """Returns number of users following user_id"""
+    db = get_db()
+    return db.execute(
+        "SELECT COUNT(*) FROM follows WHERE followed_id=?", (user_id,)
+    ).fetchone()[0]
+
+
+def get_following_count(user_id):
+    """Returns the number of users user_id is following."""
+    db = get_db()
+    return db.execute(
+        "SELECT COUNT(*) FROM follows WHERE followed_id=?", (user_id,)
+    ).fetchone()[0]
