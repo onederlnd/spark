@@ -58,6 +58,7 @@ def create_app(config=None):
     from app.routes.profile import profile_bp
     from app.routes.topics import topics_bp
     from app.routes.search import search_bp
+    from app.routes.notifications import notifications_bp
 
     # register app
     app.register_blueprint(auth_bp)
@@ -66,6 +67,7 @@ def create_app(config=None):
     app.register_blueprint(profile_bp)
     app.register_blueprint(topics_bp)
     app.register_blueprint(search_bp)
+    app.register_blueprint(notifications_bp)
 
     # register other
     app.jinja_env.filters["time_ago"] = time_ago
