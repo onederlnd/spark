@@ -71,4 +71,15 @@ def create_app(config=None):
 
     # register other
     app.jinja_env.filters["time_ago"] = time_ago
+
+    # @app.context_processor
+    # def inject_unread_count():
+    #     """Inject unread notification count into all templates."""
+    #     from flask import session
+    #     from app.models.notifications import get_unread_count
+    #
+    #     if "user_id" in session:
+    #         return {"unread_count": get_unread_count(session["user_id"])}
+    #     return {"unread_count": 0}
+
     return app
