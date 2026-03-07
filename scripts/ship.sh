@@ -1,4 +1,8 @@
+# dev workflow: test -> lint -> commit -> push
+
 #!/bin/bash
+
+
 set -e
 
 . .venv/bin/activate
