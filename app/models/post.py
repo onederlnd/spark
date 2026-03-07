@@ -111,6 +111,29 @@ def delete_post(post_id):
     db.commit()
 
 
+# --- search
+def search_posts(query, page=1):
+    offset = (page - 1) * PER_PAGE
+    db = get_db()
+
+    rows = db.execute(
+        """
+        SELECT posts.*, users.username, topics.name as topic_name
+                      FROM posts_fts
+                      JOIN posts ON posts_fts.rowid = posts.id
+                      JOIN users ON posts.user_id = users.id
+                      LEFT JOIN topics on posts.topic_id = topics.id
+                      WHERE posts_fts MATCH ?
+                      AND posts.parent_id IS NULL
+                      ORDER BY rank
+                      LIMIT ? OFFSET ?
+        """,
+        (query, PER_PAGE + 1, offset),
+    ).fetchall()
+    has_next = len(rows) > PER_PAGE
+    return rows[:PER_PAGE], has_next
+
+
 # --- replies
 def get_replies(post_id):
     db = get_db()
@@ -209,24 +232,26 @@ def is_bookmarked(user_id, post_id):
     return result is not None
 
 
-# --- search
-def search_posts(query, page=1):
+# --- following feed
+def get_following_feed(user_id, page=1):
+    """Return paginated feed of followe list"""
     offset = (page - 1) * PER_PAGE
     db = get_db()
-
     rows = db.execute(
         """
         SELECT posts.*, users.username, topics.name as topic_name
-                      FROM posts_fts
-                      JOIN posts ON posts_fts.rowid = posts.id
-                      JOIN users ON posts.user_id = users.id
-                      LEFT JOIN topics on posts.topic_id = topics.id
-                      WHERE posts_fts MATCH ?
+                      FROM posts
+                      JOIN users ON posts.user_id == users.id
+                      LEFT JOIN topics ON posts.topic_id = topics.id
+                      WHERE posts.user_id IN (
+                        SELECT followed_id FROM follows WHERE follower_id = ?
+                      )
                       AND posts.parent_id IS NULL
-                      ORDER BY rank
+                      ORDER BY posts.created_at DESC
                       LIMIT ? OFFSET ?
-        """,
-        (query, PER_PAGE + 1, offset),
+    """,
+        (user_id, PER_PAGE + 1, offset),
     ).fetchall()
+
     has_next = len(rows) > PER_PAGE
     return rows[:PER_PAGE], has_next
