@@ -116,5 +116,14 @@ def init_db(app):
 
             CREATE VIRTUAL TABLE IF NOT EXISTS topics_fts
                 USING fts5(name, description, content=topics, content_rowid=id);
+
+            CREATE TABLE IF NOT EXISTS follows (
+                follower_id INTEGER NOT NULL, -- user doing the following
+                followed_id INTEGER NOT NULL, -- user being followed
+                create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (follower_id, followed_id),
+                FOREIGN KEY (follower_id) REFERENCES users(id),
+                FOREIGN KEY (followed_id) REFERENCES users(id)
+            );
         """)
         db.commit()
