@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, render_template
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 
@@ -81,5 +81,9 @@ def create_app(config=None):
         if "user_id" in session:
             return {"unread_count": get_unread_count(session["user_id"])}
         return {"unread_count": 0}
+
+    @app.errorhandler(429)
+    def rate_limited(e):
+        return render_template("429.html"), 429
 
     return app

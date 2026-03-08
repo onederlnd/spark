@@ -3,6 +3,15 @@ import os
 import pytest
 import tempfile
 from app import create_app
+from app.utils.rate_limit import _request_counts
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limits():
+    """Reset the in-memory rate limit store before each test"""
+    _request_counts.clear()
+    yield
+    _request_counts.clear()
 
 
 @pytest.fixture(scope="function")

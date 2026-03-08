@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}rate limited — devstack{% endblock %}
+
+{% block content %}
+<div class="empty-state">
+  <p>slow down.</p>
+  <p style="margin-top: 8px; font-size: 12px;">you've hit the rate limit — try again in a minute.</p>
+  <a href="javascript:history.back()">go back</a>
+</div>
+{% endblock %}

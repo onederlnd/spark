@@ -12,6 +12,7 @@ from app.models.user import (
 from app.models.post import get_posts_by_user, get_bookmarks, toggle_bookmark
 from app.models.notifications import create_notification
 from app.routes.feed import login_required
+from app.utils.rate_limit import rate_limit
 
 profile_bp = Blueprint("profile", __name__)
 
@@ -19,6 +20,7 @@ profile_bp = Blueprint("profile", __name__)
 # --- profile
 @profile_bp.route("/profile/<username>")
 @login_required
+@rate_limit(max_requests=10, window_seconds=60)  # limit to 10 profile views per minute
 def view_profile(username):
     user = get_user_by_username(username)
     if not user:
@@ -45,6 +47,7 @@ def view_profile(username):
 # --- follow/unfollow
 @profile_bp.route("/profile/<username>/follow", methods=["POST"])
 @login_required
+@rate_limit(max_requests=20, window_seconds=60)
 def follow(username):
     """Toggle follow state for a user"""
     user = get_user_by_username(username)
@@ -72,6 +75,7 @@ def follow(username):
 
 @profile_bp.route("/posts/<int:post_id>/bookmark", methods=["POST"])
 @login_required
+@rate_limit(max_requests=30, window_seconds=60)
 def bookmark(post_id):
     toggle_bookmark(session["user_id"], post_id)
     return redirect(request.referrer or url_for("feed.index"))

@@ -5,10 +5,11 @@
 
 ### What needs to change?
 - [ ] Database:
+- [ ] Utility:
 - [ ] Model:
 - [ ] Route:
 - [ ] Template:
-- [ ] Tests:
+- [ ] Tests: 
 
 ### Edge cases
 
