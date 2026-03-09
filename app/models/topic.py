@@ -56,6 +56,13 @@ def get_all_topics_with_counts():
 
 
 def search_topics(query):
+    if not query or not query.strip():
+        return [], False
+
+    # strip characters that break FTS5 syntax
+    query = query.strip().replace('"', "").replace("(", "").replace('")', "")
+    if not query:
+        return [], False
     db = get_db()
 
     return db.execute(

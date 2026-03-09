@@ -113,6 +113,14 @@ def delete_post(post_id):
 
 # --- search
 def search_posts(query, page=1):
+    if not query or not query.strip():
+        return [], False
+
+    # strip characters that break FTS5 syntax
+    query = query.strip().replace('"', "").replace("(", "").replace(")", "")
+    if not query:
+        return [], False
+
     offset = (page - 1) * PER_PAGE
     db = get_db()
 
