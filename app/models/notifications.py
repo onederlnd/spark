@@ -13,6 +13,21 @@ def create_notification(user_id, type, message, link=None):
         (user_id, type, message, link),
     )
     db.commit()
+    # emit real-time even to the user's room
+    try:
+        from app.sockets import socketio
+
+        socketio.emit(
+            "notification",
+            {
+                "message": message,
+                "link": link or "/notifications/",
+                "type": type,
+            },
+            room=f"user_{user_id}",
+        )
+    except Exception:
+        pass
 
 
 def get_notification(user_id):

@@ -3,6 +3,7 @@ from flask import Flask, render_template
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 from flask_wtf.csrf import CSRFProtect
+from app.sockets import init_socketio
 
 load_dotenv()
 csrf = CSRFProtect()
@@ -40,6 +41,8 @@ def time_ago(dt_str):
 
 def create_app(config=None):
     app = Flask(__name__)
+
+    init_socketio(app)
 
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "2ejfof2jf2ojwfxasf")
     app.config["DATABASE_URL"] = os.environ.get("DATABASE_URL", "devstack.db")

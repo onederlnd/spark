@@ -7,6 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Fraunces:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
+
 </head>
 <body>
   <nav class="topbar">
@@ -42,6 +45,37 @@
     </main>
   </div>
 
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+
+  {% if session.username %}
+  <script>
+    const socket = io();
+
+    socket.on("connect", () => {
+      console.log("socket connected");
+    });
+
+    socket.on("notification", (data) => {
+      // find the badge element
+      let badge = document.querySelector(".nav-badge");
+
+      if (badge) {
+        // increment existing badge
+        badge.textContent = parseInt(badge.textContent) + 1;
+      } else {
+        // create badge if it doesn't exist
+        const bell = document.querySelector(".nav-bell");
+        if (bell) {
+          const newBadge = document.createElement("span");
+          newBadge.className = "nav-badge";
+          newBadge.textContent = "1";
+          bell.appendChild(newBadge);
+        }
+      }
+    });
+  </script>
+  {% endif %}
+
+<script src="{{ url_for('static', filename='app.js') }}"></script>
 </body>
 </html>

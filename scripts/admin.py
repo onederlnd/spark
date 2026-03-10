@@ -38,6 +38,10 @@ def menu():
     print("--- db ---")
     print("14. reset database")
     print("15. auto-seed test data")
+    print("==== need to add ===")
+    print("#. submenu for testing")
+    print("#. - test actions (e.g. auto (un)follow/delay/(un)follow)")
+
     print("0.  exit")
     return input("\n> ").strip()
 
