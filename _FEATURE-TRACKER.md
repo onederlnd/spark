@@ -24,10 +24,20 @@
 
 ---
 
+## Up Next (after brute force)
+ALMOST ALL HTML/JS/CSS (c/p)
+- [ ] Dark/light theme toggle
+- [ ] Mobile sidebar hamburger menu
+- [ ] BBCode preview while typing
+- [ ] Character counters on title, bio, topic name fields
+- [ ] Empty state illustrations
+
+
+
 ## Alpha / Early Testing
 ### Phase 1 — Safety Core (ship before any public users)
-- [i] Input sanitization / XSS prevention — sanitize all user input before rendering `[Alpha]`
-- [ ] Brute force protection — lockout after failed login attempts `[Alpha]`
+- [x] Input sanitization / XSS prevention — sanitize all user input before rendering `[Alpha]`
+- [x] Brute force protection — lockout after failed login attempts `[Alpha]`
 - [ ] Rate limiting on registration — prevent bot account creation `[Alpha]`
 - [ ] Session timeout — auto-logout after inactivity for shared school computers `[Alpha]`
 - [ ] Report system — flag posts/users for moderation review `[Alpha]`
@@ -72,5 +82,12 @@
 - [ ] Feature flags — toggle features on/off without deploying `[Alpha/Beta]`
 
 ## Add to list
-- [ ] Convert pasted HTML to BBCode on input (e.g. <b> → [b], <a href=""> → [url=])
-- [ ] Virtual classroom
+
+
+
+## Backlog
+- [ ] Convert pasted HTML to BBCode on input (e.g. `<b>` → `[b]`, `<a href="">` → `[url=]`)
+- [ ] BBCode toolbar in post/reply composer
+- [ ] Homeschool mode — parent receives lockout notifications instead of teacher
+- [ ] PWA support — manifest.json, service worker, home screen icon (2-3hrs)
+- [ ] Penpals

@@ -15,15 +15,49 @@ to the dangers of the open internet.
 
 Safety isn't a feature on SparK. It's the entire point.
 
-## Features
+## Current Status
+
+**Phase 1 — Safety Core: in progress**
+
+The core social platform is built and functional. We are currently hardening the
+platform for real classroom use. SparK is not yet open to the public.
+
+| Area | Status |
+|------|--------|
+| Core social loop | ✅ Complete |
+| Authentication | ✅ Complete |
+| Input sanitization / XSS prevention | ✅ Complete |
+| Brute force protection | ✅ Complete |
+| Session timeout | ⬜ In Progress |
+| Report system | ⬜ Planned |
+| Content moderation queue | ⬜ Planned |
+| Closed beta (single classroom) | ⬜ Blocked on above |
+
+## What's Built
+
+### Social Platform
 - Post, reply, vote, and bookmark in topic channels
 - Follow other users and get a personalized feed
-- Full-text search across posts and topics
+- Full-text search across posts and users
 - Real-time notifications via WebSockets
-- Role-based access (admins, moderators, users)
-- Rate limiting and CSRF protection built in
+- Trending posts widget
+- Pagination
+
+### Safety & Security
+- Input sanitization and XSS prevention on all user input
+- BBCode rendering — safe formatting without raw HTML
+- Brute force login protection with automatic lockout
+- Rate limiting on all routes
+- CSRF protection on all forms
 - Bcrypt password hashing
+- Role-based access (admins, moderators, teachers, students)
+
+### Platform
 - REST API
+- Docker + Docker Compose
+- GitHub Actions CI pipeline
+- Admin CLI for user, post, and topic management
+- Pytest test suite
 
 ## Who It's For
 - **Students** — a structured space to ask questions, share ideas, and learn from peers
@@ -71,6 +105,12 @@ App runs at `http://localhost:5000`
 sudo docker-compose up
 ```
 
+### Seeding Test Data
+```bash
+python scripts/admin.py
+# select option 15 — auto-seed
+```
+
 ## Development
 
 ### Running Tests
@@ -102,9 +142,10 @@ spark/
 │   ├── models/            # database access
 │   ├── routes/            # flask blueprints
 │   ├── templates/         # jinja2 templates
-│   └── static/            # css and js
+│   ├── utils/             # sanitization, rate limiting, brute force protection
+│   └── static/            # css, js
 ├── tests/                 # pytest test suite
-├── scripts/               # dev workflow scripts
+├── scripts/               # dev workflow scripts and admin CLI
 ├── Dockerfile
 ├── docker-compose.yml
 └── run.py
@@ -115,9 +156,18 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 
 ## Roadmap
 
-### Phase 1 — Safety Core (ship before any public users)
-- [x] Input sanitization / XSS prevention — sanitize all user input before rendering
-- [ ] Brute force protection — lockout after failed login attempts
+### 🏁 Milestone: Closed Beta (single trusted classroom)
+The hard floor before any real users touch this platform.
+- [x] Core social loop — post, reply, vote, follow, feed, search, notifications
+- [x] Input sanitization / XSS prevention
+- [x] Brute force protection
+- [ ] Session timeout — auto-logout after inactivity for shared school computers
+- [ ] Report system — kids need a way to flag content
+- [ ] Content moderation queue — flagged content held for review
+
+### Phase 1 — Safety Core
+- [x] Input sanitization / XSS prevention
+- [x] Brute force protection — lockout after failed login attempts
 - [ ] Rate limiting on registration — prevent bot account creation
 - [ ] Session timeout — auto-logout after inactivity for shared school computers
 - [ ] Report system — flag posts/users for moderation review
@@ -126,7 +176,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [ ] Age-appropriate content filtering — baseline keyword/content rules
 - [ ] COPPA compliance — Terms of Service and Privacy Policy pages (legally required for minors)
 
-### Phase 2 — Trust & Verification (makes it real for parents and schools)
+### Phase 2 — Trust & Verification
 - [ ] Email verification on register
 - [ ] Admin dashboard — proper moderation UI, not just CLI tools
 - [ ] Parent dashboard — visibility into student activity
@@ -135,15 +185,16 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [ ] Topic moderators — role-based permissions per topic
 - [ ] School/district accounts — umbrella accounts managing multiple teacher pages
 
-### Phase 3 — Growth & Engagement (once the platform is trusted)
+### Phase 3 — Growth & Engagement
 - [ ] Onboarding flow — guide new users to follow topics and people on first login
 - [ ] User mentions — @username triggers a notification
 - [ ] Achievement badges — lightweight engagement without dark patterns
 - [ ] Direct messages — teacher↔student only initially, not peer-to-peer
 - [ ] Landing page — public-facing marketing site
 - [ ] Data export — users can download their own data
-- [ ] Trending algorithm — weight posts by votes, reply count, and time decay instead of raw vote count
-### Phase 4 — Ops & Hardening (runs alongside other phases)
+- [ ] Trending algorithm — weight posts by votes, reply count, and time decay
+
+### Phase 4 — Ops & Hardening
 - [ ] Full audit log — track all data changes with who/when/what
 - [ ] Structured logging — replace print statements with proper log levels
 - [ ] Health check endpoint — /health returns app and DB status

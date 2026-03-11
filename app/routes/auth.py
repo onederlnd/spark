@@ -2,6 +2,7 @@
 
 from flask import Blueprint, request, session, redirect, url_for, render_template, flash
 from app.models.user import create_user, check_password
+from app.utils.brute_force import is_locked_out, record_failure, record_success
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -34,14 +35,23 @@ def login():
     if request.method == "POST":
         username = request.form["username"].strip()
         password = request.form["password"]
+        ip = request.remote_addr
+
+        locked, seconds_remaining = is_locked_out(username, ip)
+        if locked:
+            minutes = seconds_remaining // 60 + 1
+            flash(f"Too many failed attempts. Try again in {minutes} minutes.")
+            return render_template("auth/login.html")
 
         user = check_password(username, password)
         if user:
+            record_success(username)
             session.clear()
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             return redirect(url_for("feed.index"))
         else:
+            record_failure(username, ip)
             flash("Invalid username or password", "error")
     return render_template("auth/login.html")
 

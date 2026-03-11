@@ -4,6 +4,7 @@ import pytest
 import tempfile
 from app import create_app
 from app.utils.rate_limit import _request_counts
+from app.utils.brute_force import _lockouts
 
 
 @pytest.fixture(autouse=True)
@@ -12,6 +13,17 @@ def reset_rate_limits():
     _request_counts.clear()
     yield
     _request_counts.clear()
+
+
+@pytest.fixture(autouse=True)
+def reset_brute_force():
+    from app.utils.brute_force import _failed_attempts, _clean_attempts
+
+    _failed_attempts.clear()
+    _lockouts.clear()
+    yield
+    _failed_attempts.clear()
+    _lockouts.clear()
 
 
 @pytest.fixture(scope="function")
