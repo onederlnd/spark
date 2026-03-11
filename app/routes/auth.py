@@ -8,10 +8,12 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
+    from app.utils.sanitize import sanitize_username, sanitize_plain
+
     if request.method == "POST":
-        username = request.form["username"].strip()
+        username = sanitize_username(request.form.get("username"))
         password = request.form["password"]
-        bio = request.form.get("bio", "").strip()
+        bio = sanitize_plain(request.form.get("bio", ""), max_length=300)
 
         if not username or not password:
             flash("Username and password are required", "error")

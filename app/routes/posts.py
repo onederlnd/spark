@@ -21,6 +21,7 @@ from app.models.topic import get_all_topics
 from app.models.notifications import create_notification
 from app.routes.feed import login_required
 from app.utils.rate_limit import rate_limit
+from app.utils.sanitize import sanitize_plain, sanitize_bbcode
 
 # define blueprint
 posts_bp = Blueprint("posts", __name__, url_prefix="/posts")
@@ -37,8 +38,8 @@ BODY_MAX = 10000
 def new_post():
     topics = get_all_topics()
     if request.method == "POST":
-        title = request.form["title"].strip()
-        body = request.form["body"].strip()
+        title = sanitize_plain(request.form.get("title", ""), max_length=TITLE_MAX)
+        body = sanitize_plain(request.form.get("body", ""), max_length=BODY_MAX)
         if len(title) > TITLE_MAX:
             error = f"Title must be under {TITLE_MAX} characters"
             return render_template("new_post.html", topics=topics, error=error)
@@ -89,8 +90,8 @@ def edit_post(post_id):
         return "Forbidden", 403
 
     if request.method == "POST":
-        title = request.form["title"].strip()
-        body = request.form["body"].strip()
+        title = sanitize_plain(request.form.get("title", ""), max_length=TITLE_MAX)
+        body = sanitize_bbcode(request.form.get("body", ""), max_length=BODY_MAX)
 
         # if title or body are empty
         if not title or not body:
@@ -125,7 +126,7 @@ def delete(post_id):
 @login_required
 @rate_limit(max_requests=10, window_seconds=60)
 def reply(post_id):
-    body = request.form["body"].strip()
+    body = sanitize_bbcode(request.form.get("body", ""), max_length=BODY_MAX)
     if body:
         create_post(session["user_id"], "re: reply", body, parent_id=post_id)
         parent = get_post(post_id)

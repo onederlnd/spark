@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.models.topic import get_all_topics_with_counts, create_topic
 from app.routes.feed import login_required
+from app.utils.sanitize import sanitize_plain
 
 topics_bp = Blueprint("topics", __name__, url_prefix="/topics")
 
@@ -15,12 +16,13 @@ def index():
 @topics_bp.route("/new", methods=["GET", "POST"])
 @login_required
 def new_topic():
+    import re
+
     if request.method == "POST":
-        name = request.form["name"].strip().lower()
-        description = request.form.get("description", "").strip()
-
-        import re
-
+        name = sanitize_plain(request.form.get("name", "")).lower()
+        description = sanitize_plain(
+            request.form.get("description", ""), max_length=300
+        )
         if not re.match(r"^[a-z0-9-]+$", name):
             flash("Topic name can only contain letters, numbers, and hyphens", "error")
             return render_template("new_topic.html")

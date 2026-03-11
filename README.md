@@ -116,7 +116,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 ## Roadmap
 
 ### Phase 1 — Safety Core (ship before any public users)
-- [ ] Input sanitization / XSS prevention — sanitize all user input before rendering
+- [x] Input sanitization / XSS prevention — sanitize all user input before rendering
 - [ ] Brute force protection — lockout after failed login attempts
 - [ ] Rate limiting on registration — prevent bot account creation
 - [ ] Session timeout — auto-logout after inactivity for shared school computers

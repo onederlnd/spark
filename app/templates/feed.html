@@ -123,7 +123,7 @@
           <span class="post-time">· {{ post.created_at | time_ago }}</span>
         </div>
         <a href="/posts/{{ post.id }}" class="post-title">{{ post.title }}</a>
-        <p class="post-preview">{{ post.body | truncate(140) }}</p>
+        <p class="post-preview">{{ post.body | striptags | truncate(140) }}</p>
         <div class="post-footer">
           <a href="/posts/{{ post.id }}" class="reply-count">
             💬 {{ post.reply_count }} {{ 'reply' if post.reply_count == 1 else 'replies' }}

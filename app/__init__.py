@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 from datetime import datetime, timezone
 from flask_wtf.csrf import CSRFProtect
 from app.sockets import init_socketio
+from app.utils.bbcode import render_bbcode
+from markupsafe import Markup
 
 load_dotenv()
 csrf = CSRFProtect()
@@ -160,5 +162,10 @@ def create_app(config=None):
             name="Internal Server Error",
             message="the server encountered an internal error and was unable to complete your request.",
         ), 500
+
+    # BBCode
+    @app.template_filter("bbcode")
+    def bbcode_filter(text):
+        return Markup(render_bbcode(text or ""))
 
     return app
