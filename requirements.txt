@@ -7,3 +7,5 @@ alembic==1.18.4
 Flask-SocketIO==5.6.1
 python-socketio==5.16.1
 beautifulsoup4==4.14.3
+CairoSVG==2.8.2
+pillow==12.1.1
