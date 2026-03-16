@@ -1,7 +1,3 @@
-![Python](https://img.shields.io/badge/python-3.13-blue)
-![Flask](https://img.shields.io/badge/flask-backend-black)
-![License](https://img.shields.io/badge/license-MIT-green)
-![Status](https://img.shields.io/badge/status-alpha-orange)
 
 # ⚡ SparK
 
@@ -32,7 +28,7 @@ The core social platform is built and functional. The classroom system is in act
 | Input sanitization / XSS prevention | ✅ Complete |
 | Brute force protection | ✅ Complete |
 | UX polish (theme, mobile, BBCode preview) | ✅ Complete |
-| Session timeout | 🔲 In Progress |
+| Session timeout | ✅ Complete |
 | Report system | 🔲 Planned |
 | Content moderation queue | 🔲 Planned |
 | Classroom system (lessons + assignments + grading) | 🔲 In Development |
