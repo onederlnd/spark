@@ -143,7 +143,7 @@ def coppa_pending():
     """Teacher dashboard for approving students under 13."""
     user = current_user()
 
-    if user["role"] != "teacher":
+    if not user or user["role"] != "teacher":
         flash("Access denied", "error")
         return redirect(url_for("feed.index"))
 
@@ -154,3 +154,15 @@ def coppa_pending():
     ).fetchall()
 
     return render_template("coppa_pending.html", pending_students=pending_students)
+
+
+"""@auth_bp.route("/coppa/deny")
+@login_required
+def coppa_deny(user_id):
+    user = current_user()
+    if not user or user["role"] != "teacher":
+        flash("Access denied", "error")
+        return redirect(url_for("feed.index"))
+    db = get_db()
+    student = db.execute("SELECT id, username, role FROM users WHERE id=?", (user_id,)).fetchone()
+    if not student or students"""

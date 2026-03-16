@@ -11,7 +11,25 @@
       {% for student in pending_students %}
         <li>
           {{ student.username }}
-          <a href="/auth/coppa/approve/{{ student.id }}" class="btn-submit btn-small">Approve</a>
+
+          <!-- Approve Form -->
+          <form action="{{ url_for('auth.coppa_approve', user_id=student.id) }}" method="POST" style="display:inline;">
+            {{ csrf_token() }}
+            <button type="submit" class="btn-submit btn-small"
+              onclick="return confirm('Approve {{ student.username }}?');">
+              Approve
+            </button>
+          </form>
+
+          <!-- Deny Form -->
+          <form action="{{ url_for('auth.coppa_deny', user_id=student.id) }}" method="POST" style="display:inline;">
+            {{ csrf_token() }}
+            <button type="submit" class="btn-submit btn-small btn-deny"
+              onclick="return confirm('Deny {{ student.username }}?');">
+              Deny
+            </button>
+          </form>
+
         </li>
       {% endfor %}
     </ul>

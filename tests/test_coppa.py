@@ -209,3 +209,7 @@ def test_student_can_login_after_coppa_approval(client):
     with client.session_transaction() as sess:
         assert sess.get("user_id") == student["id"]
         assert sess.get("coppa_status") == "approved"
+
+
+def test_teacher_can_deny_pendng(client):
+    pass

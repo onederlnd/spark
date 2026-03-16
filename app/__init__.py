@@ -47,7 +47,9 @@ def create_app(config=None):
     init_socketio(app)
 
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "2ejfof2jf2ojwfxasf")
-    app.config["DATABASE_URL"] = os.environ.get("DATABASE_URL", "data/devstack.db")
+    app.config["DATABASE_URL"] = os.environ.get(
+        "DATABASE_URL", "spark-alpha-demo-seed-full-school.db"
+    )
     app.config["TESTING"] = False
     app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
     app.config["WTF_CSRF_SECRET_KEY"] = os.environ.get(
