@@ -1,40 +1,65 @@
 {% extends "base.html" %}
 {% block title %}Pending COPPA Approvals — SparK{% endblock %}
 
+{% block left_sidebar %}
+<div class="sidebar-title">Menu</div>
+<ul class="sidebar-nav">
+  <li><a href="{{ url_for('feed.index') }}"><span class="icon">⬅</span> Back to Feed</a></li>
+</ul>
+
+</ul>
+{% endblock %}
+
 {% block content %}
-<div class="form-page">
-  <h1 class="form-title">Pending COPPA Approvals</h1>
-  <p class="form-subtitle">These students are waiting for COPPA approval:</p>
+<div class="feed-header"><div>
+  <h1 class="feed-title">Pending COPPA Approvals</h1>
+  <p class="feed-desc">Review and approve students under 13 for access to the platform.</p>
 
-  {% if pending_students %}
-    <ul class="student-list">
-      {% for student in pending_students %}
-        <li>
-          {{ student.username }}
+</div></div>
 
+{% if pending_students %}
+  <div class="post-list">
+    {% for student in pending_students %}
+    <div class="card" style="margin-bottom:1rem;">
+      <div class="card-body" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <strong>{{ student.username }}</strong>
+          <div style="font-size:0.85rem; color:var(--muted);">
+            DOB: {{ student.dob }}
+          </div>
+        </div>
+        <div style="display:flex; gap:0.5rem;">
           <!-- Approve Form -->
           <form action="{{ url_for('auth.coppa_approve', user_id=student.id) }}" method="POST" style="display:inline;">
-            {{ csrf_token() }}
-            <button type="submit" class="btn-submit btn-small"
-              onclick="return confirm('Approve {{ student.username }}?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary btn-small"
+                    onclick="return confirm('Approve {{ student.username }}?');">
               Approve
             </button>
           </form>
 
           <!-- Deny Form -->
           <form action="{{ url_for('auth.coppa_deny', user_id=student.id) }}" method="POST" style="display:inline;">
-            {{ csrf_token() }}
-            <button type="submit" class="btn-submit btn-small btn-deny"
-              onclick="return confirm('Deny {{ student.username }}?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-danger btn-small"
+                    onclick="return confirm('Deny {{ student.username }}?');">
               Deny
             </button>
           </form>
-
-        </li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No students pending approval.</p>
-  {% endif %}
-</div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="empty-state">
+    <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
+      <rect x="16" y="12" width="40" height="48" rx="4" stroke="currentColor" stroke-width="2"/>
+      <path d="M24 28h24M24 36h24M24 44h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      <path d="M24 20h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <div class="empty-state-title">No students pending approval</div>
+    <div class="empty-state-desc">All students have been reviewed.</div>
+  </div>
+{% endif %}
 {% endblock %}

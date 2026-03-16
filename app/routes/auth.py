@@ -156,13 +156,26 @@ def coppa_pending():
     return render_template("coppa_pending.html", pending_students=pending_students)
 
 
-"""@auth_bp.route("/coppa/deny")
+@auth_bp.route("/coppa/deny/<int:user_id>", methods=["POST"])
 @login_required
 def coppa_deny(user_id):
     user = current_user()
     if not user or user["role"] != "teacher":
         flash("Access denied", "error")
         return redirect(url_for("feed.index"))
+
     db = get_db()
-    student = db.execute("SELECT id, username, role FROM users WHERE id=?", (user_id,)).fetchone()
-    if not student or students"""
+
+    student = db.execute(
+        "SELECT id, username, role FROM users WHERE id=?", (user_id,)
+    ).fetchone()
+
+    if not student or student["role"] != "student":
+        flash("Invalid target", "error")
+        return redirect(url_for("auth.coppa_pending"))
+
+    db.execute("UPDATE users SET coppa_status='denied' WHERE id=?", (user_id,))
+    db.commit()
+
+    flash(f"{student['username']} denied successfully", "success")
+    return redirect(url_for("auth.coppa_pending"))
