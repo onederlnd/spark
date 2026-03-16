@@ -1678,3 +1678,135 @@ a:hover { text-decoration: underline; }
   .profile-info { flex-direction: column; align-items: flex-start; }
   .profile-actions { padding-top: 0; }
 }
+/* ============================================
+   TOPNAV — Redesigned to match SparK theme
+   ============================================ */
+
+.topnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px;
+  height: 64px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: background 0.2s, color 0.2s;
+  font-family: var(--font);
+  gap: 16px;
+}
+
+.topnav .logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+  font-size: 1.3rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.topnav .logo:hover { text-decoration: none; }
+
+.topnav .logo-hex {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1rem;
+}
+
+.topnav .nav-links {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.topnav .nav-link {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: all 0.15s;
+  text-decoration: none;
+}
+
+.topnav .nav-link:hover {
+  background: var(--sky);
+  color: var(--blue);
+  text-decoration: none;
+}
+
+.topnav .nav-link.active {
+  color: var(--blue);
+  background: var(--sky);
+}
+
+.topnav .nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topnav .search-bar {
+  flex: 1;
+  max-width: 320px;
+  position: relative;
+}
+
+.topnav .search-bar input {
+  width: 100%;
+  padding: 8px 16px 8px 36px;
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--soft);
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.topnav .search-bar input:focus {
+  border-color: var(--blue);
+  background: var(--card);
+}
+
+.topnav .search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.85rem;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.topnav .avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue), var(--teal));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.topnav .avatar:hover {
+  transform: scale(1.05);
+  box-shadow: 0 3px 12px rgba(91,163,217,0.4);
+}

@@ -1,102 +1,115 @@
 # Devstack Feature Tracker
 
 ## Completed
-- [x] User auth (register/login/logout) `[PR]`
-- [x] Posts, replies, voting `[PR]`
-- [x] Topics `[PR]`
-- [x] Bookmarks `[PR]`
-- [x] User profiles `[PR]`
-- [x] Post editing & deletion `[PR]`
-- [x] Feed pagination `[PR]`
-- [x] Full-text search (FTS5) `[PR]`
-- [x] User following & personalized feed `[PR]`
-- [x] Notifications `[PR]`
-- [x] Docker & CI/CD `[PR]`
-- [x] Dev workflow scripts `[PR]`
-- [x] Rate limiting `[PR]`
-- [x] Error pages `[PR]`
-- [x] REST API `[PR]`
-- [x] CSRF protection `[PR]`
-- [x] Bcrypt password hashing `[PR]`
-- [x] Admin CLI tool `[PR]`
-- [x] Alembic migrations `[PR]`
-- [x] User settings page `[PR]`
+
+- [x] User auth (register/login/logout)
+- [x] Posts, replies, voting
+- [x] Topics
+- [x] Bookmarks
+- [x] User profiles
+- [x] Post editing & deletion
+- [x] Feed pagination
+- [x] Full-text search (FTS5)
+- [x] User following & personalized feed
+- [x] Notifications
+- [x] Docker & CI/CD
+- [x] Dev workflow scripts
+- [x] Rate limiting
+- [x] Error pages
+- [x] REST API
+- [x] CSRF protection
+- [x] Bcrypt password hashing
+- [x] Admin CLI tool
+- [x] Alembic migrations
+- [x] User settings page
 - [x] Dark/light theme toggle
 - [x] Mobile sidebar hamburger menu
 - [x] BBCode preview while typing
 - [x] Character counters on title, bio, topic name fields
 - [x] Empty state illustrations
-- [x] Input sanitization / XSS prevention `[Alpha]`
-- [x] Brute force protection `[Alpha]`
-- [x] Session timeout — auto-logout after inactivity `[Alpha]`
+- [x] Input sanitization / XSS prevention
+- [x] Brute force protection
+- [x] Session timeout — auto logout after inactivity
 
 ---
 
 ## Alpha / Closed Beta
-### Phase 1 — Safety Core (ship before any public users)
-- [x] Rate limiting on registration — prevent bot account creation `[Alpha]`
-- [ ] Report system — flag posts/users for moderation review `[Alpha]`
-- [ ] Content moderation queue — hold flagged content for teacher review `[Alpha]`
-- [ ] User blocking — filter content from blocked users `[Alpha]`
-- [ ] Age-appropriate content filtering — baseline keyword/content rules `[Alpha]`
-- [i] COPPA compliance — Terms of Service and Privacy Policy pages `[Alpha]`
 
-### Phase 2 — Classroom System (core product differentiator)
-- [x] Classroom DB models — `classrooms`, `classroom_students`, `lessons`, `assignments`, `submissions` `[Alpha]`
-- [x] Classroom dashboard — teacher overview of all classes `[Alpha]`
-- [x] Create/join classroom — teacher creates, students join via code `[Alpha]`
-- [x] Lessons — rich BBCode content pages with auto-created discussion thread `[Alpha]`
-- [x] Assignments — instructions + due date + submissions + auto-created discussion thread `[Alpha]`
-- [x] Student submissions — submit work, one per student per assignment `[Alpha]`
-- [x] Grading UI — teacher grades submissions with feedback, next/prev student navigation `[Alpha]`
-- [x] Submission grid — teacher sees all students + status at a glance `[Alpha]`
-- [x] Role gating — teacher/student/parent role enforcement across all classroom routes `[Alpha]`
+### Phase 1 — Safety Core
+
+- [x] Rate limiting on registration — prevent bot account creation
+- [ ] Report system — flag posts/users for moderation review
+- [ ] Content moderation queue — hold flagged content for teacher review
+- [ ] User blocking — filter content from blocked users
+- [ ] Age-appropriate content filtering — baseline keyword/content rules
+- [ ] COPPA compliance — Terms of Service and Privacy Policy pages
+
+---
+
+### Phase 2 — Classroom System
+
+- [x] Classroom DB models — `classrooms`, `classroom_students`, `lessons`, `assignments`, `submissions`
+- [x] Classroom dashboard — teacher overview of all classes
+- [x] Create/join classroom — teacher creates, students join via code
+- [x] Lessons — rich BBCode content pages with auto-created discussion thread
+- [x] Assignments — instructions + due date + submissions + auto-created discussion thread
+- [x] Student submissions — submit work, one per student per assignment
+- [x] Grading UI — teacher grades submissions with feedback
+- [x] Submission grid — teacher sees all students and status at a glance
+- [x] Role gating — teacher/student/parent enforcement across classroom routes
 
 ---
 
 ## Beta / Trust & Verification
-### Phase 3 — Trust & Verification (makes it real for parents and schools)
-- [ ] Email verification on register `[Beta]`
-- [ ] Admin dashboard — proper moderation UI, not just CLI tools `[Beta]`
-- [ ] Parent dashboard — visibility into student activity `[Beta]`
-- [ ] Topic moderators — role-based permissions per topic `[Beta]`
-- [ ] School/district accounts — umbrella accounts managing multiple classrooms `[Beta]`
-- [ ] Safety visibility modes — teacher can toggle full view vs flagged-only `[Beta]`
-- [ ] Auto-hide flagged content — hold for review, notify teacher immediately `[Beta]`
+
+### Phase 3 — Trust & Verification
+
+- [ ] Email verification on register
+- [ ] Admin dashboard — proper moderation UI
+- [ ] Parent dashboard — visibility into student activity
+- [ ] Topic moderators — role-based permissions per topic
+- [ ] School/district accounts — umbrella accounts managing multiple classrooms
+- [ ] Safety visibility modes — teacher can toggle full view vs flagged-only
+- [ ] Auto-hide flagged content — hold for review and notify teacher
 
 ---
 
 ## Public Release / Growth & Engagement
-### Phase 4 — Growth & Engagement (once the platform is trusted)
-- [ ] Onboarding flow — guide new users on first login `[PR]`
-- [ ] User mentions — @username triggers a notification `[PR]`
-- [ ] Achievement badges — lightweight engagement without dark patterns `[PR]`
-- [ ] Direct messages — teacher↔student only initially, not peer-to-peer `[PR]`
-- [ ] Landing page — public-facing marketing site `[PR]`
-- [ ] Data export — users can download their own data `[PR]`
-- [ ] Trending algorithm — weight by votes, reply count, and time decay `[PR]`
+
+### Phase 4 — Growth & Engagement
+
+- [ ] Onboarding flow — guide new users on first login
+- [ ] User mentions — `@username` triggers notification
+- [ ] Achievement badges — lightweight engagement without dark patterns
+- [ ] Direct messages — teacher ↔ student only initially
+- [ ] Landing page — public marketing site
+- [ ] Data export — users can download their own data
+- [ ] Trending algorithm — weight by votes, replies, and time decay
 
 ---
 
 ## Ops & Hardening
-### Phase 5 — Ops & Hardening (runs alongside other phases)
-- [ ] Full audit log — track all data changes with who/when/what `[Alpha/Beta]`
-- [ ] Structured logging — replace print statements with proper log levels `[Alpha/Beta]`
-- [ ] Health check endpoint — /health returns app and DB status `[Alpha/Beta]`
-- [ ] Database backups — scheduled backup script with rotation `[Alpha/Beta]`
-- [ ] Dependency vulnerability scanning — pip-audit in CI pipeline `[Alpha/Beta]`
-- [ ] Feature flags — toggle features on/off without deploying `[Alpha/Beta]`
+
+### Phase 5 — Ops & Hardening
+
+- [ ] Full audit log — track all data changes with who/when/what
+- [ ] Structured logging — replace print statements with proper log levels
+- [ ] Health check endpoint — `/health` returns app and DB status
+- [ ] Database backups — scheduled backup script with rotation
+- [ ] Dependency vulnerability scanning — `pip-audit` in CI pipeline
+- [ ] Feature flags — toggle features without deploying
 
 ---
 
 ## Backlog
+
 - [ ] Rubric grading — structured scoring within assignments
-- [ ] Multiple choice / checkbox assignment types — minimize required typing for younger students
+- [ ] Multiple choice / checkbox assignment types
 - [ ] Homeschool mode — parent receives notifications instead of teacher
-- [ ] BBCode Install
-- [ ] PWA support — manifest.json, service worker, home screen icon
+- [ ] BBCode install
+- [ ] PWA support — manifest.json + service worker
 - [ ] Penpals
-- [x] User not found returns white "User not found" error page instead of formatted 
+- [x] User not found page returns formatted error instead of white page
 - [ ] Upgrade COPPA
 - [ ] Update API
-- [ ] Use Websockets to update "COPPA pending" screen to feed without logging out
+- [ ] WebSocket update for "COPPA pending" screen instead of logout

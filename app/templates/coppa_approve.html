@@ -1,13 +1,57 @@
 {% extends "base.html" %}
-{% block title %}COPPA Notice — SparK{% endblock %}
+{% block title %}COPPA Approval — SparK{% endblock %}
 
 {% block content %}
-<div class="form-page">
-  <h1 class="form-title">Account Pending Approval</h1>
-  <p class="form-subtitle">Your account is pending COPPA approval. You cannot access the feed until a teacher approves your account.</p>
 
-  {% if student.username %}
-    <p>Username: {{ student.username }}</p>
+<div class="form-page">
+  <h1 class="form-title">COPPA Approval</h1>
+  <p class="form-subtitle">Review and approve students pending COPPA verification</p>
+
+  {% if error %}
+    <div class="flash flash-error">{{ error }}</div>
   {% endif %}
+
+  <form method="POST" class="post-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <label>Student Username</label>
+    <div class="field-wrap">
+      <input type="text" name="username" id="username" value="{{ student.username }}" readonly>
+    </div>
+
+    <label>Date of Birth</label>
+    <div class="field-wrap">
+      <input type="text" name="dob" id="dob" value="{{ student.dob }}" readonly>
+    </div>
+
+    <label>Parent/Guardian Consent</label>
+    <div class="field-wrap">
+      <select name="consent" id="consent" required>
+        <option value="" disabled selected>Select an option</option>
+        <option value="approved">Approve</option>
+        <option value="denied">Deny</option>
+      </select>
+    </div>
+
+    <p class="field-hint">Approving this student will allow them full access to the platform. Denying will restrict their account.</p>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-submit">Submit Decision</button>
+      <a href="/classrooms" class="btn-cancel">Cancel</a>
+    </div>
+  </form>
 </div>
+
+<script>
+  function updateCounter(input, counterId, max) {
+    const counter = document.getElementById(counterId);
+    if (!counter) return;
+    const len = input.value.length;
+    counter.textContent = len + ' / ' + max;
+    counter.className = 'char-counter';
+    if (len / max >= 0.95) counter.classList.add('danger');
+    else if (len / max >= 0.8) counter.classList.add('warn');
+  }
+</script>
+
 {% endblock %}

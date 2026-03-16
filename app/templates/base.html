@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}SparK{% endblock %}</title>
+  <title>{% block title %}SparK - {% endblock %}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6">
@@ -91,6 +91,8 @@
 
       {% if session.username %}
       <a href="/classrooms" class="nav-link">Classrooms</a>
+      <a href="/auth/coppa/pending
+      " class="nav-link">Pending COPPA</a>
       <a href="/topics" class="nav-link {% if request.path == '/topics' %}active{% endif %}">Topics</a>
       <a href="/posts/new" class="btn btn-primary">+ New Post</a>
       <a href="/notifications/" class="nav-bell">
