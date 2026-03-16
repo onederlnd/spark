@@ -17,6 +17,7 @@ from app.models.post import (
     update_post,
     delete_post,
 )
+from app.models.user import coppa_required
 from app.models.topic import get_all_topics
 from app.models.notifications import create_notification
 from app.routes.feed import login_required
@@ -35,6 +36,7 @@ BODY_MAX = 10000
 @posts_bp.route("/new", methods=["GET", "POST"])
 @login_required
 @rate_limit(max_requests=10, window_seconds=60)  # limit to  posts per minute
+@coppa_required
 def new_post():
     topics = get_all_topics()
     if request.method == "POST":
@@ -62,6 +64,7 @@ def new_post():
 
 @posts_bp.route("/<int:post_id>")
 @login_required
+@coppa_required
 @rate_limit(
     max_requests=10, window_seconds=60
 )  # limit to 10 views per minute to prevent abuse
@@ -79,6 +82,7 @@ def view_post(post_id):
 
 @posts_bp.route("/<int:post_id>/edit", methods=["GET", "POST"])
 @login_required
+@coppa_required
 @rate_limit(max_requests=10, window_seconds=60)
 def edit_post(post_id):
     post = get_post(post_id)
@@ -108,6 +112,7 @@ def edit_post(post_id):
 @posts_bp.route("/<int:post_id>/delete", methods=["POST"])
 @login_required
 @rate_limit(max_requests=10, window_seconds=60)
+@coppa_required
 def delete(post_id):
     post = get_post(post_id)
     if not post:
@@ -125,6 +130,7 @@ def delete(post_id):
 @posts_bp.route("/<int:post_id>/reply", methods=["POST"])
 @login_required
 @rate_limit(max_requests=10, window_seconds=60)
+@coppa_required
 def reply(post_id):
     body = sanitize_bbcode(request.form.get("body", ""), max_length=BODY_MAX)
     if body:
@@ -143,6 +149,7 @@ def reply(post_id):
 @posts_bp.route("/<int:post_id>/vote", methods=["POST"])
 @login_required
 @rate_limit(max_requests=30, window_seconds=60)
+@coppa_required
 def vote(post_id):
     value = int(request.form.get("value", 1))
     vote_post(session["user_id"], post_id, value)

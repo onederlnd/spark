@@ -15,7 +15,12 @@ def test_notification_on_follow(auth_client, app):
     other = app.test_client(use_cookies=True)
     other.post(
         "/auth/register",
-        data={"username": "otheruser", "password": "pass123", "bio": ""},
+        data={
+            "username": "otheruser",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2010-05-21",
+        },
     )
     response = auth_client.post("/profile/otheruser/follow")
     assert response.status_code == 302
@@ -46,7 +51,12 @@ def test_notification_on_reply(auth_client, app):
 
     other.post(
         "/auth/register",
-        data={"username": "otheruser", "password": "pass123", "bio": ""},
+        data={
+            "username": "otheruser",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2010-05-21",
+        },
     )
     other.post(
         "/auth/login",

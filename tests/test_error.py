@@ -5,7 +5,12 @@ def test_403_page(auth_client, app):
     other = app.test_client(use_cookies=True)
     other.post(
         "/auth/register",
-        data={"username": "otheruser", "password": "pass123", "bio": ""},
+        data={
+            "username": "otheruser",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2010-05-21",
+        },
     )
     other.post("/auth/login", data={"username": "otheruser", "password": "pass123"})
     response = other.post(

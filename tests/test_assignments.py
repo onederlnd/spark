@@ -103,15 +103,20 @@ def test_create_submission(app, teacher_client, classroom, assignment):
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "submitter", "password": "pass123", "role": "student"},
+        data={
+            "username": "submitter",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "submitter", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
+    client.post("/auth/login", data={"username": "submitter", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
 
-    response = c.post(
+    response = client.post(
         f"/classrooms/{classroom}/assignments/{assignment}",
         data={"body": "My answer is 42."},
     )
@@ -135,15 +140,20 @@ def test_create_submission_assignment_not_found(app, teacher_client, classroom):
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "sub2", "password": "pass123", "role": "student"},
+        data={
+            "username": "sub2",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "sub2", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
+    client.post("/auth/login", data={"username": "sub2", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
 
-    response = c.post(
+    response = client.post(
         f"/classrooms/{classroom}/assignments/99999",
         data={"body": "My answer."},
     )
@@ -158,15 +168,20 @@ def test_create_submission_empty_body(app, teacher_client, classroom, assignment
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "sub3", "password": "pass123", "role": "student"},
+        data={
+            "username": "sub3",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "sub3", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
+    client.post("/auth/login", data={"username": "sub3", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
 
-    response = c.post(
+    response = client.post(
         f"/classrooms/{classroom}/assignments/{assignment}",
         data={"body": ""},
     )
@@ -182,19 +197,24 @@ def test_create_submission_duplicate(app, teacher_client, classroom, assignment)
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "resub", "password": "pass123", "role": "student"},
+        data={
+            "username": "resub",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "resub", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
+    client.post("/auth/login", data={"username": "resub", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
 
-    c.post(
+    client.post(
         f"/classrooms/{classroom}/assignments/{assignment}",
         data={"body": "First answer."},
     )
-    c.post(
+    client.post(
         f"/classrooms/{classroom}/assignments/{assignment}",
         data={"body": "Updated answer."},
     )
@@ -227,18 +247,23 @@ def test_get_submission(app, teacher_client, classroom, assignment):
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "viewer", "password": "pass123", "role": "student"},
+        data={
+            "username": "viewer",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "viewer", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
-    c.post(
+    client.post("/auth/login", data={"username": "viewer", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
+    client.post(
         f"/classrooms/{classroom}/assignments/{assignment}", data={"body": "My answer."}
     )
 
-    response = c.get(f"/classrooms/{classroom}/assignments/{assignment}")
+    response = client.get(f"/classrooms/{classroom}/assignments/{assignment}")
     assert response.status_code == 200
     assert b"My answer." in response.data
 
@@ -251,15 +276,20 @@ def test_get_submission_not_found(app, teacher_client, classroom, assignment):
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "nosub", "password": "pass123", "role": "student"},
+        data={
+            "username": "nosub",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "nosub", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
+    client.post("/auth/login", data={"username": "nosub", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
 
-    response = c.get(f"/classrooms/{classroom}/assignments/{assignment}")
+    response = client.get(f"/classrooms/{classroom}/assignments/{assignment}")
     assert response.status_code == 200
     assert b"Submit Your Work" in response.data
 
@@ -281,23 +311,28 @@ def test_get_submissions_for_assignment(app, teacher_client, classroom, assignme
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "ts1", "password": "pass123", "role": "student"},
+        data={
+            "username": "ts1",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "ts1", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
-    c.post(f"/classrooms/{classroom}/assignments/{assignment}", data={"body": "Done."})
+    client.post("/auth/login", data={"username": "ts1", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
+    client.post(
+        f"/classrooms/{classroom}/assignments/{assignment}", data={"body": "Done."}
+    )
 
     response = teacher_client.get(f"/classrooms/{classroom}/assignments/{assignment}")
     assert response.status_code == 200
     assert b"Grade Submissions" in response.data
 
 
-def test_get_submissions_for_assignment_not_teacher(
-    app, teacher_client, classroom, assignment
-):
+def test_get_submissions_for_assignment_not_teacher(app, classroom, assignment):
     """Student does not see the Grade Submissions button."""
     from app.models.classroom import get_classroom
 
@@ -305,15 +340,20 @@ def test_get_submissions_for_assignment_not_teacher(
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "ts2", "password": "pass123", "role": "student"},
+        data={
+            "username": "ts2",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "ts2", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
+    client.post("/auth/login", data={"username": "ts2", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
 
-    response = c.get(f"/classrooms/{classroom}/assignments/{assignment}")
+    response = client.get(f"/classrooms/{classroom}/assignments/{assignment}")
     assert b"Grade Submissions" not in response.data
 
 
@@ -339,15 +379,20 @@ def test_get_submission_grid_not_teacher(app, teacher_client, classroom, assignm
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "grid1", "password": "pass123", "role": "student"},
+        data={
+            "username": "grid1",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "grid1", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
+    client.post("/auth/login", data={"username": "grid1", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
 
-    response = c.get(f"/classrooms/{classroom}/assignments/{assignment}/grade")
+    response = client.get(f"/classrooms/{classroom}/assignments/{assignment}/grade")
     assert response.status_code == 403
 
 
@@ -367,14 +412,19 @@ def test_save_grade(app, teacher_client, classroom, assignment):
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "gradee", "password": "pass123", "role": "student"},
+        data={
+            "username": "gradee",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "gradee", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
-    c.post(
+    client.post("/auth/login", data={"username": "gradee", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
+    client.post(
         f"/classrooms/{classroom}/assignments/{assignment}", data={"body": "My work."}
     )
 
@@ -399,14 +449,19 @@ def test_save_grade_non_teacher(app, teacher_client, classroom, assignment):
         row = get_classroom(classroom)
         join_code = row["join_code"]
 
-    c = app.test_client()
-    c.post(
+    client = app.test_client()
+    client.post(
         "/auth/register",
-        data={"username": "grader2", "password": "pass123", "role": "student"},
+        data={
+            "username": "grader2",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
-    c.post("/auth/login", data={"username": "grader2", "password": "pass123"})
-    c.post("/classrooms/join", data={"join_code": join_code})
-    c.post(
+    client.post("/auth/login", data={"username": "grader2", "password": "pass123"})
+    client.post("/classrooms/join", data={"join_code": join_code})
+    client.post(
         f"/classrooms/{classroom}/assignments/{assignment}", data={"body": "My work."}
     )
 
@@ -416,7 +471,7 @@ def test_save_grade_non_teacher(app, teacher_client, classroom, assignment):
         student = get_user_by_username("grader2")
         student_id = student["id"]
 
-    response = c.post(
+    response = client.post(
         f"/classrooms/{classroom}/assignments/{assignment}/grade/{student_id}",
         data={"grade": "A", "feedback": ""},
     )

@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request
 from app.models.post import search_posts
 from app.models.topic import search_topics
+from app.models.user import coppa_required
 from app.routes.feed import login_required
 
 search_bp = Blueprint("search", __name__)
@@ -8,6 +9,7 @@ search_bp = Blueprint("search", __name__)
 
 @search_bp.route("/search")
 @login_required
+@coppa_required
 def search():
     query = request.args.get("q", "").strip()
     search_type = request.args.get("type", "posts")

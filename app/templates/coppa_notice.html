@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}COPPA Notice — SparK{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <h1 class="form-title">Account Pending Approval</h1>
+  <p class="form-subtitle">Your account is pending COPPA approval. You cannot access the feed until a teacher approves your account.</p>
+
+  {% if student.username %}
+    <p>Username: {{ student.username }}</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -6,7 +6,12 @@ def test_follow_user(auth_client, app):
     other = app.test_client(use_cookies=True)
     other.post(
         "/auth/register",
-        data={"username": "otheruser", "password": "pass123", "bio": ""},
+        data={
+            "username": "otheruser",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2010-05-21",
+        },
     )
     response = auth_client.post("/profile/otheruser/follow")
     assert response.status_code == 302
@@ -17,7 +22,12 @@ def test_unfollow_user(auth_client, app):
     other = app.test_client(use_cookies=True)
     other.post(
         "/auth/register",
-        data={"username": "otheruser", "password": "pass123", "bio": ""},
+        data={
+            "username": "otheruser",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2010-05-21",
+        },
     )
     auth_client.post("/profile/otheruser/follow")
     response = auth_client.post("/profile/otheruser/follow")

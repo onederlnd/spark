@@ -135,6 +135,7 @@ def test_get_classrooms_for_user_empty(app):
             "username": "newteacher",
             "password": "pass123",
             "role": "teacher",
+            "dob": "2010-05-21",
         },
     )
     cursor.post("/auth/login", data={"username": "newteacher", "password": "pass123"})
@@ -205,7 +206,12 @@ def test_join_classroom(app, teacher_client, classroom):
     cursor = app.test_client()
     cursor.post(
         "/auth/register",
-        data={"username": "joiner", "password": "pass123", "role": "student"},
+        data={
+            "username": "joiner",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-21",
+        },
     )
     cursor.post("/auth/login", data={"username": "joiner", "password": "pass123"})
 

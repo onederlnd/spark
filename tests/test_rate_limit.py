@@ -51,7 +51,12 @@ def test_follow_rate_limit(auth_client, app):
     for i in range(20):
         app.test_client().post(
             "/auth/register",
-            data={"username": f"user{i}", "password": "pass123", "bio": ""},
+            data={
+                "username": f"user{i}",
+                "password": "pass123",
+                "bio": "",
+                "dob": "2010-05-21",
+            },
         )
         auth_client.post(f"/profile/user{i}/follow")
         response = auth_client.post(f"/profile/user{i}/follow")
@@ -66,7 +71,12 @@ def test_register_rate_limit(client):
     for i in range(36):
         response = client.post(
             "/auth/register",
-            data={"username": f"ratelimituser{i}", "password": "pass123", "bio": ""},
+            data={
+                "username": f"ratelimituser{i}",
+                "password": "pass123",
+                "bio": "",
+                "dob": "2010-05-21",
+            },
         )
 
     assert response.status_code == 429
@@ -78,7 +88,12 @@ def test_register_rate_limit_allows_multiple_users_same_ip(client):
     for i in range(36):
         response = client.post(
             "/auth/register",
-            data={"username": f"sharedipuser{i}", "password": "pass123", "bio": ""},
+            data={
+                "username": f"sharedipuser{i}",
+                "password": "pass123",
+                "bio": "",
+                "dob": "2010-05-21",
+            },
             environ_base={"REMOTE_ADDR": "192.168.1.100"},
         )
 
@@ -106,7 +121,12 @@ def test_register_rate_limit_counts_failed_submissions(client):
     for _ in range(35):
         response = client.post(
             "/auth/register",
-            data={"username": "", "password": "pass123", "bio": ""},
+            data={
+                "username": "",
+                "password": "pass123",
+                "bio": "",
+                "dob": "2010-05-21",
+            },
             environ_base={"REMOTE_ADDR": "192.168.1.200"},
         )
 
@@ -114,7 +134,12 @@ def test_register_rate_limit_counts_failed_submissions(client):
 
     response = client.post(
         "/auth/register",
-        data={"username": "", "password": "pass123", "bio": ""},
+        data={
+            "username": "",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2010-05-21",
+        },
         environ_base={"REMOTE_ADDR": "192.168.1.200"},
     )
 
@@ -128,7 +153,12 @@ def test_register_rate_limit_ip_rotation_bypass_attempts(client):
         ip_addr = f"192.168.1.{i}"
         response = client.post(
             "auth/register",
-            data={"username": f"user{i}", "password": "pass123", "bio": ""},
+            data={
+                "username": f"user{i}",
+                "password": "pass123",
+                "bio": "",
+                "dob": "2010-05-21",
+            },
             environ_base={"REMOTE_ADDR": ip_addr},
         )
 
@@ -136,7 +166,12 @@ def test_register_rate_limit_ip_rotation_bypass_attempts(client):
 
     response = client.post(
         "/auth/register",
-        data={"username": "user36", "password": "pass123", "bio": ""},
+        data={
+            "username": "user36",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2010-05-21",
+        },
         environ_base={"REMOTE_ADDR": "192.168.1.100"},
     )
 
@@ -148,12 +183,24 @@ def test_register_rate_limit_invalid_forms_still_count(client):
 
     for _ in range(2):
         client.post(
-            "/auth/register", data={"username": "", "password": "pass123", "bio": ""}
+            "/auth/register",
+            data={
+                "username": "",
+                "password": "pass123",
+                "bio": "",
+                "dob": "2010-05-21",
+            },
         )
 
     for _ in range(34):
         response = client.post(
-            "/auth/register", data={"username": "", "password": "pass123", "bio": ""}
+            "/auth/register",
+            data={
+                "username": "",
+                "password": "pass123",
+                "bio": "",
+                "dob": "2010-05-21",
+            },
         )
 
     assert response.status_code == 429

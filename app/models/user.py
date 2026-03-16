@@ -2,22 +2,84 @@
 
 import sqlite3
 import bcrypt
+
+from functools import wraps
 from app.models import get_db
-from flask import current_app
+from app.models.notifications import create_notification
+from app.utils.coppa import is_coppa_approved
+from flask import current_app, session, redirect, url_for, flash
+from datetime import datetime
 
 
-def create_user(username, password, bio="", role="student"):
+def calculate_age(dob):
+
+    today = datetime.today()
+
+    return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+
+def notify_teachers_coppa_pending(student):
+    db = get_db()
+
+    teachers = db.execute("SELECT id FROM users WHERE role='teacher'").fetchall()
+
+    for teacher in teachers:
+        create_notification(
+            user_id=teacher["id"],
+            message=f"{student['username']} has pending COPPA approval",
+            type="coppa",
+            link="/auth/coppa/approve",
+        )
+
+
+def coppa_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_id = session.get("user_id")
+        if not user_id:
+            flash("You must be logged in", "error")
+            return redirect(url_for("auth.login"))
+
+        user = get_user_by_id(user_id)
+        if not is_coppa_approved(user):
+            flash("Your account is restricted until COPPA approval", "warning")
+            return redirect(url_for("auth.coppa_notice"))
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+def create_user(username, password, bio="", role="student", dob=None):
+
+    if dob is None:
+        return False, "Date of birth required"
+
     db = get_db()
     rounds = current_app.config.get("BCRYPT_ROUNDS", 12)
+
+    try:
+        dob_date = datetime.strptime(dob, "%Y-%m-%d").date()
+    except ValueError:
+        return False, "Invalid date format, must be YYYY-MM-DD"
+
+    # Determine COPPA status
+    age = calculate_age(dob_date)
+    coppa_status = "pending" if age < 13 else "approved"
+
+    dob_str = dob_date.isoformat()
+
     password_hash = bcrypt.hashpw(
         password.encode(), bcrypt.gensalt(rounds=rounds)
     ).decode()
     try:
         db.execute(
-            "INSERT INTO users (username, password_hash, bio, role) VALUES (?, ?, ?, ?)",
-            (username, password_hash, bio, role),
+            "INSERT INTO users (username, password_hash, dob, bio, role, coppa_status) VALUES (?, ?, ?, ?, ?, ?)",
+            (username, password_hash, dob_str, bio, role, coppa_status),
         )
         db.commit()
+        if role == "student" and coppa_status == "pending":
+            student = get_user_by_username(username)
+            notify_teachers_coppa_pending(student)
         return True, None
     except sqlite3.IntegrityError:
         return False, "Username already taken"
@@ -67,7 +129,7 @@ def follow_user(follower_id, followed_id):
             "INSERT INTO follows (follower_id, followed_id) VALUES (?, ?)",
             (follower_id, followed_id),
         )
-        db.connect()
+        db.commit()
         return True
     except Exception:
         # composite PK prevents duplicates

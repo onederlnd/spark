@@ -2,9 +2,13 @@
 
 from flask import Blueprint, request, session, redirect, url_for, render_template, flash
 from datetime import datetime, timezone
-from app.models.user import create_user, check_password
+from app.models.user import create_user, check_password, get_user_by_id
+from app.models import get_db
+from app.models.notifications import create_notification
+from app.routes.feed import login_required
 from app.utils.brute_force import is_locked_out, record_failure, record_success
 from app.utils.rate_limit import rate_limit
+from app.utils.auth_helper import current_user
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -18,20 +22,38 @@ def register():
         username = sanitize_username(request.form.get("username"))
         password = request.form["password"]
         bio = sanitize_plain(request.form.get("bio", ""), max_length=300)
-        role = request.form.get("role", "student")
+        dob = request.form.get("dob")
 
-        if role not in ("teacher", "student"):
-            role = "student"
+        if not dob:
+            flash("Date of Birth is required.")
+            return render_template("auth/register.html")
+
+        role = request.form.get("role", "student")
+        role = role if role in ("teacher", "student") else "student"
 
         if not username or not password:
             flash("Username and password are required", "error")
             return render_template("auth/register.html")
 
-        success, error = create_user(username, password, bio, role=role)
+        success, error = create_user(username, password, bio, role=role, dob=dob)
         if success:
+            db = get_db()
+
+            teachers = db.execute(
+                "SELECT id FROM users WHERE role='teacher'"
+            ).fetchall()
+
+            for teacher in teachers:
+                create_notification(
+                    user_id=teacher["id"],
+                    message=f"{username} has pending COPPA approval",
+                    type="coppa",
+                    link="/auth/coppa/approve",
+                )
+
             flash("Account created! Please log in.", "success")
             return redirect(url_for("auth.login"))
-        else:
+        if error:
             flash(error, "error")
 
     return render_template("auth/register.html")
@@ -53,9 +75,12 @@ def login():
         if user:
             record_success(username)
             session.clear()
+
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             session["last_active"] = datetime.now(timezone.utc).isoformat()
+            session["coppa_status"] = user["coppa_status"]
+
             return redirect(url_for("feed.index"))
         else:
             record_failure(username, ip)
@@ -67,3 +92,65 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for("feed.index"))
+
+
+# --- coppa
+
+
+@auth_bp.route("/coppa/notice")
+@login_required
+def coppa_notice():
+    """show to students whose COPPA status is pending"""
+    student = get_user_by_id(session.get("user_id"))
+
+    return render_template("coppa_notice.html", student=student)
+
+
+@auth_bp.route("/coppa/approve/<int:user_id>", methods=["POST"])
+@login_required
+def coppa_approve(user_id):
+    """Teacher approves a student under COPPA"""
+    user = current_user()
+
+    if user["role"] != "teacher":
+        flash("Access denied", "error")
+        return redirect(url_for("feed.index"))
+
+    db = get_db()
+
+    student = db.execute(
+        "SELECT id, username, role FROM users WHERE id=?", (user_id,)
+    ).fetchone()
+
+    if not student:
+        flash("Student not found", "error")
+        return redirect(url_for("auth.coppa_pending"))
+
+    if student["role"] != "student":
+        flash("Invalid approval target", "error")
+        return redirect(url_for("auth.coppa_pending"))
+
+    db.execute("UPDATE users SET coppa_status='approved' WHERE id=?", (user_id,))
+    db.commit()
+
+    flash(f"{student['username']} approved successfully", "success")
+    return redirect(url_for("auth.coppa_pending"))
+
+
+@auth_bp.route("/coppa/pending")
+@login_required
+def coppa_pending():
+    """Teacher dashboard for approving students under 13."""
+    user = current_user()
+
+    if user["role"] != "teacher":
+        flash("Access denied", "error")
+        return redirect(url_for("feed.index"))
+
+    db = get_db()
+
+    pending_students = db.execute(
+        "SELECT id, username, dob FROM users WHERE coppa_status='pending'"
+    ).fetchall()
+
+    return render_template("coppa_pending.html", pending_students=pending_students)

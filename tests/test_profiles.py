@@ -27,7 +27,12 @@ def test_other_profile_no_bookmarks(auth_client):
     # create another user
     auth_client.post(
         "/auth/register",
-        data={"username": "otheruser", "password": "pass123", "bio": ""},
+        data={
+            "username": "otheruser",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2010-05-21",
+        },
     )
     # viewing profile shouldn't show bookmarks
     response = auth_client.get("/profile/otheruser")

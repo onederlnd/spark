@@ -1,6 +1,7 @@
 # app/models/post.py
 
 from app.models import get_db
+from app.models.user import coppa_required
 
 PER_PAGE = 20
 
@@ -41,6 +42,7 @@ def get_feed(page=1, topic_id=None):
     return rows[:PER_PAGE], has_next
 
 
+@coppa_required
 # --- posting
 def create_post(user_id, title, body, topic_id=None, parent_id=None):
     db = get_db()

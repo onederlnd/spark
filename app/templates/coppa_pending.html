@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Pending COPPA Approvals — SparK{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <h1 class="form-title">Pending COPPA Approvals</h1>
+  <p class="form-subtitle">These students are waiting for COPPA approval:</p>
+
+  {% if pending_students %}
+    <ul class="student-list">
+      {% for student in pending_students %}
+        <li>
+          {{ student.username }}
+          <a href="/auth/coppa/approve/{{ student.id }}" class="btn-submit btn-small">Approve</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No students pending approval.</p>
+  {% endif %}
+</div>
+{% endblock %}

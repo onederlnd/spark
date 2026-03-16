@@ -3,13 +3,14 @@
 from flask import Blueprint, request, render_template, session, redirect, url_for
 from app.models.post import get_feed, get_following_feed
 from app.models.topic import get_all_topics, get_topic_by_name
+from app.models.user import coppa_required
+
 from functools import wraps
 
 feed_bp = Blueprint("feed", __name__)
 
 
 def login_required(f):
-
     @wraps(f)
     def decorated(*args, **kwargs):
         if "user_id" not in session:
@@ -22,6 +23,7 @@ def login_required(f):
 # --- auth decorator
 @feed_bp.route("/")
 @login_required
+@coppa_required
 def index():
     page = request.args.get("page", 1, type=int)
     feed_type = request.args.get("feed", "all")

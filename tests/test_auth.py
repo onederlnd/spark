@@ -8,6 +8,7 @@ def test_register_success(client):
             "username": "newuser",
             "password": "pass123",
             "bio": "This is a newuser test bio",
+            "dob": "2010-05-21",
         },
     )
 
@@ -21,6 +22,7 @@ def test_register_duplicate_username(client):
         "username": "dupeuser",
         "password": "pass123",
         "bio": "",
+        "dob": "2010-05-21",
     }
     client.post("/auth/register", data=data)
     response = client.post("/auth/register", data=data)
@@ -36,6 +38,7 @@ def test_login_success(client):
             "username": "loginuser",
             "password": "pass123",
             "bio": "",
+            "dob": "2010-05-21",
         },
     )
     response = client.post(
@@ -52,7 +55,12 @@ def test_login_success(client):
 def test_login_wrong_password(client):
     client.post(
         "/auth/register",
-        data={"username": "wrongpass", "password": "correctpass", "bio": ""},
+        data={
+            "username": "wrongpass",
+            "password": "correctpass",
+            "bio": "",
+            "dob": "2010-05-21",
+        },
     )
     response = client.post(
         "/auth/login", data={"username": "wrongpass", "password": "wrongpass"}

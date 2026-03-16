@@ -84,7 +84,12 @@ def auth_client(app):
     client = app.test_client()
     client.post(
         "/auth/register",
-        data={"username": "testuser", "password": "pass123", "bio": "test bio"},
+        data={
+            "username": "testuser",
+            "password": "pass123",
+            "bio": "test bio",
+            "dob": "2010-05-21",
+        },
     )
     client.post(
         "/auth/login",
@@ -107,6 +112,7 @@ def teacher_client(app):
             "password": "pass123",
             "bio": "test teacher",
             "role": "teacher",
+            "dob": "2000-01-01",
         },
     )
     client.post("/auth/login", data={"username": "teacher1", "password": "pass123"})

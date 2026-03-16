@@ -8,6 +8,7 @@ from app.models.user import (
     follow_user,
     get_following_count,
     get_followers_count,
+    coppa_required,
 )
 from app.models.post import get_posts_by_user, get_bookmarks, toggle_bookmark
 from app.models.notifications import create_notification
@@ -21,6 +22,7 @@ profile_bp = Blueprint("profile", __name__)
 @profile_bp.route("/profile/<username>")
 @login_required
 @rate_limit(max_requests=10, window_seconds=60)  # limit to 10 profile views per minute
+@coppa_required
 def view_profile(username):
     user = get_user_by_username(username)
     if not user:
@@ -48,6 +50,7 @@ def view_profile(username):
 @profile_bp.route("/profile/<username>/follow", methods=["POST"])
 @login_required
 @rate_limit(max_requests=20, window_seconds=60)
+@coppa_required
 def follow(username):
     """Toggle follow state for a user"""
     user = get_user_by_username(username)

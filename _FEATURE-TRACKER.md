@@ -34,7 +34,7 @@
 
 ## Alpha / Closed Beta
 ### Phase 1 — Safety Core (ship before any public users)
-- [ ] Rate limiting on registration — prevent bot account creation `[Alpha]`
+- [x] Rate limiting on registration — prevent bot account creation `[Alpha]`
 - [ ] Report system — flag posts/users for moderation review `[Alpha]`
 - [ ] Content moderation queue — hold flagged content for teacher review `[Alpha]`
 - [ ] User blocking — filter content from blocked users `[Alpha]`
@@ -93,8 +93,10 @@
 - [ ] Rubric grading — structured scoring within assignments
 - [ ] Multiple choice / checkbox assignment types — minimize required typing for younger students
 - [ ] Homeschool mode — parent receives notifications instead of teacher
-- [ ] Convert pasted HTML to BBCode on input (`<b>` → `[b]`, `<a href="">` → `[url=]`)
 - [ ] BBCode Install
 - [ ] PWA support — manifest.json, service worker, home screen icon
 - [ ] Penpals
-- [ ] User not found returns white "User not found" error page instead of formatted 
+- [x] User not found returns white "User not found" error page instead of formatted 
+- [ ] Upgrade COPPA
+- [ ] Update API
+- [ ] Use Websockets to update "COPPA pending" screen to feed without logging out

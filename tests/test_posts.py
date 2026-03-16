@@ -39,7 +39,7 @@ def test_create_post_missing_fields(auth_client):
 def test_upvote_post(auth_client):
     auth_client.post(
         "/posts/new",
-        data={"title": "Vote Test", "body": "VOting on this post", "topic_id": ""},
+        data={"title": "Vote Test", "body": "Voting on this post", "topic_id": ""},
     )
     response = auth_client.post("/posts/1/vote", data={"value": "1"})
     assert response.status_code == 302
@@ -117,7 +117,12 @@ def test_edit_post_forbidden(auth_client, app):
 
     reg_response = other.post(
         "/auth/register",
-        data={"username": "otheruser", "password": "pass123", "bio": ""},
+        data={
+            "username": "otheruser",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2010-05-21",
+        },
     )
     print(f"DEBUG register status: {reg_response.status_code}")
     print(f"DEBUG register location: {reg_response.headers.get('Location')}")

@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.models.topic import get_all_topics_with_counts, create_topic
+from app.models.user import coppa_required
 from app.routes.feed import login_required
 from app.utils.sanitize import sanitize_plain
 
@@ -8,6 +9,7 @@ topics_bp = Blueprint("topics", __name__, url_prefix="/topics")
 
 @topics_bp.route("/", strict_slashes=False)
 @login_required
+@coppa_required
 def index():
     topics = get_all_topics_with_counts()
     return render_template("topics.html", topics=topics)
@@ -15,6 +17,7 @@ def index():
 
 @topics_bp.route("/new", methods=["GET", "POST"])
 @login_required
+@coppa_required
 def new_topic():
     import re
 

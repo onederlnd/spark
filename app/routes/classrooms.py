@@ -27,7 +27,7 @@ from app.models.classroom import (
     get_submissions_for_assignment,
     save_grade,
 )
-from app.models.user import get_user_by_id
+from app.models.user import get_user_by_id, coppa_required
 
 classrooms_bp = Blueprint("classrooms", __name__, url_prefix="/classrooms")
 
@@ -62,6 +62,7 @@ def _is_teacher(user_id):
 
 @classrooms_bp.route("/")
 @login_required
+@coppa_required
 def dashboard():
     classrooms = get_classrooms_for_user(session["user_id"])
     is_teacher = _is_teacher(session["user_id"])
@@ -75,6 +76,7 @@ def dashboard():
 
 @classrooms_bp.route("/new", methods=["GET", "POST"])
 @login_required
+@coppa_required
 def new_classroom():
     if not _is_teacher(session["user_id"]):
         return "Forbidden", 403
@@ -100,6 +102,7 @@ def new_classroom():
 @classrooms_bp.route("/join", methods=["POST"])
 @login_required
 @rate_limit(max_requests=10, window_seconds=60)
+@coppa_required
 def join():
     join_code = request.form.get("join_code", "").strip().upper()
 
@@ -131,6 +134,7 @@ def join():
 
 @classrooms_bp.route("/<int:classroom_id>", strict_slashes=False)
 @login_required
+@coppa_required
 def classroom_home(classroom_id):
     classroom, role = _require_member(classroom_id)
     if not classroom:
@@ -152,6 +156,7 @@ def classroom_home(classroom_id):
 
 @classrooms_bp.route("/<int:classroom_id>/assignments/new", methods=["GET", "POST"])
 @login_required
+@coppa_required
 def new_assignment(classroom_id):
     classroom, role = _require_member(classroom_id)
     if not classroom:
@@ -192,6 +197,7 @@ def new_assignment(classroom_id):
     "/<int:classroom_id>/assignments/<int:assignment_id>", methods=["GET", "POST"]
 )
 @login_required
+@coppa_required
 def view_assignment(classroom_id, assignment_id):
     classroom, role = _require_member(classroom_id)
     if not classroom:
@@ -243,6 +249,7 @@ def view_assignment(classroom_id, assignment_id):
 
 @classrooms_bp.route("/<int:classroom_id>/assignments/<int:assignment_id>/grade")
 @login_required
+@coppa_required
 def grade_grid(classroom_id, assignment_id):
     classroom, role = _require_member(classroom_id)
     if not classroom:
@@ -268,6 +275,7 @@ def grade_grid(classroom_id, assignment_id):
     methods=["GET", "POST"],
 )
 @login_required
+@coppa_required
 def grade_submission(classroom_id, assignment_id, student_id):
     classroom, role = _require_member(classroom_id)
     if not classroom:

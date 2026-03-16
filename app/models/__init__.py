@@ -41,7 +41,9 @@ def time_ago(dt_str):
 
 def get_db():
     if "db" not in g:
-        db_path = current_app.config.get("DATABASE_URL", "devstack.db")
+        db_path = current_app.config.get(
+            "DATABASE_URL", "spark-alpha-demo-seed-full-school.db"
+        )
         # fmt: off
         if db_path.startswith("sqlite:///"):
             db_path = db_path[len("sqlite:///"):]
@@ -74,8 +76,10 @@ def init_db(app):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
+                dob TEXT,
                 bio TEXT DEFAULT '',
                 role TEXT NOT NULL DEFAULT 'student',
+                coppa_status TEXT NOT NULL DEFAULT 'approved',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
