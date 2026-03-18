@@ -236,7 +236,7 @@ The hard floor before any real users touch this platform.
 - [x] Content moderation queue — hold flagged content for teacher review
 - [ ] User blocking — filter content from blocked users
 - [ ] Age-appropriate content filtering — baseline keyword/content rules
-- [ ] COPPA compliance — Terms of Service and Privacy Policy pages
+- [x] COPPA compliance — Terms of Service and Privacy Policy pages
 
 ---
 
