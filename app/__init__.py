@@ -79,6 +79,7 @@ def create_app(config=None):
     from app.routes.api import api_bp
     from app.routes.settings import settings_bp
     from app.routes.classrooms import classrooms_bp
+    from app.routes.reports import reports_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -91,6 +92,7 @@ def create_app(config=None):
     app.register_blueprint(api_bp)
     app.register_blueprint(settings_bp)
     app.register_blueprint(classrooms_bp)
+    app.register_blueprint(reports_bp)
     app.jinja_env.filters["time_ago"] = time_ago
 
     csrf.exempt(api_bp)

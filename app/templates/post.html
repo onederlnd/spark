@@ -50,6 +50,12 @@
           {% if bookmarked %}🔖 Saved{% else %}🔖 Save{% endif %}
         </button>
       </form>
+
+      {% if session.user_id != post.user_id %}
+        <!-- Report Button -->
+        <button type="button" class="btn btn-ghost" onclick="openReportModal()">🚩 Report</button>
+      {% endif %}
+
       {% if session.user_id == post.user_id %}
         <a href="/posts/{{ post.id }}/edit" class="btn-edit">Edit</a>
         <form method="POST" action="/posts/{{ post.id }}/delete"
@@ -142,47 +148,68 @@
   {% endif %}
 </div>
 
+{% if session.user_id != post.user_id %}
+<!-- ====== REPORT MODAL (MOVED OUT) ====== -->
+<div id="report-modal" class="modal">
+  <div class="modal-content form-page">
+    <span class="modal-close" onclick="closeReportModal()">&times;</span>
+    <h1 class="form-title">Report Post</h1>
+    <p class="form-subtitle">Select a reason and provide details if necessary.</p>
+
+    <form method="POST" action="{{ url_for('moderation.submit_report') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="post_id" value="{{ post.id }}">
+
+      <div class="field-wrap">
+        <label for="reason">Reason <span class="required">*</span></label>
+        <select name="reason" id="reason" required>
+          <option value="">Select a reason</option>
+          <option value="spam">Spam</option>
+          <option value="harassment">Harassment</option>
+          <option value="inappropriate">Inappropriate Content</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="field-wrap">
+        <label for="description">Description (optional)</label>
+        <textarea name="description" id="description" rows="3" placeholder="Provide details..."></textarea>
+        <div class="char-counter" id="description-counter">0 / 1000</div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Submit Report</button>
+        <button type="button" class="btn btn-ghost" onclick="closeReportModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
 <script>
-  function updateCounter(input, counterId, max) {
-    const counter = document.getElementById(counterId);
-    if (!counter) return;
-    const len = input.value.length;
-    counter.textContent = len + ' / ' + max;
-    counter.className = 'char-counter';
-    if (len / max >= 0.95) counter.classList.add('danger');
-    else if (len / max >= 0.8) counter.classList.add('warn');
-  }
+function openReportModal() {
+  document.getElementById('report-modal').style.display = 'flex';
+}
+function closeReportModal() {
+  document.getElementById('report-modal').style.display = 'none';
+}
+window.onclick = function(event) {
+  const modal = document.getElementById('report-modal');
+  if (event.target == modal) modal.style.display = "none";
+}
 
-  function switchReplyTab(btn, paneId) {
-    document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(paneId).classList.add('active');
-    if (paneId === 'reply-preview') renderReplyPreview();
-  }
-
-  let replyPreviewTimer = null;
-  function scheduleReplyPreview() {
-    clearTimeout(replyPreviewTimer);
-    replyPreviewTimer = setTimeout(() => {
-      const pane = document.getElementById('reply-preview');
-      if (pane && pane.classList.contains('active')) renderReplyPreview();
-    }, 300);
-  }
-
-  function renderReplyPreview() {
-    const body = document.getElementById('reply-body').value;
-    const output = document.getElementById('reply-preview-output');
-    if (!body.trim()) { output.innerHTML = ''; return; }
-    fetch('/api/preview', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body: body })
-    })
-    .then(r => r.json())
-    .then(data => { output.innerHTML = data.html || ''; })
-    .catch(() => { output.textContent = body; });
-  }
+// Live char counter for description
+const descField = document.getElementById('description');
+const descCounter = document.getElementById('description-counter');
+if (descField && descCounter) {
+  descField.addEventListener('input', () => {
+    const len = descField.value.length;
+    descCounter.textContent = `${len} / 1000`;
+    descCounter.className = 'char-counter';
+    if (len >= 950) descCounter.classList.add('danger');
+    else if (len >= 800) descCounter.classList.add('warn');
+  });
+}
 </script>
 
 {% endblock %}

@@ -213,3 +213,7 @@ def test_student_can_login_after_coppa_approval(client):
 
 def test_teacher_can_deny_pendng(client):
     pass
+
+
+def test_student_can_not_see_feed_after_coppa_deny(client):
+    pass

@@ -133,9 +133,19 @@ def delete(post_id):
 @coppa_required
 def reply(post_id):
     body = sanitize_bbcode(request.form.get("body", ""), max_length=BODY_MAX)
-    if body:
-        create_post(session["user_id"], "re: reply", body, parent_id=post_id)
-        parent = get_post(post_id)
+    parent = get_post(post_id)
+
+    if not body:
+        return redirect(url_for("post.view_post", post_id=post_id))
+
+    if parent:
+        create_post(
+            session["user_id"],
+            "re: reply",
+            body,
+            classroom_id=parent["classroom_id"],
+            parent_id=post_id,
+        )
         if parent and parent["user_id"] != session["user_id"]:
             create_notification(
                 user_id=parent["user_id"],

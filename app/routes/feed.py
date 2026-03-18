@@ -1,23 +1,13 @@
 # app/routes/feed.py
 
-from flask import Blueprint, request, render_template, session, redirect, url_for
+from flask import Blueprint, request, render_template, session
 from app.models.post import get_feed, get_following_feed
 from app.models.topic import get_all_topics, get_topic_by_name
 from app.models.user import coppa_required
+from app.utils.auth import login_required
 
-from functools import wraps
 
 feed_bp = Blueprint("feed", __name__)
-
-
-def login_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if "user_id" not in session:
-            return redirect(url_for("auth.login"))
-        return f(*args, **kwargs)
-
-    return decorated
 
 
 # --- auth decorator

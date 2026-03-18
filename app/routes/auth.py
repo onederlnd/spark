@@ -8,7 +8,7 @@ from app.models.notifications import create_notification
 from app.routes.feed import login_required
 from app.utils.brute_force import is_locked_out, record_failure, record_success
 from app.utils.rate_limit import rate_limit
-from app.utils.auth_helper import current_user
+from app.utils.auth import current_user
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
