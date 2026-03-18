@@ -232,8 +232,8 @@ The hard floor before any real users touch this platform.
 ### Phase 1 — Safety Core
 
 - [x] Rate limiting on registration — prevent bot account creation
-- [ ] Report system — flag posts/users for moderation review
-- [ ] Content moderation queue — hold flagged content for teacher review
+- [x] Report system — flag posts/users for moderation review
+- [x] Content moderation queue — hold flagged content for teacher review
 - [ ] User blocking — filter content from blocked users
 - [ ] Age-appropriate content filtering — baseline keyword/content rules
 - [ ] COPPA compliance — Terms of Service and Privacy Policy pages
