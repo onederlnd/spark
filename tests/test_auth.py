@@ -73,11 +73,11 @@ def test_logout(auth_client):
     response = auth_client.get("/auth/logout")
     assert response.status_code == 302
     # after logout, feed should redirect to login
-    response = auth_client.get("/")
+    response = auth_client.get("/feed/", follow_redirects=False)
     assert "/auth/login" in response.headers["Location"]
 
 
 def test_feed_requires_login(client):
-    response = client.get("/")
+    response = client.get("/feed/", follow_redirects=False)
     assert response.status_code == 302
     assert "/auth/login" in response.headers["Location"]

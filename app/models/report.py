@@ -27,15 +27,15 @@ def get_reports_for_classroom(classroom_id):
 
     return db.execute(
         """
-        SELECT reports.*,
-                users.username,
+        SELECT posts.id as post_id,
                 posts.body,
-                posts.id as post_id,
+                posts.user_id as author_id,
+                author.username as author_username,
                 COUNT(reports.id) as report_count,
                 MAX(reports.created_at) as last_reported_at
             FROM reports
-            JOIN users ON reports.reported_by_user_id = users.id
             JOIN posts ON reports.post_id = posts.id
+            JOIN users AS author ON posts.user_id = author.id
             WHERE posts.classroom_id = ?
             AND reports.status = 'pending'
             GROUP BY posts.id

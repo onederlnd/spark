@@ -10,7 +10,7 @@ from app.models.user import (
     update_user_password,
 )
 
-from app.routes.feed import login_required
+from app.utils.auth import login_required
 
 settings_bp = Blueprint("settings", __name__, url_prefix="/profile")
 

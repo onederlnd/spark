@@ -20,7 +20,7 @@ from app.models.post import (
 from app.models.user import coppa_required
 from app.models.topic import get_all_topics
 from app.models.notifications import create_notification
-from app.routes.feed import login_required
+from app.utils.auth import login_required
 from app.utils.rate_limit import rate_limit
 from app.utils.sanitize import sanitize_plain, sanitize_bbcode
 

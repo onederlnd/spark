@@ -7,11 +7,11 @@ from app.models.user import coppa_required
 from app.utils.auth import login_required
 
 
-feed_bp = Blueprint("feed", __name__)
+feed_bp = Blueprint("feed", __name__, url_prefix="/feed")
 
 
 # --- auth decorator
-@feed_bp.route("/")
+@feed_bp.route("/", strict_slashes=False)
 @login_required
 @coppa_required
 def index():
