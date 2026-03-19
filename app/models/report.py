@@ -4,7 +4,7 @@ from app.models import get_db
 from app.models.post import hide_post
 
 
-def create_reports(post_id, user_id, reason, description):
+def create_report(post_id, user_id, reason, description):
     db = get_db()
 
     if prevent_duplicate_reports(post_id, user_id):

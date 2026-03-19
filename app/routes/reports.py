@@ -1,7 +1,7 @@
 # app/routes/reports.py
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from app.models.report import create_reports, get_reports_for_classroom
+from app.models.report import create_report, get_reports_for_classroom
 from app.models.post import delete_post, get_post
 from app.models.report import resolve_reports
 from app.models.classroom import get_member_role
@@ -29,7 +29,7 @@ def submit_report():
 
     user_id = session.get("user_id")
 
-    report_id = create_reports(post_id, user_id, reason, description)
+    report_id = create_report(post_id, user_id, reason, description)
     if report_id is None:
         flash("Already reported", "warning")
     else:
