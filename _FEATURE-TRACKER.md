@@ -42,7 +42,7 @@
 - [ ] Content moderation queue — hold flagged content for teacher review
 - [ ] User blocking — filter content from blocked users
 - [ ] Age-appropriate content filtering — baseline keyword/content rules
-- [ ] COPPA compliance — Terms of Service and Privacy Policy pages
+- [x] COPPA compliance — Terms of Service and Privacy Policy pages
 
 ---
 
@@ -112,4 +112,5 @@
 - [x] User not found page returns formatted error instead of white page
 - [ ] Upgrade COPPA
 - [ ] Update API
-- [ ] WebSocket update for "COPPA pending" screen instead of logout
+- [ ] WebSocket update for "COPPA pending" screen instead of relogging in. (similar to netflix/xbox on /activate)
+- [ ] Add teacher_required() decorator

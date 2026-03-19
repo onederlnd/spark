@@ -5,10 +5,10 @@ from datetime import datetime, timezone
 from app.models.user import create_user, check_password, get_user_by_id
 from app.models import get_db
 from app.models.notifications import create_notification
-from app.routes.feed import login_required
+from app.utils.auth import login_required
 from app.utils.brute_force import is_locked_out, record_failure, record_success
 from app.utils.rate_limit import rate_limit
-from app.utils.auth_helper import current_user
+from app.utils.auth import current_user
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -112,9 +112,8 @@ def coppa_approve(user_id):
     """Teacher approves a student under COPPA"""
     user = current_user()
 
-    if user["role"] != "teacher":
-        flash("Access denied", "error")
-        return redirect(url_for("feed.index"))
+    if not user or user["role"] != "teacher":
+        return "Forbidden", 403
 
     db = get_db()
 
@@ -161,8 +160,7 @@ def coppa_pending():
 def coppa_deny(user_id):
     user = current_user()
     if not user or user["role"] != "teacher":
-        flash("Access denied", "error")
-        return redirect(url_for("feed.index"))
+        return "Forbidden", 403
 
     db = get_db()
 

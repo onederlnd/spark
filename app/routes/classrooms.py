@@ -7,7 +7,7 @@ from flask import (
     url_for,
     flash,
 )
-from app.routes.feed import login_required
+from app.utils.auth import login_required
 from app.utils.rate_limit import rate_limit
 from app.utils.sanitize import sanitize_plain, sanitize_bbcode
 from app.models.classroom import (

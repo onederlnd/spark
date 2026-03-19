@@ -135,13 +135,17 @@ def test_teacher_can_approve_coppa(client):
     create_user("teacher", "pass123", dob="2000-01-01", role="teacher")
 
     user = get_user_by_username("pending_student")
+    teacher = get_user_by_username("teacher")
 
     with client.session_transaction() as sess:
-        teacher = get_user_by_username("teacher")
         sess["user_id"] = teacher["id"]
+        sess["coppa_status"] = "approved"
 
-    response = client.post(f"/auth/coppa/approve/{user['id']}", follow_redirects=True)
-    assert response.status_code == 200
+    response = client.post(f"/auth/coppa/approve/{user['id']}")
+    assert response.status_code == 302
+
+    updated = get_user_by_username("pending_student")
+    assert updated["coppa_status"] == "approved"
 
 
 def test_student_sees_coppa_message(client):
@@ -164,6 +168,7 @@ def test_teacher_receives_coppa_pending_notification(client):
     teacher = get_user_by_username("teacher1")
     with client.session_transaction() as sess:
         sess["user_id"] = teacher["id"]
+        sess["coppa_status"] = "approved"
 
     response = client.get("/notifications", follow_redirects=True)
 
@@ -180,14 +185,13 @@ def test_teacher_can_approve_pending_coppa(client):
 
     with client.session_transaction() as sess:
         sess["user_id"] = teacher["id"]
+        sess["coppa_status"] = "approved"
 
-    response = client.post(
-        f"/auth/coppa/approve/{student['id']}", follow_redirects=True
-    )
-    assert response.status_code == 200
+    response = client.post(f"/auth/coppa/approve/{student['id']}")
+    assert response.status_code == 302
 
-    student = get_user_by_username("student")
-    assert student["coppa_status"] == "approved"
+    updated = get_user_by_username("student")
+    assert updated["coppa_status"] == "approved"
 
 
 def test_student_can_login_after_coppa_approval(client):
@@ -211,5 +215,72 @@ def test_student_can_login_after_coppa_approval(client):
         assert sess.get("coppa_status") == "approved"
 
 
-def test_teacher_can_deny_pendng(client):
-    pass
+def test_teacher_can_deny_pending(client):
+    create_user("teacher", "pass123", dob="2000-01-01", role="teacher")
+    create_user("student", "pass123", dob="2015-01-01")
+
+    teacher = get_user_by_username("teacher")
+    student = get_user_by_username("student")
+
+    with client.session_transaction() as sess:
+        sess["user_id"] = teacher["id"]
+        sess["coppa_status"] = "approved"
+
+    response = client.post(f"/auth/coppa/deny/{student['id']}", follow_redirects=True)
+    assert response.status_code == 200
+
+    student = get_user_by_username("student")
+    assert student["coppa_status"] == "denied"
+
+
+def test_student_can_not_see_feed_after_coppa_deny(client):
+    """A denied COPPA student cannot access the feed"""
+    create_user("student", "pass123", dob="2015-01-01")
+    student = get_user_by_username("student")
+
+    db = get_db()
+    db.execute("UPDATE users SET coppa_status='denied' WHERE id = ?", (student["id"],))
+    db.commit()
+
+    response = client.post(
+        "auth/login",
+        data={"username": "student", "password": "pass123"},
+        follow_redirects=True,
+    )
+
+    assert b"Account Pending Approval" in response.data or b"denied" in response.data
+    assert b'href="/feed"' not in response.data
+
+
+def test_denied_student_cannot_bypass_via_direct_url(client):
+    """A denied student hitting a protected route directly is redirected"""
+    create_user("student", "passw123", dob="2015-01-01")
+    student = get_user_by_username("student")
+
+    db = get_db()
+    db.execute("UPDATE users SET coppa_status='denied' WHERE id=?", (student["id"],))
+    db.commit()
+
+    with client.session_transaction() as sess:
+        sess["user_id"] = student["id"]
+        sess["coppa_status"] = "denied"
+
+    response = client.get("/feed", follow_redirects=False)
+    assert response.status_code == 302
+    assert "/auth/coppa/notice" in response.headers["Location"]
+
+
+def test_non_teacher_cannot_deny_coppa(client):
+    """A student cannot deny another student's COPPA status"""
+    create_user("student_a", "pass123", dob="2010-01-01")
+    create_user("student_b", "pass123", dob="2010-01-01")
+
+    student_a = get_user_by_username("student_a")
+    student_b = get_user_by_username("student_b")
+
+    with client.session_transaction() as sess:
+        sess["user_id"] = student_a["id"]
+        sess["coppa_status"] = student_a["coppa_status"]
+
+    response = client.post(f"/auth/coppa/deny/{student_b['id']}")
+    assert response.status_code == 403

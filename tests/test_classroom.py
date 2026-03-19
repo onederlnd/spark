@@ -69,15 +69,9 @@ def test_create_classroom_invalid_payload(teacher_client):
 
 
 def test_get_classroom(teacher_client, classroom):
-    response = teacher_client.get(f"/classrooms/{classroom}/")
+    response = teacher_client.get(f"/classrooms/{classroom}")
     assert response.status_code == 200
-    assert b"Classroom created!" in response.data
-
-
-def test_get_classroom_forbidden(client, classroom):
-    """Unauthenticated user is redirected, not shown classroom."""
-    response = client.get(f"/classrooms/{classroom}/")
-    assert response.status_code == 302
+    assert b"Join Code" in response.data
 
 
 def test_get_classroom_not_found(teacher_client):

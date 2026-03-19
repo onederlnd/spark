@@ -12,7 +12,7 @@ from app.models.user import (
 )
 from app.models.post import get_posts_by_user, get_bookmarks, toggle_bookmark
 from app.models.notifications import create_notification
-from app.routes.feed import login_required
+from app.utils.auth import login_required
 from app.utils.rate_limit import rate_limit
 
 profile_bp = Blueprint("profile", __name__)

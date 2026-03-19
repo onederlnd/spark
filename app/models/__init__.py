@@ -95,15 +95,27 @@ def init_db(app):
                 topic_id INTEGER,
                 title TEXT NOT NULL,
                 body TEXT NOT NULL,
-                votes INTEGER DEFAULT 0,
                 reply_count INTEGER DEFAULT 0,
+                votes INTEGER DEFAULT 0,
                 parent_id INTEGER DEFAULT NULL,
+                classroom_id INTEGER,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                is_hidden INTEGER DEFAULT 0,
                 FOREIGN KEY(user_id) REFERENCES users(id),
                 FOREIGN KEY(topic_id) REFERENCES topics(id),
                 FOREIGN KEY(parent_id) REFERENCES posts(id)
             );
-
+            CREATE TABLE IF NOT EXISTS reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER NOT NULL,
+                reported_by_user_id INTEGER NOT NULL,
+                reason TEXT,
+                description TEXT,
+                status TEXT NOT NULL DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                reviewed_by INTEGER,
+                reviewed_at TIMESTAMP
+            );
             CREATE TABLE IF NOT EXISTS votes (
                 user_id INTEGER NOT NULL,
                 post_id INTEGER NOT NULL,

@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request
 from app.models.post import search_posts
 from app.models.topic import search_topics
 from app.models.user import coppa_required
-from app.routes.feed import login_required
+from app.utils.auth import login_required
 
 search_bp = Blueprint("search", __name__)
 

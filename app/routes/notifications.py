@@ -11,7 +11,7 @@ from app.models.notifications import (
     mark_all_read,
 )
 from app.models.user import coppa_required
-from app.routes.feed import login_required
+from app.utils.auth import login_required
 
 notifications_bp = Blueprint("notifications", __name__, url_prefix="/notifications")
 

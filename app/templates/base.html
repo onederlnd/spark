@@ -35,7 +35,9 @@
     {% if session.username %}
       <div class="sidebar-title">Menu</div>
       <ul class="sidebar-nav">
+        {% if session.get("coppa_stauts") != "denied" %}
         <li><a href="/?feed=all" onclick="closeDrawer()"><span class="icon">🏠</span> Home Feed</a></li>
+        {% endif %}
         <li><a href="/?feed=following" onclick="closeDrawer()"><span class="icon">👥</span> Following</a></li>
         <li><a href="/notifications/" onclick="closeDrawer()"><span class="icon">🔔</span> Notifications</a></li>
         <li><a href="/profile/{{ session.username }}" onclick="closeDrawer()"><span class="icon">👤</span> My Profile</a></li>

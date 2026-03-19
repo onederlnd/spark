@@ -20,7 +20,7 @@ from app.models.post import (
 from app.models.user import coppa_required
 from app.models.topic import get_all_topics
 from app.models.notifications import create_notification
-from app.routes.feed import login_required
+from app.utils.auth import login_required
 from app.utils.rate_limit import rate_limit
 from app.utils.sanitize import sanitize_plain, sanitize_bbcode
 
@@ -133,9 +133,19 @@ def delete(post_id):
 @coppa_required
 def reply(post_id):
     body = sanitize_bbcode(request.form.get("body", ""), max_length=BODY_MAX)
-    if body:
-        create_post(session["user_id"], "re: reply", body, parent_id=post_id)
-        parent = get_post(post_id)
+    parent = get_post(post_id)
+
+    if not body:
+        return redirect(url_for("post.view_post", post_id=post_id))
+
+    if parent:
+        create_post(
+            session["user_id"],
+            "re: reply",
+            body,
+            classroom_id=parent["classroom_id"],
+            parent_id=post_id,
+        )
         if parent and parent["user_id"] != session["user_id"]:
             create_notification(
                 user_id=parent["user_id"],

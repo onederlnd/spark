@@ -1,10 +1,12 @@
 # tests/conftest.py
 import os
+import re
 import pytest
 import tempfile
 from app import create_app
 from app.utils.rate_limit import _request_counts
 from app.utils.brute_force import _lockouts
+from app.models.post import create_post
 
 
 @pytest.fixture()
@@ -12,11 +14,26 @@ def classroom(teacher_client):
     response = teacher_client.post(
         "/classrooms/new",
         data={"name": "Test Classroom"},
+        follow_redirects=True,
     )
 
-    classroom_url = response.headers["Location"]
-    classroom_id = int(classroom_url.rstrip("/").split("/")[-1])
+    html = response.data.decode()
+
+    match = re.search(r"/classrooms/(\d+)", html)
+    if not match:
+        raise ValueError("Classroom ID not found in response HTML")
+    classroom_id = int(match.group(1))
+
     return classroom_id
+
+
+@pytest.fixture
+def post(classroom):
+    """Create a post by student in a classroom."""
+    post_id = create_post(
+        user_id=2, title="Test Post", body="test body", classroom_id=classroom
+    )
+    return post_id
 
 
 @pytest.fixture()
@@ -117,4 +134,20 @@ def teacher_client(app):
     )
     client.post("/auth/login", data={"username": "teacher1", "password": "pass123"})
 
+    return client
+
+
+@pytest.fixture
+def student_client(app):
+    client = app.test_client()
+    client.post(
+        "auth/register",
+        data={
+            "username": "student1",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2010-01-01",
+        },
+    )
+    client.post("/auth/login", data={"username": "student1", "password": "pass123"})
     return client

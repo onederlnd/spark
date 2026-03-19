@@ -1,7 +1,6 @@
 # app/models/post.py
 
 from app.models import get_db
-from app.models.user import coppa_required
 
 PER_PAGE = 20
 
@@ -18,7 +17,8 @@ def get_feed(page=1, topic_id=None):
                           JOIN users ON posts.user_id = users.id
                           LEFT JOIN topics ON posts.topic_id = topics.id
                           WHERE posts.parent_id IS NULL
-                          AND posts.topic_id = ?
+                            AND is_hidden = 0
+                            AND posts.topic_id = ?
                           ORDER BY posts.votes DESC, posts.created_at DESC
                           LIMIT ? OFFSET ?
         """,
@@ -42,15 +42,14 @@ def get_feed(page=1, topic_id=None):
     return rows[:PER_PAGE], has_next
 
 
-@coppa_required
 # --- posting
-def create_post(user_id, title, body, topic_id=None, parent_id=None):
+def create_post(user_id, title, body, classroom_id, topic_id=None, parent_id=None):
     db = get_db()
     cursor = db.execute(
         """
-        INSERT INTO posts (user_id, topic_id, title, body, parent_id)
-                        VALUES (?,?,?,?,?)""",
-        (user_id, topic_id, title, body, parent_id),
+        INSERT INTO posts (user_id, topic_id, title, body, parent_id, classroom_id)
+                        VALUES (?,?,?,?,?,?)""",
+        (user_id, topic_id, title, body, parent_id, classroom_id),
     )
     db.commit()
 
@@ -110,6 +109,15 @@ def delete_post(post_id):
     db.execute("DELETE FROM votes WHERE post_id=?", (post_id,))
     db.execute("DELETE FROM bookmarks WHERE post_id=?", (post_id,))
     db.execute("DELETE FROM posts WHERE id=?", (post_id,))
+    db.commit()
+
+
+def hide_post(post_id):
+    db = get_db()
+    db.execute(
+        "UPDATE posts SET is_hidden = 1 WHERE id=?",
+        (post_id,),
+    )
     db.commit()
 
 
