@@ -159,6 +159,15 @@ def hide_post(post_id):
     db.commit()
 
 
+def unhide_post(post_id):
+    db = get_db()
+    db.execute(
+        "UPDATE posts SET is_hidden = 0 WHERE id=?",
+        (post_id,),
+    )
+    db.commit()
+
+
 # --- search
 def search_posts(query, page=1):
     if not query or not query.strip():

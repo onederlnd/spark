@@ -1,8 +1,13 @@
 # app/routes/reports.py
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from app.models.report import create_report, get_reports_for_classroom, resolve_reports
-from app.models.post import delete_post, get_post
+from app.models.report import (
+    create_report,
+    get_reports_for_classroom,
+    resolve_reports,
+    get_reports_for_post,
+)
+from app.models.post import delete_post, get_post, unhide_post
 from app.utils.auth import login_required, is_teacher_in_classroom
 from app.utils.rate_limit import rate_limit
 from app.utils.sanitize import sanitize_plain
@@ -45,21 +50,26 @@ def submit_report():
     return redirect(request.referrer or url_for("feed.index"))
 
 
-@reports_bp.route("/reports", methods=["GET"])
+@reports_bp.route("/queue/<int:classroom_id>", methods=["GET"])
 @login_required
-def moderation_dashboard():
+def moderation_dashboard(classroom_id):
     """Show moderation dashboard for allowing/denying posts"""
-
-    classroom_id = request.args.get("classroom_id", type=int)
-    if not classroom_id:
-        flash("Missing classroom.", "error")
-        return redirect(url_for("feed.index"))
-
     if not is_teacher_in_classroom(classroom_id):
         return "Forbidden", 403
 
-    reports = get_reports_for_classroom(classroom_id)
-    return render_template("reports.html", reports=reports, classroom_id=classroom_id)
+    flagged_posts = get_reports_for_classroom(classroom_id)
+
+    detailed = []
+    for post in flagged_posts:
+        individual_reports = get_reports_for_post(post["post_id"])
+        detailed.append(
+            {
+                "post": post,
+                "reports": individual_reports,
+            }
+        )
+
+    return render_template("reports.html", detailed=detailed, classroom_id=classroom_id)
 
 
 @reports_bp.route("/reports/<int:post_id>/resolve", methods=["POST"])
@@ -74,6 +84,7 @@ def mark_post_reviewed_allowed(post_id):
     if not is_teacher_in_classroom(post["classroom_id"]):
         return "Forbidden", 403
 
+    unhide_post(post_id)
     resolve_reports(post_id, session["user_id"], "allowed")
     flash("Post reviewed and allowed.", "success")
     return redirect(

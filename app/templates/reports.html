@@ -1,52 +1,107 @@
 {% extends "base.html" %}
-{% block title %}Moderation Dashboard — SparK{% endblock %}
+{% block title %}Moderation Queue — SparK{% endblock %}
 
 {% block content %}
-<div class="form-page">
-  <h1 class="form-title">Moderation Dashboard</h1>
-  <p class="form-subtitle">Review reported posts and take appropriate action.</p>
+<div class="layout" style="max-width: 860px;">
+
+  <div style="margin-bottom: 1.5rem;">
+    <h1 class="form-title">Moderation Queue</h1>
+    <p class="form-subtitle">Review flagged posts and take action. Posts are hidden from students until you resolve them.</p>
+  </div>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="flash flash-{{ category }}">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
   {% endwith %}
 
-  {% if reports %}
-    <div class="report-list">
-      {% for report in reports %}
-      <div class="report-card">
-        <div class="report-content">
-          <p><strong>Post:</strong> {{ report.content | truncate(200) }}</p>
-          <p><strong>Reports:</strong> {{ report.report_count }}</p>
-        </div>
-        <div class="report-actions">
-          <form method="POST" action="{{ url_for('moderation.mark_post_reviewed_allowed', post_id=report.post_id) }}" style="display:inline-block;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn-submit btn-allow">Allow</button>
-          </form>
+  {% if detailed %}
+    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
 
-          <form method="POST" action="{{ url_for('moderation.mark_post_reviewed_denied', post_id=report.post_id) }}" style="display:inline-block;">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn-submit btn-deny">Delete</button>
-          </form>
+      {% for item in detailed %}
+      {% set post = item.post %}
+      {% set reports = item.reports %}
+
+      <div class="card">
+        <div class="card-body">
+
+          {# --- Post header --- #}
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;">
+            <div>
+              <div style="font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--rose); margin-bottom: 4px;">
+                🚩 {{ post.report_count }} Report{{ 's' if post.report_count != 1 else '' }}
+              </div>
+              <div style="font-size: 0.8rem; color: var(--muted);">
+                Posted by <strong style="color: var(--text);">{{ post.author_username }}</strong>
+                · Last reported {{ post.last_reported_at | time_ago }}
+              </div>
+            </div>
+
+            {# --- Actions --- #}
+            <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
+              <form method="POST" action="{{ url_for('moderation.mark_post_reviewed_allowed', post_id=post.post_id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-ghost btn-sm">✓ Allow</button>
+              </form>
+              <form method="POST" action="{{ url_for('moderation.mark_post_reviewed_denied', post_id=post.post_id) }}"
+                onsubmit="return confirm('Permanently delete this post?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-danger btn-sm">✕ Delete</button>
+              </form>
+            </div>
+          </div>
+
+          {# --- Post content --- #}
+          <div style="background: var(--soft); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 1rem; font-size: 0.9rem; color: var(--text); line-height: 1.6; border-left: 3px solid var(--border);">
+            {{ post.body | truncate(400) }}
+          </div>
+
+          {# --- Individual reports --- #}
+          {% if reports %}
+          <div>
+            <div style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 0.5rem;">
+              Report Details
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 0.4rem;">
+              {% for report in reports %}
+              <div style="display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 0.75rem; background: var(--soft); border-radius: var(--radius-sm); font-size: 0.83rem;">
+                <div style="font-weight: 700; color: var(--text); min-width: 100px; flex-shrink: 0;">
+                  {{ report.username }}
+                </div>
+                <div style="color: var(--rose); font-weight: 700; min-width: 80px; flex-shrink: 0;">
+                  {{ report.reason }}
+                </div>
+                {% if report.description %}
+                <div style="color: var(--muted); flex: 1;">
+                  {{ report.description }}
+                </div>
+                {% endif %}
+                <div style="color: var(--muted); font-size: 0.75rem; flex-shrink: 0; margin-left: auto;">
+                  {{ report.created_at | time_ago }}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
         </div>
       </div>
       {% endfor %}
+
     </div>
+
   {% else %}
-    <div class="empty-state" style="padding:40px 20px">
+    <div class="empty-state" style="padding: 64px 20px;">
       <svg class="empty-state-icon" width="56" height="56" viewBox="0 0 56 56" fill="none">
         <rect x="8" y="10" width="40" height="36" rx="5" stroke="currentColor" stroke-width="2"/>
         <path d="M16 22h24M16 30h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
         <circle cx="44" cy="30" r="1.5" fill="currentColor"/>
       </svg>
-      <div class="empty-state-title">No reports</div>
-      <div class="empty-state-desc">Everything looks clean — no posts need moderation right now.</div>
+      <div class="empty-state-title">All clear</div>
+      <div class="empty-state-desc">No posts need moderation right now. Check back if students flag any content.</div>
     </div>
   {% endif %}
+
 </div>
 {% endblock %}
-

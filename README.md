@@ -30,7 +30,7 @@ The core social platform is built and functional. The classroom system is in act
 | UX polish (theme, mobile, BBCode preview) | ✅ Complete |
 | Session timeout | ✅ Complete |
 | Report system | ✅ Complete |
-| Content moderation queue | 🔲 Planned |
+| Content moderation queue | ✅ Complete |
 | Classroom system (lessons + assignments + grading) | ✅ Complete |
 | Closed beta (single classroom) | 🔲 Blocked on above |
 
@@ -234,8 +234,8 @@ The hard floor before any real users touch this platform.
 - [x] Rate limiting on registration — prevent bot account creation
 - [x] Report system — flag posts/users for moderation review
 - [x] Content moderation queue — hold flagged content for teacher review
-- [ ] User blocking — filter content from blocked users
-- [ ] Age-appropriate content filtering — baseline keyword/content rules
+- [x] User blocking — filter content from blocked users
+- [ ] Age-apropriate content filtering — baseline keyword/content rules
 - [x] COPPA compliance — Terms of Service and Privacy Policy pages
 
 ---

@@ -23,7 +23,7 @@ def test_prevent_duplicate_report(student_client, post):
 
 
 def test_teacher_can_view_reports(teacher_client, classroom):
-    response = teacher_client.get(f"/moderation/reports?classroom_id={classroom}")
+    response = teacher_client.get(f"/moderation/queue/{classroom}")
 
     assert response.status_code == 200
 

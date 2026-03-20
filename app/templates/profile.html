@@ -1,7 +1,5 @@
-{% extends "base.html" %}
-{% block title %}{{ profile_user.username }} — SparK{% endblock %}
-
-{% block content %}
+{% extends "base.html" %} {% block title %}{{ profile_user.username }} — SparK{%
+endblock %} {% block content %}
 
 <div class="profile-header">
   <div class="profile-banner"></div>
@@ -10,9 +8,11 @@
     <div class="profile-details">
       <h1 class="profile-username">{{ profile_user.username }}</h1>
       {% if profile_user.bio %}
-        <p class="profile-bio">{{ profile_user.bio }}</p>
+      <p class="profile-bio">{{ profile_user.bio }}</p>
       {% endif %}
-      <p class="profile-meta">Joined {{ profile_user.created_at | time_ago }}</p>
+      <p class="profile-meta">
+        Joined {{ profile_user.created_at | time_ago }}
+      </p>
       <div class="profile-stats">
         <div class="profile-stat">
           <div class="profile-stat-num">{{ posts | length }}</div>
@@ -30,15 +30,33 @@
     </div>
     <div class="profile-actions">
       {% if profile_user.id != session.user_id %}
-        <form method="POST" action="/profile/{{ profile_user.username }}/follow"
-          {% if following %}onsubmit="return confirm('Unfollow {{ profile_user.username }}?')"{% endif %}>
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn-follow {% if following %}btn-unfollow{% endif %}">
-            {{ 'Unfollow' if following else 'Follow ✦' }}
-          </button>
-        </form>
+      <form
+        method="POST"
+        action="/profile/{{ profile_user.username }}/follow"
+        {% if following %}onsubmit="return confirm('Unfollow {{ profile_user.username }}?')"{% endif %}
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button class="btn-follow {% if following %}btn-unfollow{% endif %}">
+          {{ 'Unfollow' if following else 'Follow ✦' }}
+        </button>
+      </form>
+      {% if blocked %}
+      <form method="POST" action="/{{ profile_user.username }}/unblock" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-ghost btn-sm">Unblock</button>
+      </form>
       {% else %}
-        <a href="{{ url_for('settings.show_settings') }}" class="btn btn-ghost btn-sm">Edit Profile</a>
+      <form method="POST" action="/{{ profile_user.username }}/block" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn-danger btn-sm">Block</button>
+      </form>
+      {% endif %}
+      {% else %}
+      <a
+        href="{{ url_for('settings.show_settings') }}"
+        class="btn btn-ghost btn-sm"
+        >Edit Profile</a
+      >
       {% endif %}
     </div>
   </div>
@@ -48,39 +66,62 @@
   <div class="profile-section">
     <h2 class="section-heading">Posts ({{ posts | length }})</h2>
     {% if posts %}
-      <div class="post-list">
-        {% for post in posts %}
-        <div class="post-card">
-          <div class="vote-col">
-            <span class="vote-count">{{ post.votes }}</span>
-          </div>
-          <div class="post-body">
-            <div class="post-meta">
-              {% if post.topic_name %}
-                <a href="/t/{{ post.topic_name }}" class="post-topic">{{ post.topic_name }}</a>
-              {% endif %}
-              <span class="post-time">{{ post.created_at | time_ago }}</span>
-            </div>
-            <a href="/posts/{{ post.id }}" class="post-title">{{ post.title }}</a>
-          </div>
+    <div class="post-list">
+      {% for post in posts %}
+      <div class="post-card">
+        <div class="vote-col">
+          <span class="vote-count">{{ post.votes }}</span>
         </div>
-        {% endfor %}
+        <div class="post-body">
+          <div class="post-meta">
+            {% if post.topic_name %}
+            <a href="/t/{{ post.topic_name }}" class="post-topic"
+              >{{ post.topic_name }}</a
+            >
+            {% endif %}
+            <span class="post-time">{{ post.created_at | time_ago }}</span>
+          </div>
+          <a href="/posts/{{ post.id }}" class="post-title">{{ post.title }}</a>
+        </div>
       </div>
+      {% endfor %}
+    </div>
     {% else %}
-      <div class="empty-state" style="padding:40px 20px">
-        <svg class="empty-state-icon" width="56" height="56" viewBox="0 0 56 56" fill="none">
-          <rect x="8" y="10" width="40" height="36" rx="5" stroke="currentColor" stroke-width="2"/>
-          <path d="M16 22h24M16 30h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="44" cy="30" r="1.5" fill="currentColor"/>
-        </svg>
-        <div class="empty-state-title">No posts yet</div>
-        {% if profile_user.id == session.user_id %}
-          <div class="empty-state-desc">Share something with your community.</div>
-          <a href="/posts/new" class="btn btn-primary btn-sm">Write First Post ✦</a>
-        {% else %}
-          <div class="empty-state-desc">{{ profile_user.username }} hasn't posted yet.</div>
-        {% endif %}
+    <div class="empty-state" style="padding: 40px 20px">
+      <svg
+        class="empty-state-icon"
+        width="56"
+        height="56"
+        viewBox="0 0 56 56"
+        fill="none"
+      >
+        <rect
+          x="8"
+          y="10"
+          width="40"
+          height="36"
+          rx="5"
+          stroke="currentColor"
+          stroke-width="2"
+        />
+        <path
+          d="M16 22h24M16 30h16"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        />
+        <circle cx="44" cy="30" r="1.5" fill="currentColor" />
+      </svg>
+      <div class="empty-state-title">No posts yet</div>
+      {% if profile_user.id == session.user_id %}
+      <div class="empty-state-desc">Share something with your community.</div>
+      <a href="/posts/new" class="btn btn-primary btn-sm">Write First Post ✦</a>
+      {% else %}
+      <div class="empty-state-desc">
+        {{ profile_user.username }} hasn't posted yet.
       </div>
+      {% endif %}
+    </div>
     {% endif %}
   </div>
 
@@ -96,7 +137,9 @@
         <div class="post-body">
           <div class="post-meta">
             {% if post.topic_name %}
-              <a href="/t/{{ post.topic_name }}" class="post-topic">{{ post.topic_name }}</a>
+            <a href="/t/{{ post.topic_name }}" class="post-topic"
+              >{{ post.topic_name }}</a
+            >
             {% endif %}
             <span class="post-author">{{ post.username }}</span>
           </div>

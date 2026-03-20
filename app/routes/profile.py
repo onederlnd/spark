@@ -12,7 +12,7 @@ from app.models.user import (
 )
 from app.models.post import get_posts_by_user, get_bookmarks, toggle_bookmark
 from app.models.notifications import create_notification
-from app.models.block import block_user, unblock_user
+from app.models.block import block_user, unblock_user, is_blocked
 from app.utils.auth import login_required
 from app.utils.rate_limit import rate_limit
 
@@ -34,7 +34,7 @@ def view_profile(username):
     following = is_following(session["user_id"], user["id"])
     followers_count = get_followers_count(user["id"])
     following_count = get_following_count(user["id"])
-    bookmarks = get_bookmarks(user["id"])
+    blocked = is_blocked(session["user_id"], user["id"])
 
     return render_template(
         "profile.html",
@@ -44,6 +44,7 @@ def view_profile(username):
         following=following,
         followers_count=followers_count,
         following_count=following_count,
+        blocked=blocked,
     )
 
 

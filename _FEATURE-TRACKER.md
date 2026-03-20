@@ -76,14 +76,14 @@
 ### COPPA & Access
 - [x] Rate limiting on registration — prevent bot account creation
 - [x] COPPA enforcement — age gate, teacher approval workflow, coppa_status gating
-- [ ] COPPA Terms of Service and Privacy Policy pages
-- [ ] `teacher_required()` decorator — clean role enforcement utility
-- [ ] User blocking — filter content from blocked users
+- [x] COPPA Terms of Service and Privacy Policy pages
+- [x] `teacher_required()` decorator — clean role enforcement utility
+- [x] User blocking — filter content from blocked users
 
 ### Content Safety
-- [ ] Report system — students flag posts for moderation review
-- [ ] Content moderation queue — teacher dashboard for flagged content
-- [ ] Auto-hide flagged content — 3+ reports hides post pending review
+- [x] Report system — students flag posts for moderation review
+- [x] Content moderation queue — teacher dashboard for flagged content
+- [x] Auto-hide flagged content — 3+ reports hides post pending review
 - [ ] Age-appropriate content filtering — baseline keyword / content rules
 
 ---
