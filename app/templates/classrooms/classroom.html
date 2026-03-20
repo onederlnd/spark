@@ -10,6 +10,18 @@
   <li><a href="{{ url_for('classrooms.dashboard') }}">
     <span class="icon">⬅</span> All Classrooms
   </a></li>
+  {% if role == 'teacher' %}
+<li>
+  <a href="{{ url_for('moderation.moderation_dashboard', classroom_id=classroom.id) }}">
+    <span class="icon">🚩</span> Moderation Queue
+    {% if pending_reports > 0 %}
+      <span style="background:var(--rose); color:#fff; border-radius:999px; padding:1px 7px; font-size:0.75rem; margin-left:4px;">
+        {{ pending_reports }}
+      </span>
+    {% endif %}
+  </a>
+</li>
+{% endif %}
 </ul>
 
 <div class="sidebar-divider"></div>

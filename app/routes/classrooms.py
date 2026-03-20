@@ -28,6 +28,8 @@ from app.models.classroom import (
     save_grade,
 )
 from app.models.user import get_user_by_id, coppa_required
+from app.models.report import get_reports_for_classroom
+
 
 classrooms_bp = Blueprint("classrooms", __name__, url_prefix="/classrooms")
 
@@ -145,12 +147,16 @@ def classroom_home(classroom_id):
 
     assignments = get_assignments_for_classroom(classroom_id)
     members = get_classroom_members(classroom_id)
+    pending_reports = (
+        len(get_reports_for_classroom(classroom_id)) if role == "teacher" else 0
+    )
     return render_template(
         "classrooms/classroom.html",
         classroom=classroom,
         role=role,
         assignments=assignments,
         members=members,
+        pending_reports=pending_reports,
     )
 
 
