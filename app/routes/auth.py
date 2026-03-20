@@ -5,10 +5,10 @@ from datetime import datetime, timezone
 from app.models.user import create_user, check_password, get_user_by_id
 from app.models import get_db
 from app.models.notifications import create_notification
-from app.utils.auth import login_required
 from app.utils.brute_force import is_locked_out, record_failure, record_success
 from app.utils.rate_limit import rate_limit
-from app.utils.auth import current_user
+from app.utils.auth import current_user, login_required, teacher_required
+
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -80,6 +80,7 @@ def login():
             session["username"] = user["username"]
             session["last_active"] = datetime.now(timezone.utc).isoformat()
             session["coppa_status"] = user["coppa_status"]
+            session["role"] = user["role"]
 
             return redirect(url_for("feed.index"))
         else:
@@ -108,6 +109,7 @@ def coppa_notice():
 
 @auth_bp.route("/coppa/approve/<int:user_id>", methods=["POST"])
 @login_required
+@teacher_required
 def coppa_approve(user_id):
     """Teacher approves a student under COPPA"""
     user = current_user()
@@ -138,13 +140,9 @@ def coppa_approve(user_id):
 
 @auth_bp.route("/coppa/pending")
 @login_required
+@teacher_required
 def coppa_pending():
     """Teacher dashboard for approving students under 13."""
-    user = current_user()
-
-    if not user or user["role"] != "teacher":
-        flash("Access denied", "error")
-        return redirect(url_for("feed.index"))
 
     db = get_db()
 
@@ -157,10 +155,8 @@ def coppa_pending():
 
 @auth_bp.route("/coppa/deny/<int:user_id>", methods=["POST"])
 @login_required
+@teacher_required
 def coppa_deny(user_id):
-    user = current_user()
-    if not user or user["role"] != "teacher":
-        return "Forbidden", 403
 
     db = get_db()
 
@@ -177,3 +173,14 @@ def coppa_deny(user_id):
 
     flash(f"{student['username']} denied successfully", "success")
     return redirect(url_for("auth.coppa_pending"))
+
+
+# Terms & Privacy
+@auth_bp.route("/terms")
+def terms():
+    return render_template("auth/terms.html")
+
+
+@auth_bp.route("/privacy")
+def privacy():
+    return render_template("auth/terms.html")

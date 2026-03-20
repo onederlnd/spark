@@ -122,7 +122,13 @@ def init_db(app):
                 value INTEGER NOT NULL,
                 PRIMARY KEY(user_id, post_id)
             );
-
+            CREATE TABLE IF NOT EXISTS blocks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                blocker_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                blocked_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(blocker_id, blocked_id)
+            );
             CREATE TABLE IF NOT EXISTS bookmarks (
                 user_id INTEGER NOT NULL,
                 post_id INTEGER NOT NULL,

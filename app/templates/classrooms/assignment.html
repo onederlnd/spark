@@ -61,26 +61,28 @@
 
       <details>
         <summary style="cursor:pointer; color:var(--muted); font-size:0.85rem;">Edit submission</summary>
-        <form method="POST" style="margin-top:1rem;">
+        <form method="POST" class="post-form" style="margin-top:1rem; border:none; padding:0;">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
+        
           <div class="editor-tabs" style="margin-bottom:0.5rem;">
             <button type="button" class="editor-tab active" onclick="switchTab(this,'write-pane')">Write</button>
             <button type="button" class="editor-tab" onclick="switchTab(this,'preview-pane')">Preview</button>
           </div>
-
+        
           <div class="editor-pane active" id="write-pane">
-            <textarea name="body" id="body" rows="8" maxlength="10000" required
-              oninput="updateCounter(this,'body-counter',10000); schedulePreview()">{{ submission.body }}</textarea>
-            <div class="char-counter" id="body-counter">0 / 10000</div>
+            <div class="field-wrap">
+              <textarea name="body" id="body" rows="8" maxlength="10000" required
+                oninput="updateCounter(this,'body-counter',10000); schedulePreview()">{{ submission.body }}</textarea>
+              <div class="char-counter" id="body-counter">0 / 10000</div>
+            </div>
           </div>
-
+        
           <div class="editor-pane" id="preview-pane">
             <div class="preview-pane" id="preview-output"></div>
           </div>
-
-          <div style="margin-top:0.75rem; text-align:right;">
-            <button type="submit" class="btn btn-primary">Update Submission</button>
+        
+          <div class="form-actions" style="margin-top:0.75rem;">
+            <button type="submit" class="btn-submit">Update Submission</button>
           </div>
         </form>
       </details>

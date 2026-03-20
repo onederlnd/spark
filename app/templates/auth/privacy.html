@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy — SparK{% endblock %}
+
+{% block content %}
+<div class="layout" style="max-width: 760px;">
+  <div class="card">
+    <div class="card-body" style="padding: 2rem;">
+
+      <h1 style="font-size: 1.6rem; font-weight: 900; margin-bottom: 0.25rem;">Privacy Policy</h1>
+      <p style="color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem;">Last updated: March 2026</p>
+
+      <p>SparK LLC ("SparK", "we", "us") is committed to protecting the privacy of all users, especially children. This Privacy Policy explains what information we collect, how we use it, and the rights you have regarding your data.</p>
+
+      <h2 style="font-size: 1.1rem; font-weight: 800; margin: 1.75rem 0 0.5rem;">1. Information We Collect</h2>
+      <p>When you create an account, we collect:</p>
+      <ul style="margin: 0.5rem 0 0.5rem 1.5rem; line-height: 2;">
+        <li><strong>Username</strong> — chosen by you at registration</li>
+        <li><strong>Password</strong> — stored as a secure bcrypt hash; we never store plain text passwords</li>
+        <li><strong>Date of birth</strong> — used solely to determine COPPA eligibility</li>
+        <li><strong>Bio</strong> — optional, provided by you</li>
+        <li><strong>Role</strong> — teacher or student, selected at registration</li>
+      </ul>
+      <p>We also collect content you post: posts, replies, assignments, and submissions. We do not collect email addresses, phone numbers, or physical addresses.</p>
+
+      <h2 style="font-size: 1.1rem; font-weight: 800; margin: 1.75rem 0 0.5rem;">2. Children Under 13 (COPPA)</h2>
+      <p>SparK is designed to be used in classroom settings and may be accessed by children under 13. We comply with the Children's Online Privacy Protection Act (COPPA).</p>
+      <ul style="margin: 0.5rem 0 0.5rem 1.5rem; line-height: 2;">
+        <li>Accounts for users under 13 are locked immediately upon registration</li>
+        <li>Access is only granted after a verified teacher or educator approves the account</li>
+        <li>We collect only the minimum information necessary to operate the platform</li>
+        <li>We do not sell, share, or disclose personal information from users under 13 to third parties</li>
+        <li>Parents and guardians may contact us to review, correct, or delete their child's information at any time</li>
+      </ul>
+
+      <h2 style="font-size: 1.1rem; font-weight: 800; margin: 1.75rem 0 0.5rem;">3. How We Use Your Information</h2>
+      <p>We use the information we collect to:</p>
+      <ul style="margin: 0.5rem 0 0.5rem 1.5rem; line-height: 2;">
+        <li>Operate and maintain the SparK platform</li>
+        <li>Authenticate your identity when you log in</li>
+        <li>Display your username and bio on your profile</li>
+        <li>Enforce COPPA age requirements</li>
+        <li>Send in-platform notifications about activity in your classrooms</li>
+        <li>Allow teachers to manage their classrooms and moderate content</li>
+      </ul>
+      <p>We do not use your data for advertising, profiling, or any purpose beyond operating the platform.</p>
+
+      <h2 style="font-size: 1.1rem; font-weight: 800; margin: 1.75rem 0 0.5rem;">4. Data Sharing</h2>
+      <p>We do not sell, rent, or share your personal information with third parties. The only people who can see your information are:</p>
+      <ul style="margin: 0.5rem 0 0.5rem 1.5rem; line-height: 2;">
+        <li>You</li>
+        <li>Teachers in classrooms you belong to (username and submitted content only)</li>
+        <li>SparK LLC administrators for platform maintenance and safety purposes</li>
+      </ul>
+
+      <h2 style="font-size: 1.1rem; font-weight: 800; margin: 1.75rem 0 0.5rem;">5. Data Retention</h2>
+      <p>Your data is retained for as long as your account is active. You may request deletion of your account and associated data at any time by contacting us. We will process deletion requests within 30 days.</p>
+
+      <h2 style="font-size: 1.1rem; font-weight: 800; margin: 1.75rem 0 0.5rem;">6. Security</h2>
+      <p>We take security seriously. SparK uses bcrypt password hashing, CSRF protection on all forms, rate limiting, brute force lockout, session timeouts, and input sanitization. No system is perfectly secure, but we have built SparK with security as a core requirement rather than an afterthought.</p>
+
+      <h2 style="font-size: 1.1rem; font-weight: 800; margin: 1.75rem 0 0.5rem;">7. Your Rights</h2>
+      <p>You have the right to:</p>
+      <ul style="margin: 0.5rem 0 0.5rem 1.5rem; line-height: 2;">
+        <li>Access the personal information we hold about you</li>
+        <li>Request correction of inaccurate information</li>
+        <li>Request deletion of your account and data</li>
+        <li>Withdraw consent for data processing (by deleting your account)</li>
+      </ul>
+      <p>Parents and guardians of children under 13 may exercise these rights on their child's behalf.</p>
+
+      <h2 style="font-size: 1.1rem; font-weight: 800; margin: 1.75rem 0 0.5rem;">8. Changes to This Policy</h2>
+      <p>We may update this Privacy Policy as the platform evolves. We will note the date of the last update at the top of this page. Continued use of SparK after changes are posted constitutes acceptance of the updated policy.</p>
+
+      <h2 style="font-size: 1.1rem; font-weight: 800; margin: 1.75rem 0 0.5rem;">9. Contact Us</h2>
+      <p>For privacy questions, COPPA requests, or data deletion, please contact:</p>
+      <p style="margin-top: 0.5rem;">
+        <strong>SparK LLC</strong><br>
+        Randy Christenhusz<br>
+        <a href="mailto:rchristenhusz@gmail.com">rchristenhusz@gmail.com</a>
+      </p>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

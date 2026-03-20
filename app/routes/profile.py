@@ -1,6 +1,6 @@
 # app/routes/profile.py
 
-from flask import Blueprint, render_template, session, redirect, url_for, request
+from flask import Blueprint, render_template, session, redirect, url_for, request, flash
 from app.models.user import (
     get_user_by_username,
     is_following,
@@ -12,6 +12,7 @@ from app.models.user import (
 )
 from app.models.post import get_posts_by_user, get_bookmarks, toggle_bookmark
 from app.models.notifications import create_notification
+from app.models.block import block_user, unblock_user
 from app.utils.auth import login_required
 from app.utils.rate_limit import rate_limit
 
@@ -74,6 +75,32 @@ def follow(username):
         )
 
     return redirect(url_for("profile.view_profile", username=username))
+
+
+@profile_bp.route("/<username>/block", methods=["POST"])
+@login_required
+def block(username):
+    target = get_user_by_username(username)
+    if not target:
+        return "User not found", 404
+    if target["id"] == session["user_id"]:
+        return "Cannot block yourself", 400
+
+    block_user(session["user_id"], target["id"])
+    flash(f"{username} has been blocked.", "success")
+    return redirect(request.referrer or url_for("feed.index"))
+
+
+@profile_bp.route("/<username>/unblock", methods=["POST"])
+@login_required
+def unblock(username):
+    target = get_user_by_username(username)
+    if not target:
+        return "User not found", 404
+
+    unblock_user(session["user_id"], target["id"])
+    flash(f"{username} has been unblocked.", "success")
+    return redirect(request.referrer or url_for("feed.index"))
 
 
 @profile_bp.route("/posts/<int:post_id>/bookmark", methods=["POST"])

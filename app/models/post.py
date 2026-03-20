@@ -6,37 +6,75 @@ PER_PAGE = 20
 
 
 # --- feed
-def get_feed(page=1, topic_id=None):
+def get_feed(page=1, topic_id=None, blocked_ids=None):
     offset = (page - 1) * PER_PAGE
     db = get_db()
+    blocked_ids = blocked_ids or []
+
     if topic_id:
-        rows = db.execute(
-            """
-            SELECT posts.*, users.username, topics.name as topic_name
-                          FROM posts
-                          JOIN users ON posts.user_id = users.id
-                          LEFT JOIN topics ON posts.topic_id = topics.id
-                          WHERE posts.parent_id IS NULL
-                            AND is_hidden = 0
-                            AND posts.topic_id = ?
-                          ORDER BY posts.votes DESC, posts.created_at DESC
-                          LIMIT ? OFFSET ?
+        if blocked_ids:
+            placeholders = ",".join("?" * len(blocked_ids))
+            rows = db.execute(
+                f"""
+                SELECT posts.*, users.username, topics.name as topic_name
+                FROM posts
+                JOIN users ON posts.user_id = users.id
+                LEFT JOIN topics ON posts.topic_id = topics.id
+                WHERE posts.parent_id IS NULL
+                AND posts.is_hidden = 0
+                AND posts.topic_id = ?
+                AND posts.user_id NOT IN ({placeholders})
+                ORDER BY posts.votes DESC, posts.created_at DESC
+                LIMIT ? OFFSET ?
         """,
-            (topic_id, PER_PAGE + 1, offset),
-        ).fetchall()
+                (topic_id, *blocked_ids, PER_PAGE + 1, offset),
+            ).fetchall()
+        else:
+            rows = db.execute(
+                """
+                SELECT posts.*, users.username, topics.name as topic_name
+                FROM posts
+                JOIN users ON posts.user_id = users.id
+                LEFT JOIN topics on posts.topic_id = topics.id
+                WHERE posts.parent_id IS NULL
+                AND posts.is_hidden = 0
+                AND posts.topic_id = ?
+                ORDER BY posts.votes DESC, posts.created_at DESC
+                LIMIT ? OFFSET ?
+            """,
+                (topic_id, PER_PAGE + 1, offset),
+            ).fetchall()
     else:
-        rows = db.execute(
-            """
-            SELECT posts.*, users.username, topics.name as topic_name
-                      FROM posts
-                      JOIN users ON posts.user_id = users.id
-                      LEFT JOIN topics on posts.topic_id = topics.id
-                      WHERE posts.parent_id IS NULL
-                      ORDER BY posts.votes DESC, posts.created_at DESC
-                      LIMIT ? OFFSET ?
-        """,
-            (PER_PAGE + 1, offset),
-        ).fetchall()
+        if blocked_ids:
+            placeholder = ",".join("?" * len(blocked_ids))
+            rows = db.execute(
+                f"""
+                SELECT posts.*, users.username, topics.name as topic_name
+                FROM posts
+                JOIN users ON posts.user_id = users.id
+                LEFT JOIN topics ON posts. topic_id = topics.id
+                WHERE posts.parent_id IS NULL
+                  AND posts.is_hidden = 0
+                  AND posts.user_id NOT IN ({placeholder})
+                ORDER BY posts.votes DESC, posts.created_at DESC
+                LIMIT ? OFFSET ?
+                """,
+                (*blocked_ids, PER_PAGE + 1, offset),
+            ).fetchall()
+        else:
+            rows = db.execute(
+                """
+                SELECT posts.*, users.username, topics.name as topic_name
+                FROM posts
+                JOIN users ON posts.user_id = users.id
+                LEFT JOIN topics ON posts.topic_id = topics.id
+                WHERE posts.parent_id IS NULL
+                  AND posts.is_hidden = 0
+                ORDER BY posts.votes DESC, posts.created_at DESC
+                LIMIT ? OFFSET ?
+                """,
+                (PER_PAGE + 1, offset),
+            ).fetchall()
 
     has_next = len(rows) > PER_PAGE
     return rows[:PER_PAGE], has_next
@@ -251,24 +289,48 @@ def is_bookmarked(user_id, post_id):
 
 
 # --- following feed
-def get_following_feed(user_id, page=1):
+def get_following_feed(user_id, page=1, blocked_ids=None):
     """Return paginated feed of followe list"""
     offset = (page - 1) * PER_PAGE
     db = get_db()
+
+    if blocked_ids:
+        placeholders = ",".join("?" * len(blocked_ids))
+        rows = db.execute(
+            f"""
+            SELECT posts.*, users.username, topics.name as topic_name
+            FROM posts
+            JOIN users ON posts.user_id = user.id
+            LEFT JOIN topics ON posts.topic_id = topics.id
+            WHERE posts.user_id IN (
+                SELECT followed_id FROM follows WHERE follower_id = ?
+            )
+            AND posts.parent_id IS NULL
+            ANd posts.is_hidden = 0
+            AND posts.user_id NOT IN ({placeholders})
+            ORDER BY posts.created_at DESC
+            LIMIT ? OFFSET ?
+            """,
+            (user_id, *blocked_ids, PER_PAGE + 1, offset),
+        ).fetchall()
+    else:
+        blocked_ids = []
+
     rows = db.execute(
         """
         SELECT posts.*, users.username, topics.name as topic_name
-                      FROM posts
-                      JOIN users ON posts.user_id == users.id
-                      LEFT JOIN topics ON posts.topic_id = topics.id
-                      WHERE posts.user_id IN (
-                        SELECT followed_id FROM follows WHERE follower_id = ?
-                      )
-                      AND posts.parent_id IS NULL
-                      ORDER BY posts.created_at DESC
-                      LIMIT ? OFFSET ?
+        FROM posts
+        JOIN users ON posts.user_id = users.id
+        LEFT JOIN topics ON posts.topic_id = topics.id
+        WHERE posts.user_id IN (
+        SELECT followed_id FROM follows WHERE follower_id = ?
+        )
+        AND posts.parent_id IS NULL
+        AND posts.is_hidden = 0
+        ORDER BY posts.created_at DESC
+        LIMIT ? OFFSET ?
     """,
-        (user_id, PER_PAGE + 1, offset),
+        (user_id, *blocked_ids, PER_PAGE + 1, offset),
     ).fetchall()
 
     has_next = len(rows) > PER_PAGE

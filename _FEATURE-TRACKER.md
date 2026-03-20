@@ -1,8 +1,30 @@
-# Devstack Feature Tracker
+# ⚡ SparK — Development Tracker
 
-## Completed
+**Current Goal:** Ship a fully working in-classroom version for live alpha testing with a single trusted classroom.
 
-- [x] User auth (register/login/logout)
+---
+
+## 🏁 Milestones
+
+| Milestone | Version | Status |
+|-----------|---------|--------|
+| Core platform complete | v0.1 | ✅ Done |
+| Safety core complete | v0.2 | 🔧 In Progress |
+| Alpha classroom ready | v0.3 | 🔲 Blocked on v0.2 |
+| Closed beta (single classroom live) | v1.0 | 🔲 Planned |
+| Trust & verification | v1.1 | 🔲 Planned |
+| Public launch | v1.2 | 🔲 Planned |
+| Growth & engagement | v1.3 | 🔲 Planned |
+| Ops & hardening | v2.0 | 🔲 Planned |
+
+---
+
+## ✅ v0.1 — Core Platform
+> **Status: Complete**
+> Everything needed for a functioning social + classroom platform.
+
+### Social
+- [x] User auth — register / login / logout
 - [x] Posts, replies, voting
 - [x] Topics
 - [x] Bookmarks
@@ -11,106 +33,159 @@
 - [x] Feed pagination
 - [x] Full-text search (FTS5)
 - [x] User following & personalized feed
-- [x] Notifications
-- [x] Docker & CI/CD
-- [x] Dev workflow scripts
-- [x] Rate limiting
-- [x] Error pages
-- [x] REST API
-- [x] CSRF protection
-- [x] Bcrypt password hashing
-- [x] Admin CLI tool
-- [x] Alembic migrations
-- [x] User settings page
-- [x] Dark/light theme toggle
+- [x] Notifications (real-time via WebSockets)
+- [x] Dark / light theme toggle
 - [x] Mobile sidebar hamburger menu
 - [x] BBCode preview while typing
 - [x] Character counters on title, bio, topic name fields
 - [x] Empty state illustrations
-- [x] Input sanitization / XSS prevention
-- [x] Brute force protection
-- [x] Session timeout — auto logout after inactivity
 
----
-
-## Alpha / Closed Beta
-
-### Phase 1 — Safety Core
-
-- [x] Rate limiting on registration — prevent bot account creation
-- [ ] Report system — flag posts/users for moderation review
-- [ ] Content moderation queue — hold flagged content for teacher review
-- [ ] User blocking — filter content from blocked users
-- [ ] Age-appropriate content filtering — baseline keyword/content rules
-- [x] COPPA compliance — Terms of Service and Privacy Policy pages
-
----
-
-### Phase 2 — Classroom System
-
-- [x] Classroom DB models — `classrooms`, `classroom_students`, `lessons`, `assignments`, `submissions`
+### Classroom System
+- [x] Classroom DB models — `classrooms`, `classroom_members`, `lessons`, `assignments`, `submissions`
 - [x] Classroom dashboard — teacher overview of all classes
-- [x] Create/join classroom — teacher creates, students join via code
+- [x] Create / join classroom — teacher creates, students join via code
 - [x] Lessons — rich BBCode content pages with auto-created discussion thread
 - [x] Assignments — instructions + due date + submissions + auto-created discussion thread
-- [x] Student submissions — submit work, one per student per assignment
-- [x] Grading UI — teacher grades submissions with feedback
+- [x] Student submissions — one per student per assignment, editable
+- [x] Grading UI — inline feedback per submission
 - [x] Submission grid — teacher sees all students and status at a glance
-- [x] Role gating — teacher/student/parent enforcement across classroom routes
+- [x] Role gating — teacher / student / parent enforcement across all classroom routes
+
+### Security & Infrastructure
+- [x] Input sanitization / XSS prevention
+- [x] CSRF protection on all forms
+- [x] Bcrypt password hashing
+- [x] Brute force protection — lockout after repeated failures
+- [x] Rate limiting on all routes
+- [x] Session timeout — auto logout after inactivity
+- [x] REST API
+- [x] Docker & Docker Compose
+- [x] GitHub Actions CI/CD pipeline
+- [x] Admin CLI tool
+- [x] Alembic migrations
+- [x] Dev workflow scripts (`feature.sh`, `ship.sh`, `done.sh`)
+- [x] Error pages (400, 401, 403, 404, 405, 429, 500)
+- [x] User not found returns formatted error page
 
 ---
 
-## Beta / Trust & Verification
+## 🔧 v0.2 — Safety Core
+> **Status: In Progress**
+> Hard floor before any real users touch the platform. Nothing ships to a classroom until this is done.
 
-### Phase 3 — Trust & Verification
+### COPPA & Access
+- [x] Rate limiting on registration — prevent bot account creation
+- [x] COPPA enforcement — age gate, teacher approval workflow, coppa_status gating
+- [ ] COPPA Terms of Service and Privacy Policy pages
+- [ ] `teacher_required()` decorator — clean role enforcement utility
+- [ ] User blocking — filter content from blocked users
+
+### Content Safety
+- [ ] Report system — students flag posts for moderation review
+- [ ] Content moderation queue — teacher dashboard for flagged content
+- [ ] Auto-hide flagged content — 3+ reports hides post pending review
+- [ ] Age-appropriate content filtering — baseline keyword / content rules
+
+---
+
+## 🧪 v0.3 — Alpha Classroom Ready
+> **Status: Blocked on v0.2**
+> Everything required to hand the keys to a real teacher with real students.
+
+### Teacher Experience
+- [ ] Teacher onboarding — first-login guide for classroom setup
+- [ ] Classroom invite flow polish — copy-to-clipboard join code
+- [ ] Assignment status dashboard — quick view of pending grades
+
+### Student Experience
+- [ ] Student onboarding — first-login guide for students
+- [ ] Submission confirmation — clear success state after submitting
+- [ ] Grade notification — student notified when teacher grades their work
+
+### Stability
+- [ ] Structured logging — replace all `print()` statements with proper log levels
+- [ ] Health check endpoint — `/health` returns app and DB status
+- [ ] Manual QA pass — full walkthrough as teacher, student, and parent
+
+---
+
+## 🎓 v1.0 — Closed Beta (Single Classroom Live)
+> **Status: Planned**
+> Real students. Real teacher. Real stakes. The alpha classroom milestone.
+
+- [ ] Live classroom deployment — single trusted classroom running in production
+- [ ] Teacher feedback loop — weekly check-in process with alpha teacher
+- [ ] Bug tracking — structured log of issues found in live use
+- [ ] Safety incident review — confirm moderation workflow holds under real usage
+- [ ] Session stability — confirm WebSocket and session timeout work in production
+- [ ] Database backups — scheduled backup with rotation before go-live
+
+---
+
+## 🔐 v1.1 — Trust & Verification
+> **Status: Planned**
+> Expands safety and visibility ahead of multi-classroom rollout.
 
 - [ ] Email verification on register
-- [ ] Admin dashboard — proper moderation UI
-- [ ] Parent dashboard — visibility into student activity
+- [ ] Admin dashboard — full moderation UI for platform-level oversight
+- [ ] Parent dashboard — visibility into student activity via follow system
 - [ ] Topic moderators — role-based permissions per topic
-- [ ] School/district accounts — umbrella accounts managing multiple classrooms
-- [ ] Safety visibility modes — teacher can toggle full view vs flagged-only
-- [ ] Auto-hide flagged content — hold for review and notify teacher
+- [ ] Safety visibility modes — teacher toggles full view vs flagged-only
+- [ ] School / district accounts — umbrella accounts managing multiple classrooms
+- [ ] WebSocket update for COPPA pending screen — no re-login required (similar to Netflix /activate flow)
+- [ ] Gatekeep different classrooms with different teachers. e.g. teacher A will get notified about students who join teacher B's classroom
 
----
 
-## Public Release / Growth & Engagement
+## 🚀 v1.2 — Public Launch
+> **Status: Planned**
+> Open the doors beyond the alpha classroom.
 
-### Phase 4 — Growth & Engagement
-
+- [ ] Landing page — public marketing site
 - [ ] Onboarding flow — guide new users on first login
 - [ ] User mentions — `@username` triggers notification
-- [ ] Achievement badges — lightweight engagement without dark patterns
 - [ ] Direct messages — teacher ↔ student only initially
-- [ ] Landing page — public marketing site
 - [ ] Data export — users can download their own data
 - [ ] Trending algorithm — weight by votes, replies, and time decay
+- [ ] Upgrade COPPA — review and harden compliance for public launch
+- [ ] Update REST API — review and expand for public access
 
 ---
 
-## Ops & Hardening
+## 🎮 v1.3 — Growth & Engagement
+> **Status: Planned**
+> Deepen engagement without dark patterns.
 
-### Phase 5 — Ops & Hardening
-
-- [ ] Full audit log — track all data changes with who/when/what
-- [ ] Structured logging — replace print statements with proper log levels
-- [ ] Health check endpoint — `/health` returns app and DB status
-- [ ] Database backups — scheduled backup script with rotation
-- [ ] Dependency vulnerability scanning — `pip-audit` in CI pipeline
-- [ ] Feature flags — toggle features without deploying
-
----
-
-## Backlog
-
+- [ ] Achievement badges — lightweight milestones for students
 - [ ] Rubric grading — structured scoring within assignments
 - [ ] Multiple choice / checkbox assignment types
-- [ ] Homeschool mode — parent receives notifications instead of teacher
-- [ ] BBCode install
-- [ ] PWA support — manifest.json + service worker
-- [ ] Penpals
-- [x] User not found page returns formatted error instead of white page
-- [ ] Upgrade COPPA
-- [ ] Update API
-- [ ] WebSocket update for "COPPA pending" screen instead of relogging in. (similar to netflix/xbox on /activate)
-- [ ] Add teacher_required() decorator
+- [ ] Homeschool mode — parent receives teacher notifications instead
+- [ ] Penpals — cross-classroom connection feature
+- [ ] PWA support — `manifest.json` + service worker
+
+---
+
+## ⚙️ v2.0 — Ops & Hardening
+> **Status: Planned**
+> Production-grade infrastructure for scale.
+
+- [ ] Full audit log — track all data changes with who / when / what
+- [ ] Dependency vulnerability scanning — `pip-audit` in CI pipeline
+- [ ] Feature flags — toggle features without deploying
+- [ ] BBCode standalone install / package
+- [ ] PostgreSQL migration — replace SQLite for multi-tenant scale
+
+---
+
+## 🗂️ Backlog (Unscheduled)
+
+Items captured but not yet assigned to a version.
+
+- [ ] Rubric grading UI improvements
+- [ ] Admin CLI expansion — more management commands
+- [ ] API documentation
+- [ ] Rate limit tuning — review thresholds after alpha data
+
+---
+
+*Last updated: March 2026*
+*Current focus: v0.2 Safety Core → v0.3 Alpha Ready → v1.0 Classroom Live*

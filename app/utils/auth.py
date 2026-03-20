@@ -1,4 +1,4 @@
-from flask import session, redirect, url_for
+from flask import session, redirect, url_for, abort
 from functools import wraps
 from app.models.user import get_user_by_id
 from app.models.classroom import get_member_role
@@ -33,3 +33,16 @@ def is_teacher_in_classroom(classroom_id):
 
     role = get_member_role(classroom_id, user_id)
     return role == "teacher"
+
+
+def teacher_required(f):
+    """Restricts route to users with role='teacher'. Must be used after @login_required"""
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user = current_user()
+        if not user or user["role"] != "teacher":
+            abort(403)
+        return f(*args, **kwargs)
+
+    return decorated

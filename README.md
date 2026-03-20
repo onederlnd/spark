@@ -29,9 +29,9 @@ The core social platform is built and functional. The classroom system is in act
 | Brute force protection | ✅ Complete |
 | UX polish (theme, mobile, BBCode preview) | ✅ Complete |
 | Session timeout | ✅ Complete |
-| Report system | 🔲 Planned |
+| Report system | ✅ Complete |
 | Content moderation queue | 🔲 Planned |
-| Classroom system (lessons + assignments + grading) | 🔲 In Development |
+| Classroom system (lessons + assignments + grading) | ✅ Complete |
 | Closed beta (single classroom) | 🔲 Blocked on above |
 
 ---
@@ -47,7 +47,7 @@ The core social platform is built and functional. The classroom system is in act
 - Pagination
 - Dark and light theme
 
-### Classroom System *(in development)*
+### Classroom System 
 - Teacher-owned classrooms with student enrollment via join code
 - Lesson pages with rich BBCode content
 - Assignments with due dates and submission workflow
