@@ -1,23 +1,37 @@
-{% extends "base.html" %}
-{% block title %}{{ classroom.name }} — SparK{% endblock %}
-
-{% block left_sidebar %}
+{% extends "base.html" %} {% block title %}{{ classroom.name }} — SparK{%
+endblock %} {% block left_sidebar %}
 <div class="sidebar-title">{{ classroom.name }}</div>
 <ul class="sidebar-nav">
-  <li><a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}">
-    <span class="icon">🏠</span> Overview
-  </a></li>
-  <li><a href="{{ url_for('classrooms.dashboard') }}">
-    <span class="icon">⬅</span> All Classrooms
-  </a></li>
+  <li>
+    <a
+      href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
+    >
+      <span class="icon">🏠</span> Overview
+    </a>
+  </li>
+  <li>
+    <a href="{{ url_for('classrooms.dashboard') }}">
+      <span class="icon">⬅</span> All Classrooms
+    </a>
+  </li>
   {% if role == 'teacher' %}
   <li>
-    <a href="{{ url_for('moderation.moderation_dashboard', classroom_id=classroom.id) }}">
-      <span class="icon">🚩</span> Moderation Queue
-      {% if pending_reports > 0 %}
-        <span style="background:var(--rose); color:#fff; border-radius:999px; padding:1px 7px; font-size:0.75rem; margin-left:4px;">
-          {{ pending_reports }}
-        </span>
+    <a
+      href="{{ url_for('moderation.moderation_dashboard', classroom_id=classroom.id) }}"
+    >
+      <span class="icon">🚩</span> Moderation Queue {% if pending_reports > 0 %}
+      <span
+        style="
+          background: var(--rose);
+          color: #fff;
+          border-radius: 999px;
+          padding: 1px 7px;
+          font-size: 0.75rem;
+          margin-left: 4px;
+        "
+      >
+        {{ pending_reports }}
+      </span>
       {% endif %}
     </a>
   </li>
@@ -33,28 +47,37 @@
 <div class="sidebar-title">Members ({{ members|length }})</div>
 <ul class="sidebar-nav">
   {% for member in members %}
-    <li>
-      <a href="/profile/{{ member.username }}">
-        <span class="icon">{% if member.role == 'teacher' %}👩‍🏫{% else %}👤{% endif %}</span>
-        {{ member.username }}
-      </a>
-    </li>
+  <li>
+    <a href="/profile/{{ member.username }}">
+      <span class="icon"
+        >{% if member.role == 'teacher' %}👩‍🏫{% else %}👤{% endif %}</span
+      >
+      {{ member.username }}
+    </a>
+  </li>
   {% endfor %}
 </ul>
 
 {% if role == 'teacher' %}
-  <div class="sidebar-divider"></div>
-  <div class="sidebar-title">Join Code</div>
-  <div style="padding: 8px 12px;">
-    <div style="font-size: 1.5rem; font-weight: 900; letter-spacing: 0.2em; color: var(--teal);">
-      {{ classroom.join_code }}
-    </div>
-    <div style="font-size: 0.75rem; color: var(--muted); margin-top: 4px;">Share this with students</div>
+<div class="sidebar-divider"></div>
+<div class="sidebar-title">Join Code</div>
+<div style="padding: 8px 12px">
+  <div
+    style="
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: 0.2em;
+      color: var(--teal);
+    "
+    data-join-code="{{ classroom.join_code }}"
+  >
+    {{ classroom.join_code }}
   </div>
-{% endif %}
-{% endblock %}
-
-{% block content %}
+  <div style="font-size: 0.75rem; color: var(--muted); margin-top: 4px">
+    Share this with students
+  </div>
+</div>
+{% endif %} {% endblock %} {% block content %}
 
 <div class="feed-header">
   <div>
@@ -62,59 +85,114 @@
     <p class="feed-desc">{{ classroom.description or "No description" }}</p>
   </div>
   {% if role == 'teacher' %}
-    <a href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}" class="btn btn-primary">+ New Assignment</a>
+  <a
+    href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}"
+    class="btn btn-primary"
+    >+ New Assignment</a
+  >
   {% endif %}
 </div>
 
 {% if assignments %}
-  <div class="post-list">
-    {% for assignment in assignments %}
-    <div class="card" style="margin-bottom: 1rem;">
-      <div class="card-body">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
-          <div>
-            <a href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
-               style="font-size: 1.1rem; font-weight: 700; color: var(--text); text-decoration: none;">
-              {{ assignment.title }}
-            </a>
-            {% if assignment.due_date %}
-              <div style="font-size: 0.8rem; color: var(--muted); margin-top: 4px;">
-                Due: {{ assignment.due_date }}
-              </div>
-            {% endif %}
+<div class="post-list">
+  {% for assignment in assignments %}
+  <div class="card" style="margin-bottom: 1rem">
+    <div class="card-body">
+      <div
+        style="
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 1rem;
+        "
+      >
+        <div>
+          <a
+            href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+            style="
+              font-size: 1.1rem;
+              font-weight: 700;
+              color: var(--text);
+              text-decoration: none;
+            "
+          >
+            {{ assignment.title }}
+          </a>
+          {% if assignment.due_date %}
+          <div style="font-size: 0.8rem; color: var(--muted); margin-top: 4px">
+            Due: {{ assignment.due_date }}
           </div>
-          <div style="display:flex; gap:0.5rem; flex-shrink:0;">
-            <a href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
-               class="btn btn-ghost" style="font-size:0.85rem;">
-              {% if role == 'teacher' %}View{% else %}Open{% endif %}
-            </a>
-            {% if role == 'teacher' %}
-              <a href="{{ url_for('classrooms.grade_grid', classroom_id=classroom.id, assignment_id=assignment.id) }}"
-                 class="btn btn-ghost" style="font-size:0.85rem;">Grade</a>
-            {% endif %}
-          </div>
+          {% endif %}
+        </div>
+        <div style="display: flex; gap: 0.5rem; flex-shrink: 0">
+          <a
+            href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+            class="btn btn-ghost"
+            style="font-size: 0.85rem"
+          >
+            {% if role == 'teacher' %}View{% else %}Open{% endif %}
+          </a>
+          {% if role == 'teacher' %}
+          <a
+            href="{{ url_for('classrooms.grade_grid', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+            class="btn btn-ghost"
+            style="font-size: 0.85rem"
+            >Grade</a
+          >
+          {% endif %}
         </div>
       </div>
     </div>
-    {% endfor %}
   </div>
+  {% endfor %}
+</div>
 
 {% else %}
-  <div class="empty-state">
-    <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
-      <rect x="16" y="12" width="40" height="48" rx="4" stroke="currentColor" stroke-width="2"/>
-      <path d="M24 28h24M24 36h24M24 44h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <path d="M24 20h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    {% if role == 'teacher' %}
-      <div class="empty-state-title">No assignments yet</div>
-      <div class="empty-state-desc">Create your first assignment for this classroom.</div>
-      <a href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}" class="btn btn-primary">+ New Assignment</a>
-    {% else %}
-      <div class="empty-state-title">No assignments yet</div>
-      <div class="empty-state-desc">Your teacher hasn't posted any assignments yet.</div>
-    {% endif %}
+<div class="empty-state">
+  <svg
+    class="empty-state-icon"
+    width="72"
+    height="72"
+    viewBox="0 0 72 72"
+    fill="none"
+  >
+    <rect
+      x="16"
+      y="12"
+      width="40"
+      height="48"
+      rx="4"
+      stroke="currentColor"
+      stroke-width="2"
+    />
+    <path
+      d="M24 28h24M24 36h24M24 44h16"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+    />
+    <path
+      d="M24 20h12"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+    />
+  </svg>
+  {% if role == 'teacher' %}
+  <div class="empty-state-title">No assignments yet</div>
+  <div class="empty-state-desc">
+    Create your first assignment for this classroom.
   </div>
-{% endif %}
-
-{% endblock %}
+  <a
+    href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}"
+    class="btn btn-primary"
+    >+ New Assignment</a
+  >
+  {% else %}
+  <div class="empty-state-title">No assignments yet</div>
+  <div class="empty-state-desc">
+    Your teacher hasn't posted any assignments yet.
+  </div>
+  {% endif %}
+</div>
+{% endif %} {% endblock %}

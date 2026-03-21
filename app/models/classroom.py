@@ -237,6 +237,24 @@ def get_submission_grid(assignment_id, classroom_id):
     ).fetchall()
 
 
+def get_pending_grades_for_teacher(teacher_id):
+    """Return a dict of classroom_id -> ungraded submission count"""
+    db = get_db()
+    rows = db.execute(
+        """
+        SELECT assignments.classroom_id, COUNT(submissions.id) as pending
+        FROM submissions
+        JOIN assignments ON submissions.assignment_id = assignments.id
+        JOIN classrooms ON assignments.classroom_id = classrooms.id
+        WHERE classrooms.teacher_id = ?
+        AND (submissions.grade IS NULL OR submissions.grade = '')
+        GROUP BY assignments.classroom_id
+        """,
+        (teacher_id,),
+    ).fetchall()
+    return {row["classroom_id"]: row["pending"] for row in rows}
+
+
 def save_grade(submission_id, grade, feedback=""):
     db = get_db()
     db.execute(

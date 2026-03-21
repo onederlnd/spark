@@ -73,8 +73,8 @@ def create_user(username, password, bio="", role="student", dob=None):
     ).decode()
     try:
         db.execute(
-            "INSERT INTO users (username, password_hash, dob, bio, role, coppa_status) VALUES (?, ?, ?, ?, ?, ?)",
-            (username, password_hash, dob_str, bio, role, coppa_status),
+            "INSERT INTO users (username, password_hash, dob, bio, role, coppa_status, onboarded) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (username, password_hash, dob_str, bio, role, coppa_status, 0),
         )
         db.commit()
         if role == "student" and coppa_status == "pending":
@@ -207,3 +207,9 @@ def get_db_following(user_id):
                       """,
         (user_id,),
     ).fetchall()
+
+
+def mark_onboarded(user_id):
+    db = get_db()
+    db.execute("UPDATE users SET onboarded = 1 WHERE id = ?", (user_id,))
+    db.commit()

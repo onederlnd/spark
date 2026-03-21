@@ -21,6 +21,28 @@
   {% endif %}
 </div>
 
+{% if is_teacher and pending_grades %}
+<div class="card" style="margin-bottom: 1.5rem;">
+  <div class="card-body">
+    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+      <span style="font-size:1rem;">📋</span>
+      <h3 style="margin:0; font-size:0.95rem; font-weight:800;">Pending Grades</h3>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:0.4rem;">
+      {% for classroom_id, count in pending_grades.items() %}
+        <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom_id) }}"
+           style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--soft); border-radius:var(--radius-sm); text-decoration:none; color:var(--text);">
+          <span style="font-size:0.88rem;">{{ classroom_names[classroom_id] }}</span>
+          <span style="background:var(--rose); color:#fff; border-radius:999px; padding:1px 8px; font-size:0.75rem; font-weight:700;">
+            {{ count }} to grade
+          </span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
 {% if not is_teacher %}
 <div class="card" style="margin-bottom: 1.5rem;">
   <div class="card-body">
@@ -39,7 +61,14 @@
   <div class="topics-grid">
     {% for classroom in classrooms %}
     <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}" class="topic-card">
-      <div class="topic-card-name">{{ classroom.name }}</div>
+      <div class="topic-card-name">
+        {{ classroom.name }}
+        {% if is_teacher and classroom.id in pending_grades %}
+          <span style="background:var(--rose); color:#fff; border-radius:999px; padding:1px 8px; font-size:0.75rem; margin-left:6px; font-weight:700;">
+            {{ pending_grades[classroom.id] }} to grade
+          </span>
+        {% endif %}
+      </div>
       <div class="topic-card-desc">{{ classroom.description or "No description" }}</div>
       <div class="topic-card-count">
         {% if classroom.member_role == 'teacher' %}
@@ -70,5 +99,55 @@
     {% endif %}
   </div>
 {% endif %}
+{% if show_onboarding %}
+<div id="onboarding-overlay" style="position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; display:flex; align-items:center; justify-content:center; padding:1rem;">
+  <div style="background:var(--card); border-radius:var(--radius); max-width:520px; width:100%; padding:2rem; position:relative;">
 
+    <div style="text-align:center; margin-bottom:1.5rem;">
+      <div style="font-size:2rem; margin-bottom:0.5rem;">👩‍🏫</div>
+      <h2 style="margin:0 0 0.25rem; font-size:1.25rem; font-weight:900;">Welcome to SparK Classrooms</h2>
+      <p style="color:var(--muted); font-size:0.88rem; margin:0;">Here's how to get your class up and running.</p>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:1rem; margin-bottom:1.5rem;">
+      <div style="display:flex; gap:1rem; align-items:flex-start;">
+        <div style="background:var(--teal); color:#fff; border-radius:999px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.85rem; flex-shrink:0;">1</div>
+        <div>
+          <div style="font-weight:800; font-size:0.95rem;">Create a classroom</div>
+          <div style="font-size:0.82rem; color:var(--muted);">Click <strong>+ New Classroom</strong> to set up your first class. Give it a name and optional description.</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:1rem; align-items:flex-start;">
+        <div style="background:var(--teal); color:#fff; border-radius:999px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.85rem; flex-shrink:0;">2</div>
+        <div>
+          <div style="font-weight:800; font-size:0.95rem;">Invite students</div>
+          <div style="font-size:0.82rem; color:var(--muted);">Each classroom has a unique <strong>join code</strong>. Share it with your students and they can join from their dashboard.</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:1rem; align-items:flex-start;">
+        <div style="background:var(--teal); color:#fff; border-radius:999px; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:0.85rem; flex-shrink:0;">3</div>
+        <div>
+          <div style="font-weight:800; font-size:0.95rem;">Create assignments</div>
+          <div style="font-size:0.82rem; color:var(--muted);">Inside a classroom, click <strong>+ New Assignment</strong> to post instructions and a due date. Students can submit directly on SparK.</div>
+        </div>
+      </div>
+    </div>
+
+    <button
+      onclick="dismissOnboarding()"
+      class="btn btn-primary"
+      style="width:100%; justify-content:center;">
+      Got it, let's go!
+    </button>
+
+  </div>
+</div>
+
+<script>
+  function dismissOnboarding() {
+    document.getElementById('onboarding-overlay').remove();
+    fetch('/classrooms/onboarding/complete', { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token() }}' } });
+  }
+</script>
+{% endif %}
 {% endblock %}

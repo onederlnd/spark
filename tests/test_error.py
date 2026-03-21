@@ -51,6 +51,7 @@ def test_429_page(auth_client):
 
 def test_500_page(app):
     app.config["TESTING"] = False  # Disable testing mode to trigger error handlers
+    app.config["PROPAGATE_EXCEPTIONS"] = False
 
     @app.route("/trigger500")
     def cause_error():

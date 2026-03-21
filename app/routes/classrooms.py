@@ -26,8 +26,9 @@ from app.models.classroom import (
     get_submission_grid,
     get_submissions_for_assignment,
     save_grade,
+    get_pending_grades_for_teacher,
 )
-from app.models.user import get_user_by_id, coppa_required
+from app.models.user import get_user_by_id, coppa_required, mark_onboarded
 from app.models.report import get_reports_for_classroom
 from app.utils.content_filter import add_word, remove_word, get_all_words
 
@@ -68,11 +69,20 @@ def _is_teacher(user_id):
 def dashboard():
     classrooms = get_classrooms_for_user(session["user_id"])
     is_teacher = _is_teacher(session["user_id"])
+    pending_grades = (
+        get_pending_grades_for_teacher(session["user_id"]) if is_teacher else {}
+    )
+    classroom_names = {c["id"]: c["name"] for c in classrooms}
+    user = get_user_by_id(session["user_id"])
+    show_onboarding = is_teacher and not user["onboarded"]
 
     return render_template(
         "classrooms/dashboard.html",
         classrooms=classrooms,
         is_teacher=is_teacher,
+        pending_grades=pending_grades,
+        classroom_names=classroom_names,
+        show_onboarding=show_onboarding,
     )
 
 
@@ -353,3 +363,10 @@ def manage_filter():
         return redirect(url_for("classrooms.manage_filter"))
     words = get_all_words()
     return render_template("classrooms/filter.html", words=words)
+
+
+@classrooms_bp.route("/onboarding/complete", methods=["POST"])
+@login_required
+def complete_onboarding():
+    mark_onboarded(session["user_id"])
+    return "", 204

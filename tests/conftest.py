@@ -83,6 +83,7 @@ def app():
             "SECRET_KEY": "test-source",
             "BCRYPT_ROUNDS": 4,
             "SESSION_TIMEOUT_MINUTES": 10,
+            "PROPAGATE_EXCEPTIONS": True,
         }
     )
     yield test_app
@@ -105,7 +106,7 @@ def auth_client(app):
             "username": "testuser",
             "password": "pass123",
             "bio": "test bio",
-            "dob": "2010-05-21",
+            "dob": "2000-01-01",
         },
     )
     client.post(
@@ -146,7 +147,7 @@ def student_client(app):
             "username": "student1",
             "password": "pass123",
             "bio": "",
-            "dob": "2010-01-01",
+            "dob": "2000-01-01",
         },
     )
     client.post("/auth/login", data={"username": "student1", "password": "pass123"})

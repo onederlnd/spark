@@ -80,6 +80,7 @@ def init_db(app):
                 bio TEXT DEFAULT '',
                 role TEXT NOT NULL DEFAULT 'student',
                 coppa_status TEXT NOT NULL DEFAULT 'approved',
+                onboarded INTEGER NOT NULL DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
