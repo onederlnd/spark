@@ -543,6 +543,10 @@ def provision_template():
     )
 
 
+@classrooms_bp.route(
+    "/<int:classroom_id>/students/<int:student_id>/regenerate-qr",
+    methods=["POST"],
+)
 @login_required
 @teacher_required
 def regenerate_student_qr(classroom_id, student_id):
@@ -563,3 +567,46 @@ def regenerate_student_qr(classroom_id, student_id):
     regenerate_qr_token(student_id)
     flash(f"QR code regenerated for {student['username']},", "success")
     return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
+
+
+@classrooms_bp.route("/provision/qr-sheet")
+@login_required
+@teacher_required
+def qr_sheet():
+    students = session.get("provisioned_students")
+    if not students:
+        flash("No provisioning data found. Please add students first.", "error")
+        return redirect(url_for("classrooms.provision"))
+
+    import qrcode
+    import qrcode.image.svg
+    from io import BytesIO
+    import base64
+
+    base_url = request.host_url.rstrip("/")
+    qr_codes = []
+
+    for student in students:
+        token = student.get("qr_token")
+        if not token:
+            qr_codes.append({"student": student, "qr_b64": None})
+            continue
+        try:
+            url = f"{base_url}/auth/qr-login?token={token}"
+            img = qrcode.make(url)
+            buffer = BytesIO()
+            img.save(buffer, format="PNG")
+            qr_b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+            qr_codes.append({"student": student, "qr_b64": qr_b64})
+        except Exception as e:
+            print("[DEBUG] QR GENERATION ERROR:", e)
+            qr_codes.append({"student": student, "qr_b64": None})
+    print("[DEBUG] RENDERING QR SHEET WITH", len(qr_codes), "codes")
+    import os
+    from flask import current_app
+
+    template_path = os.path.join(
+        current_app.template_folder, "classrooms/qr_sheet.html"
+    )
+    print("TEMPLATE EXISTS:", os.path.exists(template_path))
+    return render_template("classrooms/qr_sheet.html", qr_codes=qr_codes)

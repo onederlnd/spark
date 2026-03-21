@@ -81,7 +81,8 @@ def get_classroom_members(classroom_id):
     db = get_db()
     return db.execute(
         """
-                    SELECT users.id, users.username, classroom_members.role, classroom_members.joined_at
+                    SELECT users.id, users.username, users.provisional,
+                        classroom_members.role, classroom_members.joined_at
                     FROM classroom_members
                     JOIN users ON classroom_members.user_id = users.id
                     WHERE classroom_members.classroom_id = ?

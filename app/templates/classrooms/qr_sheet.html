@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}QR Login Sheet — SparK{% endblock %}
+
+{% block left_sidebar %}
+<div class="sidebar-title">Menu</div>
+<ul class="sidebar-nav">
+  <li><a href="/"><span class="icon">🏠</span> Home Feed</a></li>
+  <li><a href="{{ url_for('classrooms.dashboard') }}"><span class="icon">🏫</span> Classrooms</a></li>
+  <li><a href="{{ url_for('classrooms.credentials') }}"><span class="icon">←</span> Back to Credentials</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:720px;">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem;" class="no-print">
+    <div>
+      <h1 class="form-title" style="margin:0;">QR Login Sheet</h1>
+      <p class="form-subtitle" style="margin:0;">
+        {{ qr_codes|length }} card{{ 's' if qr_codes|length != 1 }}.
+        Cut and hand out to students.
+      </p>
+    </div>
+    <button onclick="window.print()" class="btn btn-primary no-print">🖨 Print</button>
+  </div>
+
+  <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:1rem;">
+    {% for item in qr_codes %}
+    <div style="border:1px solid var(--border); border-radius:var(--radius); padding:1.25rem; display:flex; flex-direction:column; align-items:center; gap:0.75rem; background:var(--card);">
+      {% if item.qr_b64 %}
+        <img src="data:image/png;base64,{{ item.qr_b64 }}"
+             alt="QR code for {{ item.student.username }}"
+             style="width:160px; height:160px; image-rendering:pixelated;">
+      {% else %}
+        <div style="width:160px; height:160px; display:flex; align-items:center; justify-content:center; background:var(--soft); border-radius:var(--radius-sm); color:var(--muted); font-size:0.78rem; text-align:center;">
+          QR unavailable
+        </div>
+      {% endif %}
+      <div style="text-align:center;">
+        <div style="font-weight:800; font-size:1rem;">{{ item.student.first_name }} {{ item.student.last_name }}</div>
+        <div style="font-family:monospace; font-size:0.82rem; color:var(--muted); margin-top:2px;">{{ item.student.username }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top:1rem; font-size:0.78rem; color:var(--muted);" class="no-print">
+    This page is only available in this session. QR codes can be regenerated from the classroom member list if a sheet is lost.
+  </div>
+
+</div>
+
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .topbar, .sidebar, footer, .drawer, .drawer-overlay { display: none !important; }
+    .app-layout { display: block !important; }
+    .main-content { margin: 0 !important; padding: 0 !important; }
+    body { background: white !important; }
+    div[style*="border:1px solid"] {
+      break-inside: avoid;
+      border: 1px solid #ccc !important;
+    }
+  }
+</style>
+
+{% endblock %}

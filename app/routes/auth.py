@@ -196,7 +196,7 @@ def qr_login():
 
     db = get_db()
     user = db.execute(
-        "SELECT * FROM users WHERE qr_token = ? AND provsional = 1", (token,)
+        "SELECT * FROM users WHERE qr_token = ? AND provisional = 1", (token,)
     ).fetchone()
 
     if not user:
@@ -210,4 +210,4 @@ def qr_login():
     session["coppa_status"] = user["coppa_status"]
     session["role"] = user["role"]
 
-    return redirect(url_for("classroom.dashboard"))
+    return redirect(url_for("classrooms.dashboard"))

@@ -18,7 +18,109 @@
     <input name="password" type="password" placeholder="Password" required autocomplete="current-password">
     <button type="submit" class="btn-submit">Sign In</button>
   </form>
-  <a href="/auth/register">Don't have an account? Join free →</a>
+
+  <div style="margin: 1.25rem 0; display:flex; align-items:center; gap:0.75rem;">
+    <div style="flex:1; height:1px; background:var(--border);"></div>
+    <span style="font-size:0.78rem; color:var(--muted); font-weight:600;">or</span>
+    <div style="flex:1; height:1px; background:var(--border);"></div>
+  </div>
+
+  <button
+    type="button"
+    onclick="startQRScan()"
+    class="btn btn-ghost"
+    style="width:100%; justify-content:center; gap:0.5rem;"
+    id="qr-btn">
+    📷 Scan QR Code
+  </button>
+
+  <div id="qr-error" style="display:none; margin-top:0.75rem;" class="flash flash-error"></div>
+
+  <video id="qr-video"
+    style="display:none; width:100%; border-radius:var(--radius); margin-top:1rem; background:#000;"
+    playsinline autoplay></video>
+
+  <canvas id="qr-canvas" style="display:none;"></canvas>
+
+  <a href="/auth/register" style="display:block; margin-top:1rem;">Don't have an account? Join free →</a>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script>
+  let scanning = false;
+  let stream = null;
+  let animFrame = null;
+
+  function showQRError(msg) {
+    const el = document.getElementById("qr-error");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  function stopScan() {
+    scanning = false;
+    if (animFrame) cancelAnimationFrame(animFrame);
+    if (stream) stream.getTracks().forEach(t => t.stop());
+    document.getElementById("qr-video").style.display = "none";
+    document.getElementById("qr-btn").textContent = "📷 Scan QR Code";
+  }
+
+  function startQRScan() {
+    if (scanning) {
+      stopScan();
+      return;
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showQRError("Camera not available. Make sure you're on a secure (HTTPS) connection.");
+      return;
+    }
+
+    const video = document.getElementById("qr-video");
+    const canvas = document.getElementById("qr-canvas");
+    const ctx = canvas.getContext("2d");
+
+    document.getElementById("qr-btn").textContent = "✕ Cancel Scan";
+    document.getElementById("qr-error").style.display = "none";
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+      .then(s => {
+        stream = s;
+        video.srcObject = s;
+        video.style.display = "block";
+        scanning = true;
+
+        video.addEventListener("loadedmetadata", () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          scanFrame();
+        });
+      })
+      .catch(err => {
+        showQRError("Could not access camera. Please check your browser permissions.");
+        document.getElementById("qr-btn").textContent = "📷 Scan QR Code";
+      });
+
+    function scanFrame() {
+      if (!scanning) return;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code) {
+          const url = code.data;
+          if (url.includes("/auth/qr-login")) {
+            stopScan();
+            window.location.href = url;
+            return;
+          } else {
+            showQRError("Invalid QR code. Please use a SparK login QR code.");
+          }
+        }
+      }
+      animFrame = requestAnimationFrame(scanFrame);
+    }
+  }
+</script>
 
 {% endblock %}
