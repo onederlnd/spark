@@ -33,7 +33,12 @@ from app.models.classroom import (
     provision_student,
     provision_students_bulk,
 )
-from app.models.user import get_user_by_id, coppa_required, mark_onboarded
+from app.models.user import (
+    get_user_by_id,
+    coppa_required,
+    mark_onboarded,
+    regenerate_qr_token,
+)
 from app.models.report import get_reports_for_classroom
 from app.utils.content_filter import add_word, remove_word, get_all_words
 
@@ -536,3 +541,25 @@ def provision_template():
         mimetype="text/csv",
         headers={"Content-Disposition": "attachement; filename=students_template.csv"},
     )
+
+
+@login_required
+@teacher_required
+def regenerate_student_qr(classroom_id, student_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if role != "teacher":
+        return "Forbidden", 403
+
+    student = get_user_by_id(student_id)
+    member_role = get_member_role(classroom_id, student_id)
+    if not student or not member_role:
+        return "Student not found in classroom", 404
+
+    if not student["provisional"]:
+        return "Forbidden", 403
+
+    regenerate_qr_token(student_id)
+    flash(f"QR code regenerated for {student['username']},", "success")
+    return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))

@@ -184,3 +184,30 @@ def terms():
 @auth_bp.route("/privacy")
 def privacy():
     return render_template("auth/terms.html")
+
+
+@auth_bp.route("/qr-login")
+@rate_limit(max_requests=20, window_seconds=60)
+def qr_login():
+    token = request.args.get("token", "").strip()
+    if not token:
+        flash("Invalid QR code.", "error")
+        return redirect(url_for("auth.login"))
+
+    db = get_db()
+    user = db.execute(
+        "SELECT * FROM users WHERE qr_token = ? AND provsional = 1", (token,)
+    ).fetchone()
+
+    if not user:
+        flash("Invalid or expired QR code.", "error")
+        return redirect(url_for("auth.login"))
+
+    session.clear()
+    session["user_id"] = user["id"]
+    session["username"] = user["username"]
+    session["last_active"] = datetime.now(timezone.utc).isoformat()
+    session["coppa_status"] = user["coppa_status"]
+    session["role"] = user["role"]
+
+    return redirect(url_for("classroom.dashboard"))

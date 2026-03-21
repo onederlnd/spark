@@ -2,6 +2,7 @@
 
 import sqlite3
 import bcrypt
+import secrets
 
 from functools import wraps
 from app.models import get_db
@@ -213,3 +214,15 @@ def mark_onboarded(user_id):
     db = get_db()
     db.execute("UPDATE users SET onboarded = 1 WHERE id = ?", (user_id,))
     db.commit()
+
+
+def generate_qr_token():
+    return secrets.token_urlsafe(32)
+
+
+def regenerate_qr_token(user_id):
+    token = generate_qr_token()
+    db = get_db()
+    db.execute("UPDATE users SET qr_token = ? WHERE id = ?", (token, user_id))
+    db.commit()
+    return token

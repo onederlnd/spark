@@ -82,6 +82,7 @@ def init_db(app):
                 coppa_status TEXT NOT NULL DEFAULT 'approved',
                 provisional INTEGER NOT NULL DEFAULT 0,
                 onboarded INTEGER NOT NULL DEFAULT 0,
+                qr_token TEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 

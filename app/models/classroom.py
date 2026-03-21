@@ -3,6 +3,7 @@ import unicodedata
 import random
 import string
 from app.models import get_db
+from app.models.user import generate_qr_token
 
 
 # --- helpers
@@ -363,13 +364,14 @@ def provision_student(first_name, last_name, dob, join_codes=None):
     password_hash = bcrypt.hashpw(
         password.encode(), bcrypt.gensalt(rounds=rounds)
     ).decode()
+    qr_token = generate_qr_token()
 
     cursor = db.execute(
         """
-        INSERT INTO users (username, password_hash, dob, bio, role, coppa_status, onboarded, provisional)
-        VALUES (?, ?, ?, '', 'student', 'approved', 0, 1)
+        INSERT INTO users (username, password_hash, dob, bio, role, coppa_status, onboarded, provisional, qr_token)
+        VALUES (?, ?, ?, '', 'student', 'approved', 0, 1, ?)
         """,
-        (username, password_hash, dob_date.isoformat()),
+        (username, password_hash, dob_date.isoformat(), qr_token),
     )
     db.commit()
     user_id = cursor.lastrowid
@@ -397,6 +399,7 @@ def provision_student(first_name, last_name, dob, join_codes=None):
         "dob": dob_date.isoformat(),
         "classrooms": enrolled_classrooms,
         "invalid_codes": invalid_codes,
+        "qr_token": qr_token,
     }
 
 
