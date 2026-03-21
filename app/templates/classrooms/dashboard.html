@@ -17,7 +17,10 @@
     <p class="feed-desc">{% if is_teacher %}Manage your classrooms and assignments{% else %}Your enrolled classrooms{% endif %}</p>
   </div>
   {% if is_teacher %}
+  <div style="display:flex; gap:0.5rem;">
+    <a href="{{ url_for('classrooms.provision') }}" class="btn btn-ghost">+ Add Students</a>
     <a href="{{ url_for('classrooms.new_classroom') }}" class="btn btn-primary">+ New Classroom</a>
+  </div>
   {% endif %}
 </div>
 

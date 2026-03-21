@@ -85,11 +85,10 @@ endblock %} {% block left_sidebar %}
     <p class="feed-desc">{{ classroom.description or "No description" }}</p>
   </div>
   {% if role == 'teacher' %}
-  <a
-    href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}"
-    class="btn btn-primary"
-    >+ New Assignment</a
-  >
+  <div style="display:flex; gap:0.5rem;">
+    <a href="{{ url_for('classrooms.provision') }}?join_code={{ classroom.join_code }}" class="btn btn-ghost">+ Add Students</a>
+    <a href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}" class="btn btn-primary">+ New Assignment</a>
+  </div>
   {% endif %}
 </div>
 

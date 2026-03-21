@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Add Students — SparK{% endblock %}
+
+{% block left_sidebar %}
+<div class="sidebar-title">Menu</div>
+<ul class="sidebar-nav">
+  <li><a href="/"><span class="icon">🏠</span> Home Feed</a></li>
+  <li><a href="{{ url_for('classrooms.dashboard') }}"><span class="icon">🏫</span> Classrooms</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 640px;">
+
+  <div style="margin-bottom: 1rem;">
+    <a href="{{ url_for('classrooms.dashboard') }}"
+       style="color: var(--muted); font-size: 0.85rem; text-decoration: none;">
+      ← Classrooms
+    </a>
+  </div>
+
+  <h1 class="form-title">Add Students</h1>
+  <p class="form-subtitle">
+    Create student accounts in bulk via CSV or add them one at a time.
+    Optionally include join codes to enroll students in classrooms immediately.
+  </p>
+
+  {% if errors %}
+  <div class="card" style="margin-bottom:1rem; border-left: 3px solid var(--rose);">
+    <div class="card-body">
+      <div style="font-weight:800; font-size:0.88rem; color:var(--rose); margin-bottom:0.5rem;">Some rows had errors:</div>
+      <ul style="margin:0; padding-left:1.25rem; font-size:0.85rem; color:var(--muted);">
+        {% for error in errors %}
+        <li>{{ error }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- CSV Upload -->
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+      <h2 style="font-size:1rem; font-weight:800; margin-bottom:0.25rem;">Upload CSV</h2>
+      <p style="font-size:0.82rem; color:var(--muted); margin-bottom:1rem;">
+        CSV must have columns: <code>first_name</code>, <code>last_name</code>, <code>dob</code> (YYYY-MM-DD).
+        Optionally include <code>join_codes</code> (comma-separated codes to auto-enroll).
+      </p>
+
+      <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="method" value="csv">
+        <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+          <input type="file" name="csv_file" accept=".csv"
+                 style="font-size:0.88rem; color:var(--text);" required>
+          <button type="submit" class="btn btn-primary">Upload</button>
+        </div>
+      </form>
+
+      <div style="margin-top:0.75rem;">
+        <a href="{{ url_for('classrooms.provision_template') }}"
+           style="font-size:0.78rem; color:var(--teal); text-decoration:none;">
+          ↓ Download CSV template
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Manual Entry -->
+  <div class="card">
+    <div class="card-body">
+      <h2 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">Add Manually</h2>
+      <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="method" value="manual">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+          <div class="field-wrap">
+            <label style="font-size:0.82rem; font-weight:700;">First Name</label>
+            <input type="text" name="first_name" placeholder="Jane"
+                   style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--soft); color:var(--text); font-family:var(--font);"
+                   required>
+          </div>
+          <div class="field-wrap">
+            <label style="font-size:0.82rem; font-weight:700;">Last Name</label>
+            <input type="text" name="last_name" placeholder="Smith"
+                   style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--soft); color:var(--text); font-family:var(--font);"
+                   required>
+          </div>
+        </div>
+
+        <div class="field-wrap" style="margin-bottom:0.75rem;">
+          <label style="font-size:0.82rem; font-weight:700;">Date of Birth</label>
+          <input type="date" name="dob"
+                 style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--soft); color:var(--text); font-family:var(--font);"
+                 required>
+        </div>
+
+        <div class="field-wrap" style="margin-bottom:1rem;">
+          <label style="font-size:0.82rem; font-weight:700;">
+            Join Codes
+            <span style="font-weight:400; color:var(--muted);">(optional — comma-separated)</span>
+          </label>
+          <input type="text" name="join_codes"
+                 placeholder="ABC123, XYZ789"
+                 value="{{ prefill_join_code or '' }}"
+                 style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--soft); color:var(--text); font-family:var(--font); text-transform:uppercase; letter-spacing:0.05em;">
+          <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">
+            Leave blank to create the account without enrolling in any classroom.
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Add Student</button>
+      </form>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

@@ -1,3 +1,5 @@
+import csv
+import io
 from flask import (
     Blueprint,
     render_template,
@@ -6,6 +8,7 @@ from flask import (
     redirect,
     url_for,
     flash,
+    Response,
 )
 from app.utils.auth import login_required, teacher_required
 from app.utils.rate_limit import rate_limit
@@ -27,6 +30,8 @@ from app.models.classroom import (
     get_submissions_for_assignment,
     save_grade,
     get_pending_grades_for_teacher,
+    provision_student,
+    provision_students_bulk,
 )
 from app.models.user import get_user_by_id, coppa_required, mark_onboarded
 from app.models.report import get_reports_for_classroom
@@ -370,3 +375,164 @@ def manage_filter():
 def complete_onboarding():
     mark_onboarded(session["user_id"])
     return "", 204
+
+
+@classrooms_bp.route("/provision", methods=["GET", "POST"])
+@login_required
+@teacher_required
+def provision():
+    prefill_join_code = request.args.get("join_code", "")
+
+    if request.method == "POST":
+        method = request.form.get("method")
+
+        if method == "manual":
+            first_name = sanitize_plain(
+                request.form.get("first_name", "").strip(), max_length=50
+            )
+            last_name = sanitize_plain(
+                request.form.get("last_name", "").strip(), max_length=50
+            )
+            dob = request.form.get("dob", "").strip()
+            join_codes_raw = request.form.get("join_codes", "").strip()
+            join_codes = [
+                c.strip().upper() for c in join_codes_raw.split(",") if c.strip()
+            ]
+
+            if not first_name or not last_name or not dob:
+                return render_template(
+                    "classrooms/provision.html",
+                    prefill_join_code=prefill_join_code,
+                    errors=["First name, last name, and date of birth are required"],
+                )
+
+            try:
+                result = provision_student(first_name, last_name, dob, join_codes)
+            except ValueError as e:
+                return render_template(
+                    "classrooms/provision.html",
+                    prefill_join_code=prefill_join_code,
+                    errors=[str(e)],
+                )
+
+            skipped = []
+
+            if result["invalid_codes"]:
+                skipped = [f"Invalid join codes: {', '.join(result['invalid_codes'])}"]
+
+            session["provisioned_students"] = [result]
+            session["provisioned_skipped"] = skipped
+            return redirect(url_for("classrooms.credentials"))
+        elif method == "csv":
+            file = request.files.get("csv_file")
+            if not file or not file.filename.endswith(".csv"):
+                return render_template(
+                    "classrooms/provision.html",
+                    prefill_join_code=prefill_join_code,
+                    errors=["Please upload a valid .csv file."],
+                )
+            try:
+                stream = io.StringIO(file.stream.read().decode("utf-8"))
+                reader = csv.DictReader(stream)
+
+                required = {"first_name", "last_name", "dob"}
+                if not reader.fieldnames or not required.issubset(
+                    set(reader.fieldnames)
+                ):
+                    return render_template(
+                        "classrooms/provisions.html",
+                        prefill_join_code=prefill_join_code,
+                        error=[
+                            "CSV must have columns: first_name, last_name, dob. Optionally: join_codes"
+                        ],
+                    )
+
+                rows = [row for row in reader if any(v.strip() for v in row.values())]
+            except Exception as e:
+                return render_template(
+                    "classrooms/provision.html",
+                    prefill_join_code=prefill_join_code,
+                    errors=[f"Could not read CSV: {str(e)}"],
+                )
+            students, skipped = provision_students_bulk(rows)
+
+            if not students and skipped:
+                return render_template(
+                    "classrooms/provision.html",
+                    prefill_join_code=prefill_join_code,
+                    errors=skipped,
+                )
+            session["provisioned_students"] = students
+            session["provisioned_skipped"] = skipped
+            return redirect(url_for("classrooms.credentials"))
+
+    return render_template(
+        "classrooms/provision.html", prefill_join_code=prefill_join_code, errors=[]
+    )
+
+
+@classrooms_bp.route("/provision/credentials")
+@login_required
+@teacher_required
+def credentials():
+    students = session.get("provisioned_students")
+    if not students:
+        flash("No provisioning data found. Please add students first.", "error")
+        return redirect(url_for("classrooms.provision"))
+
+    skipped = session.get("provisioned_skipped", [])
+    return render_template(
+        "classrooms/credentials.html",
+        students=students,
+        skipped=skipped,
+    )
+
+
+@classrooms_bp.route("/provision/credentials-csv")
+@login_required
+@teacher_required
+def credentials_csv():
+    students = session.get("provisioned_students")
+    if not students:
+        flash("No provisioning data found.", "error")
+        return redirect(url_for("classrooms.provision"))
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(
+        ["first_name", "last_name", "username", "password", "dob", "classrooms"]
+    )
+    for s in students:
+        writer.writerow(
+            [
+                s["first_name"],
+                s["last_name"],
+                s["username"],
+                s["password"],
+                s["dob"],
+                ", ".join(s["classrooms"]),
+            ]
+        )
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment; filename=student_credentials.csv"},
+    )
+
+
+@classrooms_bp.route("/provision/template.csv")
+@login_required
+@teacher_required
+def provision_template():
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["first_name", "last_name", "dob", "join_codes"])
+    writer.writerow(["Jane", "Smith", "2010-05-14", "ABC123"])
+    writer.writerow(["John", "Doe", "2011-03-22", ""])
+
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachement; filename=students_template.csv"},
+    )

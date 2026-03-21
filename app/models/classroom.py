@@ -1,3 +1,5 @@
+import re
+import unicodedata
 import random
 import string
 from app.models import get_db
@@ -262,3 +264,179 @@ def save_grade(submission_id, grade, feedback=""):
         (grade, feedback, submission_id),
     )
     db.commit()
+
+
+# --- provisioning helpers
+
+_WORDS = [
+    "sunny",
+    "windy",
+    "rainy",
+    "cloud",
+    "maple",
+    "river",
+    "stone",
+    "frost",
+    "bloom",
+    "creek",
+    "tiger",
+    "eagle",
+    "panda",
+    "koala",
+    "finch",
+    "robin",
+    "cedar",
+    "birch",
+    "ember",
+    "coral",
+    "lunar",
+    "solar",
+    "misty",
+    "sandy",
+    "brave",
+    "swift",
+    "quiet",
+    "jolly",
+    "lucky",
+    "fuzzy",
+    "witty",
+    "stormy",
+]
+
+
+def _slugify(text):
+    """Convert a name to a lowercase ASCII slug"""
+    text = unicodedata.normalize("NFKD", text)
+    text = text.encode("ascii", "ignore").decode("ascii")
+    text = text.lower().strip()
+    text = re.sub(r"[^a-z0-9]", "", text)
+    return text
+
+
+def generate_username(first_name, last_name):
+    """
+    Generate a unique username as firstname.lastname, with a numeric suffix to resolve collisions (e.g. john.smith2, john.smith3).
+    """
+    db = get_db()
+    first = _slugify(first_name)
+    last = _slugify(last_name)
+    if not first or not last:
+        raise ValueError(
+            "First and last name just contain at least one ASCII character"
+        )
+
+    base = f"{first}.{last}"
+    username = base
+    counter = 2
+    while db.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone():
+        username = f"{base}{counter}"
+        counter += 1
+    return username
+
+
+def generate_password():
+    word1, word2 = random.sample(_WORDS, 2)
+    digits = random.randint(10, 99)
+    return f"{word1}{word2}{digits}"
+
+
+def provision_student(first_name, last_name, dob, join_codes=None):
+    """
+    Create a provisioned student account. Returns a dict with account info and a list of classroom names the student was enrolled in. join_codes is an optional list of strings. Provisioned students are always coppa_status='approved' (school official exception)
+    """
+    import bcrypt
+    from flask import current_app
+    from datetime import datetime
+
+    db = get_db()
+    rounds = current_app.config.get("BCRYPT_ROUNDS", 12)
+
+    try:
+        dob_date = datetime.strptime(dob, "%Y-%m-%d").date()
+    except ValueError:
+        raise ValueError(
+            f"Invalid date format for {first_name} {last_name}: must be YYYY-MM-DD"
+        )
+
+    username = generate_username(first_name, last_name)
+    password = generate_password()
+    password_hash = bcrypt.hashpw(
+        password.encode(), bcrypt.gensalt(rounds=rounds)
+    ).decode()
+
+    cursor = db.execute(
+        """
+        INSERT INTO users (username, password_hash, dob, bio, role, coppa_status, onboarded, provisional)
+        VALUES (?, ?, ?, '', 'student', 'approved', 0, 1)
+        """,
+        (username, password_hash, dob_date.isoformat()),
+    )
+    db.commit()
+    user_id = cursor.lastrowid
+
+    enrolled_classrooms = []
+    invalid_codes = []
+
+    if join_codes:
+        for code in join_codes:
+            code = code.strip().upper()
+            if not code:
+                continue
+            classroom = get_classroom_by_join_code(code)
+            if not classroom:
+                invalid_codes.append(code)
+                continue
+            join_classroom(classroom["id"], user_id, "student")
+            enrolled_classrooms.append(classroom["name"])
+
+    return {
+        "first_name": first_name,
+        "last_name": last_name,
+        "username": username,
+        "password": password,
+        "dob": dob_date.isoformat(),
+        "classrooms": enrolled_classrooms,
+        "invalid_codes": invalid_codes,
+    }
+
+
+def provision_students_bulk(rows):
+    """
+    Provision multiple students form a list of dicts with keys:
+    first_name, last_name, dob, join_codes (optional, comma-separated string).
+    Returns (student, skipped) where students is a list of result dicts and skipped is a list of error strings.
+    """
+    students = []
+    skipped = []
+
+    for i, row in enumerate(rows, start=1):
+        first_name = row.get("first_name", "").strip()
+        last_name = row.get("last_name", "").strip()
+        dob = row.get("dob", "").strip()
+        join_codes_raw = row.get("join_codes", "")
+
+        if not first_name or not last_name:
+            skipped.append(f"Row {i}: missing first or last name")
+            continue
+        if not dob:
+            skipped.append(f"Row {i} ({first_name} {last_name}): missing date of birth")
+            continue
+
+        join_codes = (
+            [c.strip() for c in join_codes_raw.split(",") if c.strip()]
+            if join_codes_raw
+            else []
+        )
+
+        try:
+            result = provision_student(first_name, last_name, dob, join_codes)
+            if result["invalid_codes"]:
+                skipped.append(
+                    f"Row {i} ({first_name} {last_name}): invalid join codes {', '.join(result['invalid_codes'])}"
+                )
+            students.append(result)
+
+        except ValueError as e:
+            skipped.append(str(e))
+
+    return students, skipped
