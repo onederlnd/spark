@@ -108,7 +108,7 @@ def init_db(app):
             CREATE TABLE IF NOT EXISTS reports (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 post_id INTEGER NOT NULL,
-                reported_by_user_id INTEGER NOT NULL,
+                reported_by_user_id INTEGER,
                 reason TEXT,
                 description TEXT,
                 status TEXT NOT NULL DEFAULT 'pending',
@@ -142,8 +142,8 @@ def init_db(app):
                 USING fts5(name, description, content=topics, content_rowid=id);
 
             CREATE TABLE IF NOT EXISTS follows (
-                follower_id INTEGER NOT NULL, -- user doing the following
-                followed_id INTEGER NOT NULL, -- user being followed
+                follower_id INTEGER NOT NULL,
+                followed_id INTEGER NOT NULL,
                 create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (follower_id, followed_id),
                 FOREIGN KEY (follower_id) REFERENCES users(id),
@@ -173,7 +173,7 @@ def init_db(app):
             CREATE TABLE IF NOT EXISTS classroom_members (
                 classroom_id INTEGER NOT NULL,
                 user_id INTEGER NOT NULL,
-                role TEXT NOT NULL DEFAULT 'student',  -- 'teacher' or 'student'
+                role TEXT NOT NULL DEFAULT 'student',
                 joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (classroom_id, user_id),
                 FOREIGN KEY (classroom_id) REFERENCES classrooms(id),
@@ -186,6 +186,7 @@ def init_db(app):
                 title TEXT NOT NULL,
                 instructions TEXT NOT NULL,
                 due_date TEXT,
+                post_id INTEGER REFERENCES POST(id),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (classroom_id) REFERENCES classrooms(id)
             );
@@ -202,6 +203,12 @@ def init_db(app):
                 UNIQUE (assignment_id, user_id),
                 FOREIGN KEY (assignment_id) REFERENCES assignments(id),
                 FOREIGN KEY (user_id) REFERENCES users(id)
+            );
+            CREATE TABLE IF NOT EXISTS filtered_words (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                word TEXT UNIQUE NOT NULL,
+                added_by INTEGER REFERENCES users(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
         db.commit()

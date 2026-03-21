@@ -52,7 +52,7 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 SELECT posts.*, users.username, topics.name as topic_name
                 FROM posts
                 JOIN users ON posts.user_id = users.id
-                LEFT JOIN topics ON posts. topic_id = topics.id
+                LEFT JOIN topics ON posts.topic_id = topics.id
                 WHERE posts.parent_id IS NULL
                   AND posts.is_hidden = 0
                   AND posts.user_id NOT IN ({placeholder})
@@ -82,6 +82,9 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
 
 # --- posting
 def create_post(user_id, title, body, classroom_id, topic_id=None, parent_id=None):
+    from app.utils.content_filter import check_content
+    from app.models.report import auto_flag_post
+
     db = get_db()
     cursor = db.execute(
         """
@@ -90,6 +93,8 @@ def create_post(user_id, title, body, classroom_id, topic_id=None, parent_id=Non
         (user_id, topic_id, title, body, parent_id, classroom_id),
     )
     db.commit()
+
+    post_id = cursor.lastrowid
 
     db.execute(
         "INSERT INTO posts_fts(rowid, title, body) VALUES (?, ?, ?)",
@@ -102,7 +107,12 @@ def create_post(user_id, title, body, classroom_id, topic_id=None, parent_id=Non
             "UPDATE posts SET reply_count = reply_count + 1 WHERE id = ?", (parent_id,)
         )
         db.commit()
-    return cursor.lastrowid
+
+    matched = check_content(f"{title} {body}")
+    if matched:
+        auto_flag_post(post_id, matched)
+
+    return post_id
 
 
 def get_post(post_id):
@@ -302,6 +312,7 @@ def get_following_feed(user_id, page=1, blocked_ids=None):
     """Return paginated feed of followe list"""
     offset = (page - 1) * PER_PAGE
     db = get_db()
+    blocked_ids = blocked_ids or []
 
     if blocked_ids:
         placeholders = ",".join("?" * len(blocked_ids))

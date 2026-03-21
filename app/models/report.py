@@ -96,3 +96,20 @@ def get_report_count(post_id):
         "SELECT COUNT(*) FROM reports WHERE post_id = ?",
         (post_id,),
     ).fetchone()[0]
+
+
+def auto_flag_post(post_id, matched_words):
+    """Auto-flag a post that matched the content filter. Creates a system report and hides the post for teacher review."""
+    db = get_db()
+    reason = "Auto-flagged by content filter"
+    description = f"Matched words: {', '.join(matched_words)}"
+
+    db.execute(
+        """
+        INSERT INTO reports (post_id, reported_by_user_id, reason, description, status)
+        VALUES (?, NULL, ?, ?, 'pending')
+        """,
+        (post_id, reason, description),
+    )
+    db.commit()
+    hide_post(post_id)

@@ -7,7 +7,7 @@ from flask import (
     url_for,
     flash,
 )
-from app.utils.auth import login_required
+from app.utils.auth import login_required, teacher_required
 from app.utils.rate_limit import rate_limit
 from app.utils.sanitize import sanitize_plain, sanitize_bbcode
 from app.models.classroom import (
@@ -29,7 +29,7 @@ from app.models.classroom import (
 )
 from app.models.user import get_user_by_id, coppa_required
 from app.models.report import get_reports_for_classroom
-
+from app.utils.content_filter import add_word, remove_word, get_all_words
 
 classrooms_bp = Blueprint("classrooms", __name__, url_prefix="/classrooms")
 
@@ -324,3 +324,32 @@ def grade_submission(classroom_id, assignment_id, student_id):
         assignment=assignment,
         submission=submission,
     )
+
+
+@classrooms_bp.route("/filter/words", methods=["GET", "POST"])
+@login_required
+@teacher_required
+def manage_filter():
+    if request.method == "POST":
+        action = request.form.get("action")
+        word = request.form.get("word", "").strip()
+
+        if not word:
+            flash("Word cannot be empty.", "error")
+            return redirect(url_for("classrooms.manage_filter"))
+
+        if action == "add":
+            success = add_word(word, session["user_id"])
+            flash(
+                f'"{word}" added to filter.'
+                if success
+                else f'"{word}" already exists.',
+                "success" if success else "warning",
+            )
+        elif action == "remove":
+            remove_word(word)
+            flash(f'"{word}" removed from filter.', "success")
+
+        return redirect(url_for("classrooms.manage_filter"))
+    words = get_all_words()
+    return render_template("classrooms/filter.html", words=words)

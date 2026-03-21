@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Content Filter — SparK{% endblock %}
+
+{% block content %}
+<div class="layout" style="max-width: 640px;">
+  <h1 class="form-title">Content Filter</h1>
+  <p class="form-subtitle">
+    SparK automatically filters common profanity. Add custom words below to flag
+    additional content for your classroom.
+  </p>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="card" style="margin-bottom: 1rem;">
+    <div class="card-body">
+      <div style="display:flex; align-items:flex-start; gap:0.75rem;">
+        <span style="font-size:1.25rem;">⚙️</span>
+        <div>
+          <div style="font-weight:800; font-size:0.88rem; color:var(--text); margin-bottom:2px;">
+            Built-in Filter Active
+          </div>
+          <div style="font-size:0.82rem; color:var(--muted);">
+            Common profanity is automatically flagged and sent to your moderation
+            queue. No setup required.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+      <h2 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">Add Custom Word</h2>
+      <form method="POST" style="display:flex; gap:0.5rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="action" value="add">
+        <input type="text" name="word" placeholder="Enter word..."
+               style="flex:1; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--soft); color:var(--text); font-family:var(--font);"
+               autocomplete="off">
+        <button type="submit" class="btn btn-primary btn-sm">Add</button>
+      </form>
+      <p style="font-size:0.75rem; color:var(--muted); margin-top:0.5rem;">
+        Words are matched as whole words — "class" will not match "classroom".
+      </p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-body">
+      <h2 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">
+        Custom Words ({{ words|length }})
+      </h2>
+
+      {% if words %}
+        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+          {% for row in words %}
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
+            <div>
+              <span style="font-weight:600; color:var(--text);">{{ row.word }}</span>
+              <span style="font-size:0.75rem; color:var(--muted); margin-left:8px;">
+                Added {{ row.created_at | time_ago }}
+              </span>
+            </div>
+            <form method="POST" style="margin:0;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="action" value="remove">
+              <input type="hidden" name="word" value="{{ row.word }}">
+              <button type="submit" class="btn-delete btn-sm">Remove</button>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p style="color:var(--muted); font-size:0.88rem;">
+          No custom words added yet. The built-in filter is still active.
+        </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
