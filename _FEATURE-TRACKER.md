@@ -84,7 +84,7 @@
 - [x] Report system — students flag posts for moderation review
 - [x] Content moderation queue — teacher dashboard for flagged content
 - [x] Auto-hide flagged content — 3+ reports hides post pending review
-- [ ] Age-appropriate content filtering — baseline keyword / content rules
+- [x] Age-appropriate content filtering — baseline keyword / content rules
 
 ---
 
@@ -93,14 +93,17 @@
 > Everything required to hand the keys to a real teacher with real students.
 
 ### Teacher Experience
-- [ ] Teacher onboarding — first-login guide for classroom setup
-- [ ] Classroom invite flow polish — copy-to-clipboard join code
-- [ ] Assignment status dashboard — quick view of pending grades
+- [x] Teacher onboarding — first-login guide for classroom setup
+- [x] Classroom invite flow polish — copy-to-clipboard join code
+- [x] Assignment status dashboard — quick view of pending grades
 
 ### Student Experience
 - [ ] Student onboarding — first-login guide for students
 - [ ] Submission confirmation — clear success state after submitting
 - [ ] Grade notification — student notified when teacher grades their work
+
+### Parent Experience
+- [ ] Parent onboarding
 
 ### Stability
 - [ ] Structured logging — replace all `print()` statements with proper log levels

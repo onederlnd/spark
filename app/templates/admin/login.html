@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alpha Dashboard — SparK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css?v=6" />
+  <script>
+    (function () {
+      const t = localStorage.getItem("spark-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+</head>
+<body>
+  <div style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1rem;">
+    <div style="width:100%; max-width:360px;">
+
+      <div style="text-align:center; margin-bottom:2rem;">
+        <div style="font-size:2rem; margin-bottom:0.5rem;">⚡</div>
+        <h1 style="margin:0 0 0.25rem; font-size:1.25rem; font-weight:900;">Alpha Dashboard</h1>
+        <p style="color:var(--muted); font-size:0.85rem; margin:0;">Internal use only</p>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+      <div class="flash flash-{{ category }}" style="margin-bottom:1rem;">{{ message }}</div>
+      {% endfor %}
+      {% endwith %}
+
+      <div class="card">
+        <div class="card-body">
+          <form method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="field-wrap" style="margin-bottom:1rem;">
+              <label style="font-size:0.82rem; font-weight:700; display:block; margin-bottom:4px;">Password</label>
+              <input type="password" name="password" placeholder="Enter dashboard password"
+                     autofocus required
+                     style="width:100%; padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--soft); color:var(--text); font-family:var(--font);">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">
+              Enter Dashboard
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

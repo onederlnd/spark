@@ -1825,7 +1825,7 @@ Modal
 }
 
 .modal-content {
-  background-color: var(--bg, #111);
+  background-color: var(--card);
   color: var(--text, #eee);
   border-radius: 12px;
   padding: 30px 20px;

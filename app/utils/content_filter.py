@@ -19,7 +19,7 @@ def get_filtered_words():
     return [r["word"].lower() for r in rows]
 
 
-def check_content(text):
+def check_content(text, user_id=None):
     """Check text against filtered word list. Returns list of matched words, empty list if clean"""
     if not text:
         return []
@@ -29,12 +29,24 @@ def check_content(text):
 
     if profanity.contains_profanity(text):
         matched.append("profanity detected")
+        db = get_db()
+        db.execute(
+            "INSERT INTO filter_hits (word, user_id, context) VALUES (?, ?, ?)",
+            ("profanity detected", user_id, text[:200]),
+        )
+        db.commit()
 
     custom_words = get_custom_words()
     for word in custom_words:
         pattern = r"\b" + re.escape(word) + r"\b"
         if re.search(pattern, text_lower):
             matched.append(word)
+            db = get_db()
+            db.execute(
+                "INSERT INTO filter_hits (word, user_id, context) VALUES (?, ?, ?)",
+                (word, user_id, text[:200]),
+            )
+            db.commit()
 
     return matched
 

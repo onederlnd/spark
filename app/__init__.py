@@ -80,6 +80,7 @@ def create_app(config=None):
     from app.routes.settings import settings_bp
     from app.routes.classrooms import classrooms_bp
     from app.routes.reports import reports_bp
+    from app.routes.admin import admin_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -93,6 +94,7 @@ def create_app(config=None):
     app.register_blueprint(settings_bp)
     app.register_blueprint(classrooms_bp)
     app.register_blueprint(reports_bp)
+    app.register_blueprint(admin_bp)
 
     # root redirect
     @app.route("/")
@@ -122,6 +124,18 @@ def create_app(config=None):
             last_dt = datetime.fromisoformat(last_active)
             elapsed = (datetime.now(timezone.utc) - last_dt).total_seconds()
             if elapsed > timeout_minutes * 60:
+                user_id = session.get("user_id")
+                try:
+                    from app.models import get_db
+
+                    db = get_db()
+                    db.execute(
+                        "INSERT INTO session_events (user_id, event_type) VALUES (?, ?)",
+                        (user_id, "timeout"),
+                    )
+                    db.commit()
+                except Exception:
+                    pass
                 session.clear()
                 flash("You were logged out due to inactivity.", "error")
                 return redirect(url_for("auth.login"))

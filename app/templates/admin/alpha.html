@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alpha Dashboard — SparK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/style.css?v=6" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script>
+    (function () {
+      const t = localStorage.getItem("spark-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <style>
+    body { background: var(--soft); color: var(--text); font-family: var(--font); }
+    .dash-header { background: var(--card); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    .dash-body { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+    .section-title { font-size: 0.7rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin: 2rem 0 1rem; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+    .stat-value { font-size: 2rem; font-weight: 900; color: var(--teal); line-height: 1; margin-bottom: 4px; }
+    .stat-label { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+    .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+    .chart-title { font-size: 0.85rem; font-weight: 800; margin-bottom: 1rem; }
+    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; }
+    .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .data-table th { text-align: left; padding: 8px 12px; font-size: 0.75rem; font-weight: 800; color: var(--muted); border-bottom: 2px solid var(--border); }
+    .data-table td { padding: 8px 12px; border-bottom: 1px solid var(--border); }
+    .data-table tr:last-child td { border-bottom: none; }
+    .table-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1rem; }
+    .table-card-header { padding: 12px 16px; font-size: 0.85rem; font-weight: 800; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; }
+    .badge-rose { background: var(--rose); color: #fff; }
+    .badge-teal { background: var(--teal); color: #fff; }
+    .badge-muted { background: var(--soft); color: var(--muted); }
+    .empty-row { color: var(--muted); font-size: 0.82rem; font-style: italic; }
+    @media (max-width: 640px) { .chart-grid { grid-template-columns: 1fr; } .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+  </style>
+</head>
+<body>
+
+  <!-- header -->
+  <div class="dash-header">
+    <div style="display:flex; align-items:center; gap:0.75rem;">
+      <span style="font-size:1.25rem;">⚡</span>
+      <div>
+        <div style="font-weight:900; font-size:1rem;">SparK Alpha Dashboard</div>
+        <div style="font-size:0.72rem; color:var(--muted);">Internal observability — do not share</div>
+      </div>
+    </div>
+    <div style="display:flex; gap:0.75rem; align-items:center;">
+      <a href="/admin/alpha/export" class="btn btn-ghost" style="font-size:0.82rem;">↓ Export CSV</a>
+      <a href="/admin/alpha/logout" class="btn btn-ghost" style="font-size:0.82rem;">Sign Out</a>
+    </div>
+  </div>
+
+  <div class="dash-body">
+
+    <!-- ===== USAGE & ACTIVITY ===== -->
+    <div class="section-title">📊 Usage & Activity</div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ user_counts.total or 0 }}</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ user_counts.last_7 or 0 }}</div>
+        <div class="stat-label">New (7d)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ user_counts.last_30 or 0 }}</div>
+        <div class="stat-label">New (30d)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ classroom_counts.total_classrooms or 0 }}</div>
+        <div class="stat-label">Classrooms</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ classroom_counts.total_assignments or 0 }}</div>
+        <div class="stat-label">Assignments</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ classroom_counts.total_submissions or 0 }}</div>
+        <div class="stat-label">Submissions</div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">New Users (14d)</div>
+        <canvas id="usersChart" height="120"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Logins (14d)</div>
+        <canvas id="loginsChart" height="120"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Posts (14d)</div>
+        <canvas id="postsChart" height="120"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Submissions (14d)</div>
+        <canvas id="submissionsChart" height="120"></canvas>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+      <div class="table-card">
+        <div class="table-card-header">Top Students by Posts</div>
+        <table class="data-table">
+          <thead><tr><th>Username</th><th>Posts</th></tr></thead>
+          <tbody>
+            {% for row in top_students_posts %}
+            <tr><td>{{ row.username }}</td><td>{{ row.post_count }}</td></tr>
+            {% else %}
+            <tr><td colspan="2" class="empty-row">No data yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header">Top Students by Submissions</div>
+        <table class="data-table">
+          <thead><tr><th>Username</th><th>Submissions</th></tr></thead>
+          <tbody>
+            {% for row in top_students_submissions %}
+            <tr><td>{{ row.username }}</td><td>{{ row.submission_count }}</td></tr>
+            {% else %}
+            <tr><td colspan="2" class="empty-row">No data yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="table-card" style="margin-bottom:1rem;">
+      <div class="table-card-header">Login Method Breakdown</div>
+      <table class="data-table">
+        <thead><tr><th>Method</th><th>Count</th></tr></thead>
+        <tbody>
+          {% for row in login_method_counts %}
+          <tr>
+            <td>
+              <span class="badge {{ 'badge-teal' if row.method == 'qr' else 'badge-muted' }}">
+                {{ row.method }}
+              </span>
+            </td>
+            <td>{{ row.count }}</td>
+          </tr>
+          {% else %}
+          <tr><td colspan="2" class="empty-row">No login events recorded yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== SAFETY & MODERATION ===== -->
+    <div class="section-title">🚩 Safety & Moderation</div>
+
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ report_counts.total or 0 }}</div>
+        <div class="stat-label">Total Reports</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--rose);">{{ report_counts.open or 0 }}</div>
+        <div class="stat-label">Open Reports</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ report_counts.resolved or 0 }}</div>
+        <div class="stat-label">Resolved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ avg_resolution_hours or '—' }}</div>
+        <div class="stat-label">Avg Resolution (h)</div>
+      </div>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Reports Filed (14d)</div>
+        <canvas id="reportsChart" height="120"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Filter Hits (14d)</div>
+        <canvas id="filterChart" height="120"></canvas>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+      <div class="table-card">
+        <div class="table-card-header">Top Triggered Filter Words</div>
+        <table class="data-table">
+          <thead><tr><th>Word</th><th>Hits</th></tr></thead>
+          <tbody>
+            {% for row in top_filter_words %}
+            <tr><td><code>{{ row.word }}</code></td><td>{{ row.hit_count }}</td></tr>
+            {% else %}
+            <tr><td colspan="2" class="empty-row">No filter hits yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header">
+          COPPA Pending
+          {% if coppa_pending %}
+          <span class="badge badge-rose">{{ coppa_pending|length }}</span>
+          {% endif %}
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Username</th><th>Waiting</th></tr></thead>
+          <tbody>
+            {% for row in coppa_pending %}
+            <tr>
+              <td>{{ row.username }}</td>
+              <td>
+                <span class="badge {{ 'badge-rose' if row.hours_waiting > 24 else 'badge-muted' }}">
+                  {{ row.hours_waiting | int }}h
+                </span>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="2" class="empty-row">No pending approvals</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===== CLASSROOM HEALTH ===== -->
+    <div class="section-title">🏫 Classroom Health</div>
+
+    <div class="table-card" style="margin-bottom:1rem;">
+      <div class="table-card-header">Assignment Completion by Classroom</div>
+      <table class="data-table">
+        <thead><tr><th>Classroom</th><th>Students</th><th>Assignments</th><th>Submissions</th><th>Completion</th></tr></thead>
+        <tbody>
+          {% for row in classroom_completion %}
+          <tr>
+            <td>{{ row.classroom_name }}</td>
+            <td>{{ row.student_count }}</td>
+            <td>{{ row.assignment_count }}</td>
+            <td>{{ row.submission_count }}</td>
+            <td>
+              <span class="badge {{ 'badge-teal' if row.completion_pct >= 80 else 'badge-rose' if row.completion_pct < 40 else 'badge-muted' }}">
+                {{ row.completion_pct }}%
+              </span>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="5" class="empty-row">No classroom data yet</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+      <div class="table-card">
+        <div class="table-card-header">Ungraded Submissions by Teacher</div>
+        <table class="data-table">
+          <thead><tr><th>Teacher</th><th>Ungraded</th></tr></thead>
+          <tbody>
+            {% for row in ungraded_by_teacher %}
+            <tr>
+              <td>{{ row.teacher }}</td>
+              <td>
+                <span class="badge {{ 'badge-rose' if row.ungraded_count > 5 else 'badge-muted' }}">
+                  {{ row.ungraded_count }}
+                </span>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="2" class="empty-row">All caught up</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header">
+          Students with Zero Submissions
+          {% if students_zero_submissions %}
+          <span class="badge badge-rose">{{ students_zero_submissions|length }}</span>
+          {% endif %}
+        </div>
+        <table class="data-table">
+          <thead><tr><th>Username</th><th>Classrooms</th></tr></thead>
+          <tbody>
+            {% for row in students_zero_submissions %}
+            <tr><td>{{ row.username }}</td><td>{{ row.classroom_count }}</td></tr>
+            {% else %}
+            <tr><td colspan="2" class="empty-row">All students have submitted</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="table-card" style="margin-bottom:1rem;">
+      <div class="table-card-header">
+        Inactive Students (7+ days)
+        {% if inactive_students %}
+        <span class="badge badge-rose">{{ inactive_students|length }}</span>
+        {% endif %}
+      </div>
+      <table class="data-table">
+        <thead><tr><th>Username</th><th>Last Login</th><th>Inactive For</th></tr></thead>
+        <tbody>
+          {% for row in inactive_students %}
+          <tr>
+            <td>{{ row.username }}</td>
+            <td style="color:var(--muted); font-size:0.82rem;">{{ row.last_login or 'Never' }}</td>
+            <td>
+              <span class="badge badge-rose">{{ row.hours_since_login | int }}h</span>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3" class="empty-row">All students active recently</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ===== TECHNICAL HEALTH ===== -->
+    <div class="section-title">⚙️ Technical Health</div>
+
+    <div class="stat-grid">
+      {% for row in session_event_counts %}
+      <div class="stat-card">
+        <div class="stat-value">{{ row.count }}</div>
+        <div class="stat-label">{{ row.event_type | capitalize }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">Rate Limit Hits (14d)</div>
+        <canvas id="rateLimitChart" height="120"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Session Events (14d)</div>
+        <canvas id="sessionChart" height="120"></canvas>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:2rem;">
+      <div class="table-card">
+        <div class="table-card-header">Top Rate Limited Routes</div>
+        <table class="data-table">
+          <thead><tr><th>Route</th><th>Hits</th></tr></thead>
+          <tbody>
+            {% for row in top_rate_limited_routes %}
+            <tr><td><code>{{ row.route }}</code></td><td>{{ row.hit_count }}</td></tr>
+            {% else %}
+            <tr><td colspan="2" class="empty-row">No rate limit hits</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div class="table-card">
+        <div class="table-card-header">Session Event Breakdown</div>
+        <table class="data-table">
+          <thead><tr><th>Event</th><th>Count</th></tr></thead>
+          <tbody>
+            {% for row in session_event_counts %}
+            <tr>
+              <td>
+                <span class="badge {{ 'badge-rose' if row.event_type == 'timeout' else 'badge-muted' }}">
+                  {{ row.event_type }}
+                </span>
+              </td>
+              <td>{{ row.count }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="2" class="empty-row">No session events yet</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- end dash-body -->
+
+<script id="chart-data" type="application/json">{{ chart_data | safe }}</script>
+
+<script>
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  const gridColor = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)";
+  const textColor = isDark ? "#a0a0b0" : "#666";
+  const teal  = "#2dd4bf";
+  const rose  = "#fb7185";
+  const blue  = "#60a5fa";
+  const amber = "#fbbf24";
+
+  Chart.defaults.color = textColor;
+  Chart.defaults.borderColor = gridColor;
+  Chart.defaults.font.family = "Nunito, sans-serif";
+  Chart.defaults.font.size = 11;
+
+  function makeLineChart(id, labels, data, color, label) {
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [{
+          label,
+          data,
+          borderColor: color,
+          backgroundColor: color + "22",
+          borderWidth: 2,
+          pointRadius: 3,
+          fill: true,
+          tension: 0.3,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { maxTicksLimit: 7 } },
+          y: { grid: { color: gridColor }, beginAtZero: true, ticks: { precision: 0 } }
+        }
+      }
+    });
+  }
+
+  function makeBarChart(id, labels, datasets) {
+    const ctx = document.getElementById(id);
+    if (!ctx) return;
+    new Chart(ctx, {
+      type: "bar",
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: datasets.length > 1 } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { maxTicksLimit: 7 } },
+          y: { grid: { color: gridColor }, beginAtZero: true, ticks: { precision: 0 } }
+        }
+      }
+    });
+  }
+
+  // --- data from server
+  const _d = JSON.parse(document.getElementById("chart-data").textContent);
+  const dailyUsers       = _d.dailyUsers       || [];
+  const dailyLogins      = _d.dailyLogins      || [];
+  const dailyPosts       = _d.dailyPosts        || [];
+  const dailySubmissions = _d.dailySubmissions  || [];
+  const dailyReports     = _d.dailyReports      || [];
+  const dailyFilter      = _d.dailyFilterHits   || [];
+  const dailyRateLimit   = _d.dailyRateLimit    || [];
+  const dailySession     = _d.dailySession      || [];
+
+  function toLabels(rows) { return rows.map(r => r.day); }
+  function toCounts(rows) { return rows.map(r => r.count); }
+
+  makeLineChart("usersChart",       toLabels(dailyUsers),       toCounts(dailyUsers),       teal,  "New Users");
+  makeLineChart("loginsChart",      toLabels(dailyLogins),      toCounts(dailyLogins),      blue,  "Logins");
+  makeLineChart("postsChart",       toLabels(dailyPosts),       toCounts(dailyPosts),       amber, "Posts");
+  makeLineChart("submissionsChart", toLabels(dailySubmissions), toCounts(dailySubmissions), teal,  "Submissions");
+  makeLineChart("reportsChart",     toLabels(dailyReports),     toCounts(dailyReports),     rose,  "Reports");
+  makeLineChart("filterChart",      toLabels(dailyFilter),      toCounts(dailyFilter),      amber, "Filter Hits");
+  makeLineChart("rateLimitChart",   toLabels(dailyRateLimit),   toCounts(dailyRateLimit),   rose,  "Rate Limit Hits");
+
+  // session events split by type
+  const timeoutDays = dailySession.filter(r => r.event_type === "timeout");
+  const logoutDays  = dailySession.filter(r => r.event_type === "logout");
+  const allDays = [...new Set(dailySession.map(r => r.day))].sort();
+  const toCountsByDay = (rows, days) => days.map(d => {
+    const r = rows.find(x => x.day === d);
+    return r ? r.count : 0;
+  });
+
+  makeBarChart("sessionChart", allDays, [
+    { label: "Timeout", data: toCountsByDay(timeoutDays, allDays), backgroundColor: rose + "cc" },
+    { label: "Logout",  data: toCountsByDay(logoutDays,  allDays), backgroundColor: teal + "cc" },
+  ]);
+</script>
+
+</body>
+</html>

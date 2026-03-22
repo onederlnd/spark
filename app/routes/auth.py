@@ -82,6 +82,13 @@ def login():
             session["coppa_status"] = user["coppa_status"]
             session["role"] = user["role"]
 
+            db = get_db()
+            db.execute(
+                "INSERT INTO login_events (user_id, method) VALUES (?, ?)",
+                (user["id"], "password"),
+            )
+            db.commit()
+
             return redirect(url_for("feed.index"))
         else:
             record_failure(username, ip)
@@ -91,7 +98,16 @@ def login():
 
 @auth_bp.route("/logout")
 def logout():
+    user_id = session.get("user_id")
+    if user_id:
+        db = get_db()
+        db.execute(
+            "INSERT INTO session_events (user_id, event_type) VALUES (?, ?)",
+            (user_id, "logout"),
+        )
+        db.commit()
     session.clear()
+
     return redirect(url_for("feed.index"))
 
 
@@ -210,4 +226,8 @@ def qr_login():
     session["coppa_status"] = user["coppa_status"]
     session["role"] = user["role"]
 
+    db.execute(
+        "INSERT INTO login_events (user_id, method) VALUES (?, ?)", (user["id"], "qr")
+    )
+    db.commit()
     return redirect(url_for("classrooms.dashboard"))

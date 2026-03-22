@@ -31,6 +31,17 @@ def rate_limit(max_requests, window_seconds):
 
             # check if limit exceeeededd
             if len(_request_counts[key]) >= max_requests:
+                try:
+                    from app.models import get_db
+
+                    db = get_db()
+                    db.execute(
+                        "INSERT INTO rate_limit_hits (route, ip) VALUES (?, ?)",
+                        (request.endpoint, request.remote_addr),
+                    )
+                    db.commit()
+                except Exception:
+                    pass  # never let logging break the request
                 abort(429)
 
             # record
