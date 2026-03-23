@@ -75,7 +75,7 @@
       <div class="topic-card-desc">{{ classroom.description or "No description" }}</div>
       <div class="topic-card-count">
         {% if classroom.member_role == 'teacher' %}
-          <span style="color: var(--teal);">👩‍🏫 Teacher</span>
+          <span style="color: var(--teal);">👩‍🏫 {{ classroom.teacher_name}}</span>
         {% else %}
           <span>👤 Student · {{ classroom.teacher_name }}</span>
         {% endif %}

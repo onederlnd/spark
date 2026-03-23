@@ -17,7 +17,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
     <script>
       (function () {
-        const t = localStorage.getItem("spark-theme") || "dark";
+        const t = localStorage.getItem("spark-theme") || "dark";        <li>
+          <a href="/notifications/" onclick="closeDrawer()"><span class="icon">🔔</span> Notifications</a>
+        </li>
         document.documentElement.setAttribute("data-theme", t);
       })();
     </script>
@@ -44,6 +46,9 @@
           <a href="/?feed=all" onclick="closeDrawer()"><span class="icon">🏠</span> Home Feed</a>
         </li>
         {% endif %}
+        <li>
+          <a href="/classrooms/" onclick="closeDrawer()"><span class="icon">🏫</span> Classrooms</a>
+        </li>
         <li>
           <a href="/?feed=following" onclick="closeDrawer()"><span class="icon">👥</span> Following</a>
         </li>
@@ -132,9 +137,34 @@
           <span class="nav-badge">{{ unread_count }}</span>
           {% endif %}
         </a>
-        <a href="/profile/{{ session.username }}" class="nav-avatar" title="{{ session.username }}">
-          {{ session.username[:2].upper() }}
-        </a>
+<div class="nav-avatar-wrap" style="position:relative;">
+  <button class="nav-avatar" onclick="toggleAvatarMenu()" title="{{ session.username }}" style="cursor:pointer; border:none; background:var(--teal);">
+    {{ session.username[:2].upper() }}
+  </button>
+  <div id="avatar-menu" style="
+    display:none;
+    position:absolute;
+    right:0;
+    top:calc(100% + 8px);
+    background:var(--color-background-primary, var(--card));
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    min-width:160px;
+    z-index:1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  ">
+    <a href="/profile/{{ session.username }}" style="display:block; padding:10px 16px; font-size:0.88rem; color:var(--text); text-decoration:none;">
+      👤 My Profile
+    </a>
+    <a href="/profile/settings" style="display:block; padding:10px 16px; font-size:0.88rem; color:var(--text); text-decoration:none;">
+      ⚙️ Settings
+    </a>
+    <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
+    <a href="/auth/logout" style="display:block; padding:10px 16px; font-size:0.88rem; color:var(--rose, #e24b4a); text-decoration:none;">
+      🚪 Logout
+    </a>
+  </div>
+</div>
         {% else %}
         <a href="/auth/login" class="btn btn-ghost {% if request.path == '/auth/login' %}active{% endif %}">Sign In</a>
         <a href="/auth/register" class="btn btn-primary">Join Free ✦</a>
@@ -267,6 +297,19 @@
         toast.classList.add("show");
         setTimeout(() => toast.classList.remove("show"), 3500);
       });
+
+function toggleAvatarMenu() {
+  const menu = document.getElementById('avatar-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+// close when clicking outside
+document.addEventListener('click', function(e) {
+  const wrap = document.querySelector('.nav-avatar-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('avatar-menu').style.display = 'none';
+  }
+});
     </script>
     {% endif %}
   </body>

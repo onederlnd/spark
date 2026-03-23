@@ -48,7 +48,7 @@ def register():
                     user_id=teacher["id"],
                     message=f"{username} has pending COPPA approval",
                     type="coppa",
-                    link="/auth/coppa/approve",
+                    link="/auth/coppa/pending",
                 )
 
             flash("Account created! Please log in.", "success")
