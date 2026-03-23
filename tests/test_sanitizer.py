@@ -4,7 +4,7 @@ from app.utils.sanitize import sanitize_plain, sanitize_bbcode, sanitize_usernam
 def test_sanitize_plain_strips_html():
     result = sanitize_plain("<script>alert(1)</script>hello")
     assert "hello" in result
-    assert "&lt;script&gt;" in result
+    assert result == "alert(1)hello"
 
 
 def test_sanitize_plain_max_length():

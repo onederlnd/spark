@@ -114,6 +114,50 @@
       </form>
     </div>
   </div>
+{% if provisioned_students %}
+<div class="card" style="margin-top: 2rem;">
+  <div class="card-body">
+    <h2 style="font-size:1rem; font-weight:800; margin-bottom:0.25rem;">Your Provisioned Students</h2>
+    <p style="font-size:0.82rem; color:var(--muted); margin-bottom:1rem;">
+      Enter join codes to enroll a student in additional classrooms.
+    </p>
 
+    <table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border); text-align:left;">
+          <th style="padding:6px 8px; font-weight:700;">Username</th>
+          <th style="padding:6px 8px; font-weight:700;">DOB</th>
+          <th style="padding:6px 8px; font-weight:700;">Classrooms</th>
+          <th style="padding:6px 8px; font-weight:700;">Enroll</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in provisioned_students %}
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:8px;">{{ s.username }}</td>
+          <td style="padding:8px; color:var(--muted);">{{ s.dob }}</td>
+          <td style="padding:8px; color:var(--muted);">{{ s.classroom_names or '—' }}</td>
+          <td style="padding:8px;">
+            <form method="POST" action="{{ url_for('classrooms.enroll_student', student_id=s.id) }}"
+                  style="display:flex; gap:0.5rem; align-items:center;">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="text" name="join_codes"
+                     placeholder="ABC123, XYZ789"
+                     style="padding:4px 8px; font-size:0.82rem; border:1px solid var(--border);
+                            border-radius:var(--radius-sm); background:var(--soft);
+                            color:var(--text); font-family:var(--font);
+                            text-transform:uppercase; width:160px;">
+              <button type="submit" class="btn btn-primary" style="padding:4px 12px; font-size:0.82rem;">
+                Enroll
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 </div>
 {% endblock %}

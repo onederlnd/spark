@@ -8,7 +8,7 @@ set -e
 . .venv/bin/activate
 
 echo "== running tests..."
-pytest tests/ -v
+pytest tests/
 
 echo "== linting..."
 flake8 app/ --max-line-length=100 --ignore=E501,W503
@@ -16,7 +16,6 @@ flake8 app/ --max-line-length=100 --ignore=E501,W503
 echo "== staging changes..."
 git add .
 git status
-
 echo ""
 read -p "commit message: " msg
 

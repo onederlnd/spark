@@ -219,4 +219,18 @@ def create_app(config=None):
     def bbcode_filter(text):
         return Markup(render_bbcode(text or ""))
 
+    @app.template_filter("display_name")
+    def display_name_filter(username):
+        """Convert jane.smith or jane.smith2 to Jane S."""
+        if not username:
+            return username
+        # strip any trailing collision number
+        base = username.rstrip("0123456789")
+        parts = base.split(".")
+        if len(parts) >= 2:
+            first = parts[0].capitalize()
+            last_initial = parts[1][0].upper() if parts[1] else ""
+            return f"{first} {last_initial}."
+        return username.capitalize()
+
     return app

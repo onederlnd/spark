@@ -83,6 +83,7 @@ def init_db(app):
                 provisional INTEGER NOT NULL DEFAULT 0,
                 onboarded INTEGER NOT NULL DEFAULT 0,
                 qr_token TEXT DEFAULT NULL,
+                created_by INTEGER REFERENCES users(id) DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 

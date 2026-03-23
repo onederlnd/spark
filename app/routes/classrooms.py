@@ -32,6 +32,8 @@ from app.models.classroom import (
     get_pending_grades_for_teacher,
     provision_student,
     provision_students_bulk,
+    get_provisioned_students_for_teacher,
+    enroll_student_by_codes,
 )
 from app.models.user import (
     get_user_by_id,
@@ -109,7 +111,7 @@ def new_classroom():
         )
         if not name:
             return render_template(
-                "classrooms/new.html", error="Classroom name is required."
+                "classrooms/new.html", errors="Classroom name is required."
             )
         classroom_id = create_classroom(session["user_id"], name, description)
         flash("Classroom created!", "success")
@@ -382,12 +384,41 @@ def complete_onboarding():
     return "", 204
 
 
+@classrooms_bp.route("/provision/enroll/<int:student_id>", methods=["POST"])
+@login_required
+@teacher_required
+def enroll_student(student_id):
+    student = get_user_by_id(student_id)
+    if (
+        not student
+        or not student["provisional"]
+        or student["created_by"] != session["user_id"]
+    ):
+        return "Forbidden", 403
+
+    join_codes_raw = request.form.get("join_codes", "").strip()
+    join_codes = [c.strip() for c in join_codes_raw.split(",") if c.strip()]
+
+    if not join_codes:
+        flash("Please enter at least one join code.", "error")
+        return redirect(url_for("classrooms.provision"))
+
+    enrolled, invalid_codes = enroll_student_by_codes(student_id, join_codes)
+
+    if invalid_codes:
+        flash(f"Invalid join codes: {', '.join(invalid_codes)}", "error")
+    if enrolled:
+        flash(f"{student['username']} enrolled in: {', '.join(enrolled)}", "success")
+
+    return redirect(url_for("classrooms.provision"))
+
+
 @classrooms_bp.route("/provision", methods=["GET", "POST"])
 @login_required
 @teacher_required
 def provision():
+    provisioned_students = get_provisioned_students_for_teacher(session["user_id"])
     prefill_join_code = request.args.get("join_code", "")
-
     if request.method == "POST":
         method = request.form.get("method")
 
@@ -412,7 +443,13 @@ def provision():
                 )
 
             try:
-                result = provision_student(first_name, last_name, dob, join_codes)
+                result = provision_student(
+                    first_name,
+                    last_name,
+                    dob,
+                    join_codes,
+                    created_by=session["user_id"],
+                )
             except ValueError as e:
                 return render_template(
                     "classrooms/provision.html",
@@ -428,6 +465,7 @@ def provision():
             session["provisioned_students"] = [result]
             session["provisioned_skipped"] = skipped
             return redirect(url_for("classrooms.credentials"))
+
         elif method == "csv":
             file = request.files.get("csv_file")
             if not file or not file.filename.endswith(".csv"):
@@ -436,43 +474,53 @@ def provision():
                     prefill_join_code=prefill_join_code,
                     errors=["Please upload a valid .csv file."],
                 )
+
+            raw = file.stream.read()
+            reader = None
+            rows = []
+            for encoding in ("utf-8-sig", "utf-7", "utf-8", "latin-1"):
+                try:
+                    stream = io.StringIO(raw.decode(encoding))
+                    candidate = csv.DictReader(stream)
+                    required = {"first_name", "last_name", "dob"}
+                    if candidate.fieldnames and required.issubset(
+                        set(candidate.fieldnames)
+                    ):
+                        rows = [
+                            r for r in candidate if any(v.strip() for v in r.values())
+                        ]
+                        reader = candidate
+                        break
+                except (UnicodeDecodeError, ValueError):
+                    continue
+
+            if reader is None:
+                return render_template(
+                    "classrooms/provision.html",
+                    prefill_join_code=prefill_join_code,
+                    errors=[
+                        "CSV must have columns: first_name, last_name, dob. Optionally: join_codes"
+                    ],
+                )
+
             try:
-                stream = io.StringIO(file.stream.read().decode("utf-8"))
-                reader = csv.DictReader(stream)
-
-                required = {"first_name", "last_name", "dob"}
-                if not reader.fieldnames or not required.issubset(
-                    set(reader.fieldnames)
-                ):
-                    return render_template(
-                        "classrooms/provisions.html",
-                        prefill_join_code=prefill_join_code,
-                        error=[
-                            "CSV must have columns: first_name, last_name, dob. Optionally: join_codes"
-                        ],
-                    )
-
-                rows = [row for row in reader if any(v.strip() for v in row.values())]
-            except Exception as e:
+                students = provision_students_bulk(rows, created_by=session["user_id"])
+            except ValueError as e:
                 return render_template(
                     "classrooms/provision.html",
                     prefill_join_code=prefill_join_code,
-                    errors=[f"Could not read CSV: {str(e)}"],
+                    errors=e.args[0],
                 )
-            students, skipped = provision_students_bulk(rows)
 
-            if not students and skipped:
-                return render_template(
-                    "classrooms/provision.html",
-                    prefill_join_code=prefill_join_code,
-                    errors=skipped,
-                )
             session["provisioned_students"] = students
-            session["provisioned_skipped"] = skipped
+            session["provisioned_skipped"] = []
             return redirect(url_for("classrooms.credentials"))
-
+    print("[DEBUG] passing to template:", len(provisioned_students), "students")
     return render_template(
-        "classrooms/provision.html", prefill_join_code=prefill_join_code, errors=[]
+        "classrooms/provision.html",
+        prefill_join_code=prefill_join_code,
+        provisioned_students=provisioned_students,
+        errors=[],
     )
 
 
@@ -539,7 +587,7 @@ def provision_template():
     return Response(
         output.getvalue(),
         mimetype="text/csv",
-        headers={"Content-Disposition": "attachement; filename=students_template.csv"},
+        headers={"Content-Disposition": "attachment; filename=students_template.csv"},
     )
 
 
@@ -598,15 +646,12 @@ def qr_sheet():
             img.save(buffer, format="PNG")
             qr_b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
             qr_codes.append({"student": student, "qr_b64": qr_b64})
-        except Exception as e:
-            print("[DEBUG] QR GENERATION ERROR:", e)
+        except Exception:
             qr_codes.append({"student": student, "qr_b64": None})
-    print("[DEBUG] RENDERING QR SHEET WITH", len(qr_codes), "codes")
-    import os
-    from flask import current_app
+    # import os
+    # from flask import current_app
 
-    template_path = os.path.join(
-        current_app.template_folder, "classrooms/qr_sheet.html"
-    )
-    print("TEMPLATE EXISTS:", os.path.exists(template_path))
+    # template_path = os.path.join(
+    #     current_app.template_folder, "classrooms/qr_sheet.html"
+    # )
     return render_template("classrooms/qr_sheet.html", qr_codes=qr_codes)

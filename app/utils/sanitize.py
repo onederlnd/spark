@@ -1,5 +1,4 @@
 import re
-import html
 
 
 def sanitize_plain(value, max_length=None):
@@ -7,7 +6,7 @@ def sanitize_plain(value, max_length=None):
     if not value:
         return ""
     value = value.strip()
-    value = html.escape(value, quote=True)
+    value = re.sub(r"<[^>]+>", "", value)
     if max_length:
         value = value[:max_length]
     return value
@@ -19,7 +18,6 @@ def sanitize_bbcode(value, max_length=None):
         return ""
     value = value.strip()
     value = re.sub(r"<[^>]+>", "", value)
-    value = html.escape(value, quote=True)
     if max_length:
         value = value[:max_length]
     return value

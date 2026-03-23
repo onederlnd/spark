@@ -40,7 +40,7 @@
   <li>
     <a href="/profile/{{ member.username }}">
       <span class="icon">{% if member.role == 'teacher' %}👩‍🏫{% else %}👤{% endif %}</span>
-      {{ member.username }}
+      {{ member.username | display_name }}
     </a>
   </li>
   {% endfor %}
@@ -60,7 +60,7 @@
   <button
     onclick="copyJoinCode('{{ classroom.join_code }}')"
     class="btn btn-ghost"
-    style="margin-top:8px; font-size:0.78rem; width:100%;"
+    style="margin-top:8px; font-size:0.78rem; width:100%; display:flex; justify-content:center; align-items:center;"
     id="copy-btn">
     Copy code
   </button>
@@ -69,7 +69,6 @@
 {% endblock %}
 
 {% block content %}
-
 <div class="feed-header">
   <div>
     <h1 class="feed-title">{{ classroom.name }}</h1>
@@ -91,7 +90,7 @@
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
         <div>
           
-            href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+            <a href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
             style="font-size:1.1rem; font-weight:700; color:var(--text); text-decoration:none;">
             {{ assignment.title }}
           </a>
@@ -101,13 +100,13 @@
         </div>
         <div style="display:flex; gap:0.5rem; flex-shrink:0;">
           
-            href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+            <a href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
             class="btn btn-ghost" style="font-size:0.85rem;">
             {% if role == 'teacher' %}View{% else %}Open{% endif %}
           </a>
           {% if role == 'teacher' %}
           
-            href="{{ url_for('classrooms.grade_grid', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+            <a href="{{ url_for('classrooms.grade_grid', classroom_id=classroom.id, assignment_id=assignment.id) }}"
             class="btn btn-ghost" style="font-size:0.85rem;">Grade</a>
           {% endif %}
         </div>
@@ -149,7 +148,7 @@
         <div>
           <a href="/profile/{{ member.username }}"
              style="font-weight:700; color:var(--text); text-decoration:none; font-size:0.9rem;">
-            {{ member.username }}
+            {{ member.username | display_name }}
           </a>
           {% if member.provisional %}
           <span style="font-size:0.72rem; color:var(--muted); margin-left:6px;">provisioned</span>
@@ -158,7 +157,7 @@
         {% if member.provisional %}
         <form method="POST"
               action="{{ url_for('classrooms.regenerate_student_qr', classroom_id=classroom.id, student_id=member.id) }}"
-              onsubmit="return confirm('Regenerate QR code for {{ member.username }}? Their current QR code will stop working.')">
+              onsubmit="return confirm('Regenerate QR code for {{ member.username | display_name }}? Their current QR code will stop working.')">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
           <button type="submit" class="btn btn-ghost" style="font-size:0.78rem;">🔄 Regenerate QR</button>
         </form>

@@ -342,7 +342,7 @@ def generate_password():
     return f"{word1}{word2}{digits}"
 
 
-def provision_student(first_name, last_name, dob, join_codes=None):
+def provision_student(first_name, last_name, dob, join_codes=None, created_by=None):
     """
     Create a provisioned student account. Returns a dict with account info and a list of classroom names the student was enrolled in. join_codes is an optional list of strings. Provisioned students are always coppa_status='approved' (school official exception)
     """
@@ -369,10 +369,10 @@ def provision_student(first_name, last_name, dob, join_codes=None):
 
     cursor = db.execute(
         """
-        INSERT INTO users (username, password_hash, dob, bio, role, coppa_status, onboarded, provisional, qr_token)
-        VALUES (?, ?, ?, '', 'student', 'approved', 0, 1, ?)
+        INSERT INTO users (username, password_hash, dob, bio, role, coppa_status, onboarded, provisional, qr_token, created_by)
+        VALUES (?, ?, ?, '', 'student', 'approved', 0, 1, ?, ?)
         """,
-        (username, password_hash, dob_date.isoformat(), qr_token),
+        (username, password_hash, dob_date.isoformat(), qr_token, created_by),
     )
     db.commit()
     user_id = cursor.lastrowid
@@ -404,28 +404,40 @@ def provision_student(first_name, last_name, dob, join_codes=None):
     }
 
 
-def provision_students_bulk(rows):
+def provision_students_bulk(rows, created_by=None):
     """
     Provision multiple students form a list of dicts with keys:
     first_name, last_name, dob, join_codes (optional, comma-separated string).
     Returns (student, skipped) where students is a list of result dicts and skipped is a list of error strings.
     """
     students = []
-    skipped = []
+    errors = []
 
     for i, row in enumerate(rows, start=1):
         first_name = row.get("first_name", "").strip()
         last_name = row.get("last_name", "").strip()
         dob = row.get("dob", "").strip()
         join_codes_raw = row.get("join_codes", "")
+        join_codes = (
+            [c.strip() for c in join_codes_raw.split(",") if c.strip()]
+            if join_codes_raw
+            else []
+        )
 
         if not first_name or not last_name:
-            skipped.append(f"Row {i}: missing first or last name")
-            continue
+            errors.append(f"Row {i}: missing first or last name")
         if not dob:
-            skipped.append(f"Row {i} ({first_name} {last_name}): missing date of birth")
-            continue
+            errors.append(f"Row {i} ({first_name} {last_name}): missing date of birth")
+        if not join_codes:
+            errors.append(f"Row {i} ({first_name} {last_name}): no join code provided")
+    if errors:
+        raise ValueError(errors)
 
+    for i, row in enumerate(rows, start=1):
+        first_name = row.get("first_name", "").strip()
+        last_name = row.get("last_name", "").strip()
+        dob = row.get("dob", "").strip()
+        join_codes_raw = row.get("join_codes", "")
         join_codes = (
             [c.strip() for c in join_codes_raw.split(",") if c.strip()]
             if join_codes_raw
@@ -433,14 +445,54 @@ def provision_students_bulk(rows):
         )
 
         try:
-            result = provision_student(first_name, last_name, dob, join_codes)
-            if result["invalid_codes"]:
-                skipped.append(
-                    f"Row {i} ({first_name} {last_name}): invalid join codes {', '.join(result['invalid_codes'])}"
-                )
+            result = provision_student(
+                first_name, last_name, dob, join_codes, created_by=created_by
+            )
             students.append(result)
-
         except ValueError as e:
-            skipped.append(str(e))
+            errors.append(str(e))
 
-    return students, skipped
+    if errors:
+        raise ValueError(errors)
+
+    return students
+
+
+def get_provisioned_students_for_teacher(teacher_id):
+    """Return all provisional students created by this teacher."""
+    db = get_db()
+    rows = db.execute(
+        """
+        SELECT users.id, users.username, users.dob, users.created_at,
+               GROUP_CONCAT(classrooms.name, ', ') as classroom_names
+        FROM users
+        LEFT JOIN classroom_members ON classroom_members.user_id = users.id
+        LEFT JOIN classrooms ON classroom_members.classroom_id = classrooms.id
+        WHERE users.provisional = 1
+          AND users.created_by = ?
+        GROUP BY users.id
+        ORDER BY users.created_at DESC
+        """,
+        (teacher_id,),
+    ).fetchall()
+    return rows
+
+
+def enroll_student_by_codes(student_id, join_codes):
+    """
+    Enroll an existing provisional student in classrooms by join code.
+    Returns (enrolled, invalid_codes).
+    """
+    enrolled = []
+    invalid_codes = []
+    for code in join_codes:
+        code = code.strip().upper()
+        if not code:
+            continue
+        classroom = get_classroom_by_join_code(code)
+        if not classroom:
+            invalid_codes.append(code)
+            continue
+        join_classroom(classroom["id"], student_id, "student")
+        enrolled.append(classroom["name"])
+    return enrolled, invalid_codes

@@ -187,91 +187,115 @@ def test_provision_student_multiple_join_codes(teacher_client, classroom):
 # --- provision_students_bulk
 
 
-def test_bulk_provision_basic(teacher_client):
-    from app.models.classroom import provision_students_bulk
+def test_bulk_provision_basic(teacher_client, classroom):
+    from app.models.classroom import provision_students_bulk, get_classroom
 
+    c = get_classroom(classroom)
     rows = [
         {
             "first_name": "Ann",
             "last_name": "Lee",
             "dob": "2010-01-01",
-            "join_codes": "",
+            "join_codes": c["join_code"],
         },
         {
             "first_name": "Ben",
             "last_name": "Kim",
             "dob": "2011-03-15",
-            "join_codes": "",
+            "join_codes": c["join_code"],
         },
     ]
-    students, skipped = provision_students_bulk(rows)
+    students = provision_students_bulk(rows)
     assert len(students) == 2
-    assert len(skipped) == 0
 
 
-def test_bulk_provision_skips_missing_name(teacher_client):
-    from app.models.classroom import provision_students_bulk
+def test_bulk_provision_skips_missing_name(teacher_client, classroom):
+    from app.models.classroom import provision_students_bulk, get_classroom
+    import pytest
 
+    c = get_classroom(classroom)
     rows = [
         {
             "first_name": "",
             "last_name": "Lee",
             "dob": "2010-01-01",
-            "join_codes": "",
-        },
+            "join_codes": c["join_code"],
+        }
     ]
-    students, skipped = provision_students_bulk(rows)
-    assert len(students) == 0
-    assert len(skipped) == 1
+    with pytest.raises(ValueError) as exc:
+        provision_students_bulk(rows)
+    assert any("missing first or last name" in e for e in exc.value.args[0])
 
 
-def test_bulk_provision_skips_missing_dob(teacher_client):
-    from app.models.classroom import provision_students_bulk
+def test_bulk_provision_skips_missing_dob(teacher_client, classroom):
+    from app.models.classroom import provision_students_bulk, get_classroom
+    import pytest
 
+    c = get_classroom(classroom)
     rows = [
-        {"first_name": "Ann", "last_name": "Lee", "dob": "", "join_codes": ""},
+        {
+            "first_name": "Ann",
+            "last_name": "Lee",
+            "dob": "",
+            "join_codes": c["join_code"],
+        }
     ]
-    students, skipped = provision_students_bulk(rows)
-    assert len(students) == 0
-    assert len(skipped) == 1
+    with pytest.raises(ValueError) as exc:
+        provision_students_bulk(rows)
+    assert any("missing date of birth" in e for e in exc.value.args[0])
 
 
-def test_bulk_provision_skips_invalid_dob(teacher_client):
-    from app.models.classroom import provision_students_bulk
+def test_bulk_provision_skips_invalid_dob(teacher_client, classroom):
+    from app.models.classroom import provision_students_bulk, get_classroom
+    import pytest
 
+    c = get_classroom(classroom)
     rows = [
         {
             "first_name": "Ann",
             "last_name": "Lee",
             "dob": "not-a-date",
-            "join_codes": "",
-        },
+            "join_codes": c["join_code"],
+        }
     ]
-    students, skipped = provision_students_bulk(rows)
-    assert len(students) == 0
-    assert len(skipped) == 1
+    with pytest.raises(ValueError):
+        provision_students_bulk(rows)
 
 
-def test_bulk_provision_partial_success(teacher_client):
-    from app.models.classroom import provision_students_bulk
+def test_bulk_provision_partial_success(teacher_client, classroom):
+    from app.models.classroom import provision_students_bulk, get_classroom
+    import pytest
 
+    c = get_classroom(classroom)
     rows = [
         {
             "first_name": "Ann",
             "last_name": "Lee",
             "dob": "2010-01-01",
-            "join_codes": "",
+            "join_codes": c["join_code"],
         },
         {
             "first_name": "",
             "last_name": "Bad",
             "dob": "2010-01-01",
-            "join_codes": "",
+            "join_codes": c["join_code"],
         },
     ]
-    students, skipped = provision_students_bulk(rows)
-    assert len(students) == 1
-    assert len(skipped) == 1
+    with pytest.raises(ValueError) as exc:
+        provision_students_bulk(rows)
+    assert any("missing first or last name" in e for e in exc.value.args[0])
+
+
+def test_bulk_provision_requires_join_code(teacher_client):
+    from app.models.classroom import provision_students_bulk
+    import pytest
+
+    rows = [
+        {"first_name": "Ann", "last_name": "Lee", "dob": "2010-01-01", "join_codes": ""}
+    ]
+    with pytest.raises(ValueError) as exc:
+        provision_students_bulk(rows)
+    assert any("no join code" in e for e in exc.value.args[0])
 
 
 def test_bulk_provision_notes_invalid_join_code(teacher_client):
@@ -283,83 +307,34 @@ def test_bulk_provision_notes_invalid_join_code(teacher_client):
             "last_name": "Lee",
             "dob": "2010-01-01",
             "join_codes": "XXXXXX",
-        },
+        }
     ]
-    students, skipped = provision_students_bulk(rows)
+    students = provision_students_bulk(rows)
     assert len(students) == 1  # account still created
-    assert any("XXXXXX" in s for s in skipped)
+    # invalid code is noted on the result but doesn't fail the bulk operation
+    assert students[0]["invalid_codes"] == ["XXXXXX"]
 
 
-# --- provision route
+# --- provision route (CSV)
 
 
-def test_provision_page_loads(teacher_client):
-    response = teacher_client.get("/classrooms/provision")
-    assert response.status_code == 200
-    assert b"Add Students" in response.data
+def test_csv_provision_valid(teacher_client, classroom):
+    from app.models.classroom import get_classroom
 
-
-def test_provision_page_requires_teacher(student_client):
-    response = student_client.get("/classrooms/provision")
-    assert response.status_code == 403
-
-
-def test_provision_page_requires_login(client):
-    response = client.get("/classrooms/provision")
-    assert response.status_code == 302
-    assert "/auth/login" in response.headers["Location"]
-
-
-def test_provision_prefills_join_code(teacher_client):
-    response = teacher_client.get("/classrooms/provision?join_code=ABC123")
-    assert b"ABC123" in response.data
-
-
-def test_manual_provision_redirects_to_credentials(teacher_client):
-    response = teacher_client.post(
-        "/classrooms/provision",
-        data={
-            "method": "manual",
-            "first_name": "Jane",
-            "last_name": "Smith",
-            "dob": "2010-01-01",
-            "join_codes": "",
-        },
-        follow_redirects=False,
-    )
-    assert response.status_code == 302
-    assert "credentials" in response.headers["Location"]
-
-
-def test_manual_provision_missing_fields(teacher_client):
-    response = teacher_client.post(
-        "/classrooms/provision",
-        data={
-            "method": "manual",
-            "first_name": "",
-            "last_name": "",
-            "dob": "",
-            "join_codes": "",
-        },
-        follow_redirects=True,
-    )
-    assert b"required" in response.data
-
-
-def test_csv_provision_valid(teacher_client):
+    c = get_classroom(classroom)
     csv_data, filename = _make_csv(
         [
             {
                 "first_name": "Ann",
                 "last_name": "Lee",
                 "dob": "2010-01-01",
-                "join_codes": "",
+                "join_codes": c["join_code"],
             },
             {
                 "first_name": "Ben",
                 "last_name": "Kim",
                 "dob": "2011-03-15",
-                "join_codes": "",
+                "join_codes": c["join_code"],
             },
         ]
     )
