@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Print All QR Badges — {{ classroom.name }}{% endblock %}
+
+{% block content %}
+<div style="max-width:640px; margin:0 auto;">
+  <div style="margin-bottom:1rem;" class="no-print">
+    <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
+       style="color:var(--muted); font-size:0.85rem; text-decoration:none;">
+      ← Back to {{ classroom.name }}
+    </a>
+  </div>
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;" class="no-print">
+    <div>
+      <h1 class="form-title" style="margin:0;">All QR Badges</h1>
+      <p class="form-subtitle" style="margin:0;">{{ badges|length }} badge{{ 's' if badges|length != 1 }} — {{ classroom.name }}</p>
+    </div>
+    <button onclick="window.print()" class="btn btn-primary">🖨 Print All</button>
+  </div>
+
+  <!-- screen preview -->
+  <div class="badge-grid no-print" style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; justify-items:center;">
+    {% for item in badges %}
+      {% with student=item.student, qr_b64=item.qr_b64 %}
+        {% include "classrooms/_badge.html" %}
+      {% endwith %}
+    {% endfor %}
+  </div>
+
+  <!-- print layout -->
+  <div class="print-only" style="display:none;">
+    <div class="badge-grid">
+      {% for item in badges %}
+        {% with student=item.student, qr_b64=item.qr_b64 %}
+          {% include "classrooms/_badge.html" %}
+        {% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .topbar, .sidebar, .drawer, .drawer-overlay, footer { display: none !important; }
+    .app-layout { display: block !important; }
+    .main-content { margin: 0 !important; padding: 0 !important; }
+    body { background: white !important; }
+    .print-only { display: block !important; }
+    .badge-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      padding: 1rem;
+    }
+    .badge-card {
+      box-shadow: none !important;
+      border: 3px solid #1a1a2e !important;
+      break-inside: avoid;
+    }
+  }
+</style>
+{% endblock %}

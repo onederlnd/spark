@@ -1,0 +1,64 @@
+<div class="badge-card" style="
+  border: 3px solid #1a1a2e;
+  border-radius: 16px;
+  padding: 1.5rem 1.25rem;
+  background: white;
+  color: #1a1a2e;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 280px;
+  position: relative;
+">
+<div style="
+  width: 48px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid #1a1a2e;
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: white;
+"></div>
+
+
+
+
+  <div style="font-size:0.7rem; font-weight:800; letter-spacing:0.15em; text-transform:uppercase; color:#666; margin-top:0.5rem;">
+    ⚡ SparK
+  </div>
+
+  {% if qr_b64 %}
+  <div style="background:white; padding:8px; border:1px solid #eee; border-radius:8px;">
+    <img src="data:image/png;base64,{{ qr_b64 }}"
+         alt="QR code for {{ student.username }}"
+         style="width:180px; height:180px; display:block; image-rendering:pixelated;">
+  </div>
+  {% else %}
+  <div style="width:180px; height:180px; display:flex; align-items:center; justify-content:center; background:#f5f5f5; border-radius:8px; color:#999; font-size:0.78rem;">
+    QR unavailable
+  </div>
+  {% endif %}
+
+  <div style="width:100%; border-top:1px dashed #ccc;"></div>
+
+  <div style="font-size:1.3rem; font-weight:900; color:#1a1a2e; letter-spacing:0.02em;">
+    {{ student.username }}
+  </div>
+
+  <div style="font-size:0.75rem; color:#666; margin-top:-0.25rem;">
+    {{ classroom.name }}
+  </div>
+
+  <div style="
+    background:#1a1a2e; color:white;
+    font-size:0.65rem; font-weight:700;
+    letter-spacing:0.1em; text-transform:uppercase;
+    padding:4px 12px; border-radius:99px;
+    margin-top:0.25rem;
+  ">
+    Scan to log in
+  </div>
+</div>

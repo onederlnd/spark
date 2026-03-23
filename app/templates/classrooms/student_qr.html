@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}QR Badge — {{ student.username }}{% endblock %}
+
+{% block content %}
+<div style="max-width:640px; margin:0 auto;">
+  <div style="margin-bottom:1rem;" class="no-print">
+    <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
+       style="color:var(--muted); font-size:0.85rem; text-decoration:none;">
+      ← Back to {{ classroom.name }}
+    </a>
+  </div>
+
+  <div style="display:flex; gap:0.75rem; justify-content:center; margin-bottom:1.5rem;" class="no-print">
+    <button onclick="window.print()" class="btn btn-primary">🖨 Print Badge</button>
+    <form method="POST"
+          action="{{ url_for('classrooms.regenerate_student_qr', classroom_id=classroom.id, student_id=student.id) }}"
+          onsubmit="return confirm('This will invalidate the current QR code.')"
+          style="display:inline;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn-ghost">🔄 Regenerate</button>
+    </form>
+  </div>
+
+  <!-- screen preview — single badge -->
+  <div style="display:flex; justify-content:center;" class="no-print">
+    {% include "classrooms/_badge.html" with context %}
+  </div>
+
+  <!-- print layout — 4 copies per page -->
+<div class="print-only" style="display:none;">
+  {% include "classrooms/_badge.html" with context %}
+</div>
+</div>
+
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    .topbar, .sidebar, .drawer, .drawer-overlay, footer { display: none !important; }
+    .app-layout { display: block !important; }
+    .main-content { margin: 0 !important; padding: 0 !important; }
+    body { background: white !important; }
+    .print-only { display: block !important; }
+    .badge-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      padding: 1rem;
+    }
+    .badge-card {
+      box-shadow: none !important;
+      border: 3px solid #1a1a2e !important;
+    }
+  }
+</style>
+{% endblock %}

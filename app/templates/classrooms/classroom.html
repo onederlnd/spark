@@ -137,49 +137,66 @@
 {% if role == 'teacher' %}
 <div class="card" style="margin-top:2rem;">
   <div class="card-body">
-    <h2 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">
-      Students ({{ members | selectattr('role', 'equalto', 'student') | list | length }})
-    </h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <h2 style="font-size:1rem; font-weight:800; margin:0;">
+        Students ({{ members | selectattr('role', 'equalto', 'student') | list | length }})
+      </h2>
+      <div style="display:flex; gap:0.5rem; align-items:center;">
+        <a href="{{ url_for('classrooms.print_all_qr', classroom_id=classroom.id) }}"
+           class="btn btn-ghost" style="font-size:0.78rem;">🖨 Print All QR</a>
+        <button onclick="toggleStudentList()" id="toggle-btn"
+                class="btn btn-ghost" style="font-size:0.78rem;">
+          ▼ Expand
+        </button>
+      </div>
+    </div>
+
     {% set students = members | selectattr('role', 'equalto', 'student') | list %}
-    {% if students %}
-    <div style="display:flex; flex-direction:column; gap:0.5rem;">
-      {% for member in students %}
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
-        <div>
-          <a href="/profile/{{ member.username }}"
-             style="font-weight:700; color:var(--text); text-decoration:none; font-size:0.9rem;">
-            {{ member.username | display_name }}
-          </a>
+    <div id="student-list" style="display:none;">
+      {% if students %}
+      <div style="display:flex; flex-direction:column; gap:0.5rem;">
+        {% for member in students %}
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
+          <div>
+            <a href="/profile/{{ member.username }}"
+               style="font-weight:700; color:var(--text); text-decoration:none; font-size:0.9rem;">
+              {{ member.username | display_name }}
+            </a>
+            {% if member.provisional %}
+            <span style="font-size:0.72rem; color:var(--muted); margin-left:6px;">provisioned</span>
+            {% endif %}
+          </div>
           {% if member.provisional %}
-          <span style="font-size:0.72rem; color:var(--muted); margin-left:6px;">provisioned</span>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <form method="POST"
+                  action="{{ url_for('classrooms.regenerate_student_qr', classroom_id=classroom.id, student_id=member.id) }}"
+                  onsubmit="return confirm('Regenerate QR code for {{ member.username }}? Their current QR code will stop working.')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-ghost" style="font-size:0.78rem;">🔄 Regenerate QR</button>
+            </form>
+            <a href="{{ url_for('classrooms.show_student_qr', classroom_id=classroom.id, student_id=member.id) }}"
+               class="btn btn-ghost" style="font-size:0.78rem;">📱 Show QR</a>
+          </div>
           {% endif %}
         </div>
-        {% if member.provisional %}
-        <form method="POST"
-              action="{{ url_for('classrooms.regenerate_student_qr', classroom_id=classroom.id, student_id=member.id) }}"
-              onsubmit="return confirm('Regenerate QR code for {{ member.username | display_name }}? Their current QR code will stop working.')">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-ghost" style="font-size:0.78rem;">🔄 Regenerate QR</button>
-        </form>
-        {% endif %}
+        {% endfor %}
       </div>
-      {% endfor %}
+      {% else %}
+      <p style="color:var(--muted); font-size:0.88rem;">No students yet. Share the join code or add students directly.</p>
+      {% endif %}
     </div>
-    {% else %}
-    <p style="color:var(--muted); font-size:0.88rem;">No students yet. Share the join code or add students directly.</p>
-    {% endif %}
   </div>
 </div>
-{% endif %}
 
 <script>
-  function copyJoinCode(code) {
-    navigator.clipboard.writeText(code).then(() => {
-      const btn = document.getElementById('copy-btn');
-      btn.textContent = 'Copied!';
-      setTimeout(() => btn.textContent = 'Copy code', 2000);
-    });
+  function toggleStudentList() {
+    const list = document.getElementById('student-list');
+    const btn = document.getElementById('toggle-btn');
+    const collapsed = list.style.display === 'none';
+    list.style.display = collapsed ? 'block' : 'none';
+    btn.textContent = collapsed ? '▲ Collapse' : '▼ Expand';
   }
 </script>
+{% endif %}
 
 {% endblock %}

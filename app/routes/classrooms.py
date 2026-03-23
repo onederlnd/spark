@@ -621,21 +621,25 @@ def regenerate_student_qr(classroom_id, student_id):
 @login_required
 @teacher_required
 def qr_sheet():
-    students = session.get("provisioned_students")
-    if not students:
-        flash("No provisioning data found. Please add students first.", "error")
-        return redirect(url_for("classrooms.provision"))
-
     import qrcode
-    import qrcode.image.svg
     from io import BytesIO
     import base64
+
+    students = get_provisioned_students_for_teacher(session["user_id"])
+    if not students:
+        flash("No provisioned students found.", "error")
+        return redirect(url_for("classrooms.provision"))
 
     base_url = request.host_url.rstrip("/")
     qr_codes = []
 
     for student in students:
-        token = student.get("qr_token")
+        # fetch full user record to get qr_token
+
+        user = get_user_by_id(student["id"])
+        token = user["qr_token"] if user else None
+        print(f"[DEBUG] student={student['username']} token={token}")
+
         if not token:
             qr_codes.append({"student": student, "qr_b64": None})
             continue
@@ -646,12 +650,95 @@ def qr_sheet():
             img.save(buffer, format="PNG")
             qr_b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
             qr_codes.append({"student": student, "qr_b64": qr_b64})
-        except Exception:
+        except Exception as e:
+            print(f"[DEBUG] QR generation error for {student['username']}: {e}")
             qr_codes.append({"student": student, "qr_b64": None})
-    # import os
-    # from flask import current_app
 
-    # template_path = os.path.join(
-    #     current_app.template_folder, "classrooms/qr_sheet.html"
-    # )
     return render_template("classrooms/qr_sheet.html", qr_codes=qr_codes)
+
+
+@classrooms_bp.route("/<int:classroom_id>/students/<int:student_id>/qr")
+@login_required
+@teacher_required
+def show_student_qr(classroom_id, student_id):
+    import qrcode
+    from io import BytesIO
+    import base64
+
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if role != "teacher":
+        return "Forbidden", 403
+
+    student = get_user_by_id(student_id)
+    member_role = get_member_role(classroom_id, student_id)
+    if not student or not member_role:
+        return "Student not found in classroom", 404
+    if not student["provisional"]:
+        return "Forbidden", 403
+
+    token = student["qr_token"]
+    qr_b64 = None
+    if token:
+        try:
+            base_url = request.host_url.rstrip("/")
+            url = f"{base_url}/auth/qr-login?token={token}"
+            img = qrcode.make(url)
+            buffer = BytesIO()
+            img.save(buffer, format="PNG")
+            qr_b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        except Exception as e:
+            flash(f"Could not generate QR code: {e}", "error")
+    return render_template(
+        "classrooms/student_qr.html",
+        classroom=classroom,
+        student=student,
+        qr_b64=qr_b64,
+    )
+
+
+@classrooms_bp.route("/<int:classroom_id>/students/print-all-qr")
+@login_required
+@teacher_required
+def print_all_qr(classroom_id):
+    import qrcode
+    from io import BytesIO
+    import base64
+
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if role != "teacher":
+        return "Forbidden", 403
+
+    members = get_classroom_members(classroom_id)
+    base_url = request.host_url.rstrip("/")
+    badges = []
+
+    for member in members:
+        if not member["provisional"]:
+            continue
+        user = get_user_by_id(member["id"])
+        token = user["qr_token"] if user else None
+        qr_b64 = None
+        if token:
+            try:
+                url = f"{base_url}/auth/qr-login?token={token}"
+                img = qrcode.make(url)
+                buffer = BytesIO()
+                img.save(buffer, format="PNG")
+                qr_b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+            except Exception:
+                pass
+        badges.append({"student": member, "qr_b64": qr_b64})
+
+    if not badges:
+        flash("No provisioned students with QR codes in this classroom.", "error")
+        return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
+
+    return render_template(
+        "classrooms/print_all_qr.html",
+        classroom=classroom,
+        badges=badges,
+    )
