@@ -139,7 +139,7 @@ def teacher_client(app):
 
 
 @pytest.fixture
-def student_client(app):
+def student_client(app, teacher_client):
     client = app.test_client()
     client.post(
         "auth/register",

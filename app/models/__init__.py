@@ -239,33 +239,25 @@ def init_db(app):
                 event_type TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+            CREATE TABLE IF NOT EXISTS assignment_attachments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                assignment_id INTEGER NOT NULL REFERENCES assignments(id),
+                filename TEXT NOT NULL,
+                original_filename TEXT NOT NULL,
+                uploaded_by INTEGER NOT NULL REFERENCES users(id),
+                file_size INTEGER NOT NULL,
+                mime_type TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS submission_attachments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                submission_id INTEGER NOT NULL REFERENCES submissions(id),
+                filename NOT NULL,
+                original_filename TEXT NOT NULL,
+                uploaded_by INTEGER NOT NULL REFERENCES users(id),
+                file_size INTEGER NOT NULL,
+                mime_type TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         """)
-        try:
-            db.execute("""
-                CREATE TABLE IF NOT EXISTS assigment_attachments (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    assignment_id INTEGER NOT NULL REFERENCES assignments(id),
-                    filename TEXT NOT NULL,
-                    original_filename TEXT NOT NULL,
-                    uploaded_by INTEGER NOT NULL REFERENCES users(id),
-                    file_size INTEGER NOT NULL,
-                    mime_type TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                )
-            """)
-            db.execut("""
-                CREATE TABLE IF NOT EXISTS submission_attachments (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    submission_id INTEGER NOT NULL REFERENCES submissions(id),
-                    filename NOT NULL,
-                    original_filename TEXT NOT NULL,
-                    uploaded_by INTEGER NOT NULL REFERENCES users(id),
-                    file_size INTEGER NOT NULL
-                    mime_type TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-                    )
-            """)
-            db.commit()
-        except Exception:
-            pass
         db.commit()

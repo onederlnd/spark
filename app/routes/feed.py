@@ -8,11 +8,11 @@ from app.models.block import get_blocked_ids
 from app.utils.auth import login_required
 
 
-feed_bp = Blueprint("feed", __name__, url_prefix="/feed")
+feed_bp = Blueprint("feed", __name__, url_prefix="")
 
 
 # --- auth decorator
-@feed_bp.route("/", strict_slashes=False)
+@feed_bp.route("/feed/", strict_slashes=False)
 @login_required
 @coppa_required
 def index():

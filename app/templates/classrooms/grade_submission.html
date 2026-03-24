@@ -1,8 +1,15 @@
 {% extends "base.html" %}
+{% macro file_icon(mime) %}
+  {% if 'pdf' in mime %}📄
+  {% elif 'image' in mime %}🖼️
+  {% elif 'word' in mime or 'document' in mime %}📝
+  {% elif 'excel' in mime or 'sheet' in mime %}📊
+  {% elif 'powerpoint' in mime or 'presentation' in mime %}📋
+  {% else %}📎{% endif %}
+{% endmacro %}
 {% block title %}Grade — {{ assignment.title }} — SparK{% endblock %}
 
 {% block content %}
-
 <div class="form-page">
   <div style="margin-bottom: 1rem;">
     <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
@@ -16,24 +23,50 @@
     {% if submission %}Submission for {{ submission.username }}{% else %}No submission yet{% endif %}
   </p>
 
+  <!-- Submission body -->
   {% if submission and submission.body %}
-  <div class="card" style="max-width: 600px; margin-top: 1rem; margin-bottom: 1rem;">
+  <div class="card" style="max-width:600px; margin-top:1rem; margin-bottom:1rem;">
     <div class="card-body">
-      <div style="font-size: 0.75rem; color: var(--muted); margin-bottom: 0.75rem;">
+      <div style="font-size:0.75rem; color:var(--muted); margin-bottom:0.75rem;">
         Submitted {{ submission.submitted_at | time_ago }}
       </div>
       <div class="post-body">{{ submission.body | bbcode }}</div>
     </div>
   </div>
   {% else %}
-  <div class="card" style="max-width: 600px; margin-top: 1rem; margin-bottom: 1rem;">
-    <div class="card-body" style="color: var(--muted); font-size: 0.9rem;">
+  <div class="card" style="max-width:600px; margin-top:1rem; margin-bottom:1rem;">
+    <div class="card-body" style="color:var(--muted); font-size:0.9rem;">
       This student has not submitted anything yet.
     </div>
   </div>
   {% endif %}
 
-  <div class="card" style="max-width: 600px; margin-top: 1rem;">
+  <!-- Student file attachments — outside the form -->
+  {% if submission_attachments %}
+  <div class="card" style="max-width:600px; margin-bottom:1rem;">
+    <div class="card-body">
+      <h3 style="font-size:0.88rem; font-weight:800; margin-bottom:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">
+        Student Files
+      </h3>
+      <div style="display:flex; flex-direction:column; gap:0.5rem;">
+        {% for file in submission_attachments %}
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span>{{ file_icon(file.mime_type) }}</span>
+            <span style="font-size:0.88rem;">{{ file.original_filename }}</span>
+            <span style="font-size:0.75rem; color:var(--muted);">({{ (file.file_size / 1024) | round(1) }} KB)</span>
+          </div>
+          <a href="{{ url_for('classrooms.download_submission_attachment', classroom_id=classroom.id, assignment_id=assignment.id, attachment_id=file.id) }}"
+             class="btn btn-ghost" style="font-size:0.78rem;">⬇ Download</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Grade form -->
+  <div class="card" style="max-width:600px; margin-top:1rem;">
     <form method="POST" class="post-form">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
@@ -80,15 +113,12 @@
   function updateCounter(input, counterId, max) {
     const counter = document.getElementById(counterId);
     if (!counter) return;
-
     const len = input.value.length;
     counter.textContent = len + ' / ' + max;
     counter.className = 'char-counter';
-
     if (len / max >= 0.95) counter.classList.add('danger');
     else if (len / max >= 0.8) counter.classList.add('warn');
   }
-
   updateCounter(document.getElementById('grade'), 'grade-counter', 20);
   updateCounter(document.getElementById('feedback'), 'feedback-counter', 1000);
 </script>

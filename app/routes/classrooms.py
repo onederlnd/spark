@@ -1,4 +1,5 @@
 import csv
+import os
 import io
 from flask import (
     Blueprint,
@@ -9,6 +10,8 @@ from flask import (
     url_for,
     flash,
     Response,
+    current_app,
+    send_from_directory,
 )
 from app.utils.auth import login_required, teacher_required
 from app.utils.rate_limit import rate_limit
@@ -43,6 +46,16 @@ from app.models.user import (
 )
 from app.models.report import get_reports_for_classroom
 from app.utils.content_filter import add_word, remove_word, get_all_words
+from app.models.attachments import (
+    get_assignment_attachments,
+    add_assignment_attachment,
+    delete_assignment_attachment,
+    get_submission_attachments,
+    add_submission_attachment,
+    delete_submission_attachment,
+    get_upload_dir,
+)
+
 
 classrooms_bp = Blueprint("classrooms", __name__, url_prefix="/classrooms")
 
@@ -239,6 +252,10 @@ def view_assignment(classroom_id, assignment_id):
 
     submission = get_submission(assignment_id, session["user_id"])
     submission_count = len(get_submissions_for_assignment(assignment_id))
+    assignment_attachments = get_assignment_attachments(assignment_id)
+    submission_attachments = (
+        get_submission_attachments(submission["id"]) if submission else []
+    )
 
     if request.method == "POST":
         if role != "student":
@@ -253,6 +270,8 @@ def view_assignment(classroom_id, assignment_id):
                 role=role,
                 submission=submission,
                 submission_count=submission_count,
+                assignment_attachments=assignment_attachments,
+                submission_attachments=submission_attachments,
                 error="Submission cannot be empty.",
             )
 
@@ -265,6 +284,7 @@ def view_assignment(classroom_id, assignment_id):
                 assignment_id=assignment_id,
             )
         )
+
     return render_template(
         "classrooms/assignment.html",
         classroom=classroom,
@@ -272,6 +292,8 @@ def view_assignment(classroom_id, assignment_id):
         role=role,
         submission=submission,
         submission_count=submission_count,
+        assignment_attachments=assignment_attachments,
+        submission_attachments=submission_attachments,
     )
 
 
@@ -320,7 +342,9 @@ def grade_submission(classroom_id, assignment_id, student_id):
     if not student or not member_role:
         return "Student not found in classroom", 404
     submission = get_submission(assignment_id, student_id)
-
+    submission_attachments = (
+        get_submission_attachments(submission["id"]) if submission else []
+    )
     if request.method == "POST":
         grade = sanitize_plain(request.form.get("grade", ""), max_length=20)
         feedback = sanitize_plain(request.form.get("feedback"), max_length=1000)
@@ -345,6 +369,7 @@ def grade_submission(classroom_id, assignment_id, student_id):
         classroom=classroom,
         assignment=assignment,
         submission=submission,
+        submission_attachments=submission_attachments,
     )
 
 
@@ -741,4 +766,223 @@ def print_all_qr(classroom_id):
         "classrooms/print_all_qr.html",
         classroom=classroom,
         badges=badges,
+    )
+
+
+# --- assignment attachments
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/attachments", methods=["POST"]
+)
+@login_required
+@coppa_required
+def upload_assignment_attachment(classroom_id, assignment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if role != "teacher":
+        return "Forbidden", 403
+
+    assignment = get_assignment(assignment_id)
+    if not assignment or assignment["classroom_id"] != classroom_id:
+        return "Assignment not found", 404
+
+    file = request.files.get("file")
+
+    try:
+        add_assignment_attachment(
+            assignment_id, file, session["user_id"], current_app._get_current_object()
+        )
+        flash("File uploaded.", "success")
+    except ValueError as e:
+        flash(str(e), "error")
+    except Exception:
+        raise
+
+    return redirect(
+        url_for(
+            "classrooms.view_assignment",
+            classroom_id=classroom_id,
+            assignment_id=assignment_id,
+        )
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/attachments/<int:attachment_id>/delete",
+    methods=["POST"],
+)
+@login_required
+@coppa_required
+def delete_assignment_attachment_route(classroom_id, assignment_id, attachment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if role != "teacher":
+        return "Forbidden", 403
+
+    delete_assignment_attachment(attachment_id, current_app._get_current_object())
+    flash("File deleted.", "success")
+    return redirect(
+        url_for(
+            "classrooms.view_assignment",
+            classroom_id=classroom_id,
+            assignment_id=assignment_id,
+        )
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/attachments/<int:attachment_id>/download"
+)
+@login_required
+@coppa_required
+def download_assignment_attachment(classroom_id, assignment_id, attachment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or not role:
+        return "Forbidden", 403
+
+    from app.models.attachments import get_assignment_attachments
+
+    db_row = next(
+        (
+            a
+            for a in get_assignment_attachments(assignment_id)
+            if a["id"] == attachment_id
+        ),
+        None,
+    )
+    if not db_row:
+        return "File not found", 404
+
+    upload_dir = get_upload_dir(current_app._get_current_object())
+    folder = os.path.join(upload_dir, f"assignments/{assignment_id}")
+    return send_from_directory(
+        folder,
+        db_row["filename"],
+        as_attachment=True,
+        download_name=db_row["original_filename"],
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/submission/attachments",
+    methods=["POST"],
+)
+@login_required
+@coppa_required
+def upload_submission_attachment(classroom_id, assignment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or not role:
+        return "Forbidden", 403
+    if role != "student":
+        return "Forbidden", 403
+
+    assignment = get_assignment(assignment_id)
+    if not assignment or assignment["classroom_id"] != classroom_id:
+        return "Assignment not found", 404
+
+    submission = get_submission(assignment_id, session["user_id"])
+    if not submission:
+        create_submission(assignment_id, session["user_id"], "")
+        submission = get_submission(assignment_id, session["user_id"])
+
+    file = request.files.get("file")
+    import sys
+
+    print(
+        f"DEBUG upload: session user_id={session['user_id']}, submission={submission}",
+        file=sys.stderr,
+    )
+    try:
+        add_submission_attachment(
+            submission["id"],
+            file,
+            session["user_id"],
+            current_app._get_current_object(),
+        )
+        flash("File uploaded.", "success")
+    except ValueError as e:
+        flash(str(e), "error")
+
+    return redirect(
+        url_for(
+            "classrooms.view_assignment",
+            classroom_id=classroom_id,
+            assignment_id=assignment_id,
+        )
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/submission/attachments/<int:attachment_id>/delete",
+    methods=["POST"],
+)
+@login_required
+@coppa_required
+def delete_submission_attachment_route(classroom_id, attachment_id, assignment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or not role:
+        return "Forbidden", 403
+    submission = get_submission(assignment_id, session["user_id"])
+
+    from app.models import get_db
+
+    if role == "teacher":
+        db = get_db()
+        row = db.execute(
+            "SELECT * FROM submission_attachments WHERE id = ?", (attachment_id,)
+        ).fetchone()
+    else:
+        if not submission:
+            return "Forbidden", 403
+        attachments = get_submission_attachments(submission["id"])
+        row = next((a for a in attachments if a["id"] == attachment_id), None)
+
+    if not row:
+        return "File not found", 404
+
+    delete_submission_attachment(attachment_id, current_app._get_current_object())
+    flash("File deleted.", "success")
+    return redirect(
+        url_for(
+            "classrooms.view_assignment",
+            classroom_id=classroom_id,
+            assignment_id=assignment_id,
+        )
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/submission/attachments/<int:attachment_id>/download"
+)
+@login_required
+@coppa_required
+def download_submission_attachment(classroom_id, assignment_id, attachment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or not role:
+        return "Forbidden", 403
+
+    from app.models import get_db
+
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM submission_attachments WHERE id = ?", (attachment_id,)
+    ).fetchone()
+    if not row:
+        return "File not found", 404
+
+    if role == "student":
+        submission = get_submission(assignment_id, session["user_id"])
+        if not submission or submission["id"] != row["submission_id"]:
+            return "Forbidden", 403
+
+    upload_dir = get_upload_dir(current_app._get_current_object())
+    folder = os.path.join(upload_dir, f"submissions/{row['submission_id']}")
+    return send_from_directory(
+        folder,
+        row["filename"],
+        as_attachment=True,
+        download_name=row["original_filename"],
     )

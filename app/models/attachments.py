@@ -32,7 +32,7 @@ def allowed_file(filename):
 
 def get_upload_dir(app):
     path = os.path.join(app.root_path, "..", "uploads")
-    os.makedirs(path, exists_ok=True)
+    os.makedirs(path, exist_ok=True)
     return os.path.abspath(path)
 
 
@@ -78,7 +78,7 @@ def delete_file(filename, subfolder, app):
 
 
 # --- assignment attachments
-def get_assignment_attachment(assignment_id):
+def get_assignment_attachments(assignment_id):
     db = get_db()
     return db.execute(
         "SELECT * FROM assignment_attachments WHERE assignment_id = ? ORDER BY created_at ASC",
@@ -87,7 +87,7 @@ def get_assignment_attachment(assignment_id):
 
 
 def add_assignment_attachment(assignment_id, file, uploaded_by, app):
-    existing = get_assignment_attachment(assignment_id)
+    existing = get_assignment_attachments(assignment_id)
     total = sum(a["file_size"] for a in existing)
     if total >= MAX_ASSIGNMENT_TOTAL:
         raise ValueError("Assignment attachment list reached (50MB total)")
@@ -110,7 +110,7 @@ def add_assignment_attachment(assignment_id, file, uploaded_by, app):
 def delete_assignment_attachment(attachment_id, app):
     db = get_db()
     row = db.execute(
-        "SELECT * FROM assignment_atachments WHERE id = ?", (attachment_id,)
+        "SELECT * FROM assignment_attachments WHERE id = ?", (attachment_id,)
     ).fetchone()
     if not row:
         return False
@@ -132,7 +132,7 @@ def get_submission_attachments(submission_id):
 
 
 def add_submission_attachment(submission_id, file, uploaded_by, app):
-    existing = get_assignment_attachment(submission_id)
+    existing = get_submission_attachments(submission_id)
     total = sum(a["file_size"] for a in existing)
     if total >= MAX_SUBMISSION_TOTAL:
         raise ValueError("Submission attachment limit reached (20MB total)")
@@ -143,7 +143,7 @@ def add_submission_attachment(submission_id, file, uploaded_by, app):
     db.execute(
         """
         INSERT INTO submission_attachments
-        (submission_id, filename, original_filename, uploaded_by, file_name, mime_type)
+        (submission_id, filename, original_filename, uploaded_by, file_size, mime_type)
         VALUES (?, ?, ?, ?, ?, ?)
         """,
         (submission_id, stored, original, uploaded_by, size, mime),
@@ -155,15 +155,11 @@ def add_submission_attachment(submission_id, file, uploaded_by, app):
 def delete_submission_attachment(attachment_id, app):
     db = get_db()
     row = db.execute(
-        "SELECT * FROM submission_attachments WHERE id = ?", (attachment_id,).fetchone()
-    )
+        "SELECT * FROM submission_attachments WHERE id = ?", (attachment_id,)
+    ).fetchone()
     if not row:
         return False
     delete_file(row["filename"], f"submissions/{row['submission_id']}", app)
-    db.execute(
-        "DELETE FROM submission_attachments WHERE id = ?"(
-            attachment_id,
-        )
-    )
+    db.execute("DELETE FROM submission_attachments WHERE id = ?", (attachment_id,))
     db.commit()
     return True
