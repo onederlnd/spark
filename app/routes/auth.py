@@ -230,4 +230,4 @@ def qr_login():
         "INSERT INTO login_events (user_id, method) VALUES (?, ?)", (user["id"], "qr")
     )
     db.commit()
-    return redirect(url_for("classrooms.dashboard"))
+    return redirect(url_for("feed.index"))

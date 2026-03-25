@@ -10,7 +10,7 @@ from app.models.user import (
     get_followers_count,
     coppa_required,
 )
-from app.models.post import get_posts_by_user, get_bookmarks, toggle_bookmark
+from app.models.post import get_posts_by_user, get_bookmarks, toggle_bookmark, get_post
 from app.models.notifications import create_notification
 from app.models.block import block_user, unblock_user, is_blocked
 from app.utils.auth import login_required
@@ -108,5 +108,8 @@ def unblock(username):
 @login_required
 @rate_limit(max_requests=30, window_seconds=60)
 def bookmark(post_id):
+    post = get_post(post_id)
+    if not post:
+        return "Post not found", 404
     toggle_bookmark(session["user_id"], post_id)
     return redirect(request.referrer or url_for("feed.index"))

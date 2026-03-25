@@ -146,3 +146,173 @@ def test_feed_pagination(auth_client):
 
     response = auth_client.get("/?page=99")
     assert response.status_code == 200
+
+
+# --- authentication required ---
+
+
+def test_unauthenticated_cannot_create_post(client):
+    response = client.post(
+        "/posts/new",
+        data={"title": "Sneaky Post", "body": "Should not work", "topic_id": ""},
+    )
+    assert response.status_code in (302, 403)
+    if response.status_code == 302:
+        assert "/auth/login" in response.headers["Location"]
+
+
+def test_unauthenticated_cannot_reply(client):
+    response = client.post("/posts/1/reply", data={"body": "Sneaky reply"})
+    assert response.status_code in (302, 403)
+    if response.status_code == 302:
+        assert "/auth/login" in response.headers["Location"]
+
+
+def test_unauthenticated_cannot_vote(client):
+    response = client.post("/posts/1/vote", data={"value": "1"})
+    assert response.status_code in (302, 403)
+    if response.status_code == 302:
+        assert "/auth/login" in response.headers["Location"]
+
+
+def test_unauthenticated_cannot_edit_post(client):
+    response = client.post("/posts/1/edit", data={"title": "Hacked", "body": "Hacked"})
+    assert response.status_code in (302, 403)
+    if response.status_code == 302:
+        assert "/auth/login" in response.headers["Location"]
+
+
+def test_unauthenticated_cannot_delete_post(client):
+    response = client.post("/posts/1/delete")
+    assert response.status_code in (302, 403)
+    if response.status_code == 302:
+        assert "/auth/login" in response.headers["Location"]
+
+
+# --- content filtering ---
+
+
+def test_post_with_blocked_word_rejected(auth_client, app):
+    from app.utils.content_filter import add_word
+
+    with app.app_context():
+        add_word("badword", user_id=1)
+
+    response = auth_client.post(
+        "/posts/new",
+        data={
+            "title": "Clean Title",
+            "body": "This contains badword here",
+            "topic_id": "",
+        },
+    )
+    assert response.status_code == 200
+    assert b"not allowed" in response.data
+
+
+def test_post_title_with_blocked_word_rejected(auth_client, app):
+    from app.utils.content_filter import add_word
+
+    with app.app_context():
+        add_word("badword", user_id=1)
+
+    response = auth_client.post(
+        "/posts/new",
+        data={"title": "This has badword", "body": "Clean body", "topic_id": ""},
+    )
+    assert response.status_code == 200
+    assert b"not allowed" in response.data
+
+
+def test_reply_with_blocked_word_rejected(auth_client, app):
+    from app.utils.content_filter import add_word
+
+    with app.app_context():
+        add_word("badword", user_id=1)
+
+    auth_client.post(
+        "/posts/new",
+        data={"title": "Clean Post", "body": "Clean body", "topic_id": ""},
+    )
+    response = auth_client.post(
+        "/posts/1/reply",
+        data={"body": "badword in reply"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"not allowed" in response.data
+
+
+# --- XSS / injection ---
+
+
+def test_xss_in_post_title_escaped(auth_client):
+    response = auth_client.post(
+        "/posts/new",
+        data={
+            "title": "<script>alert('xss')</script>",
+            "body": "Clean body",
+            "topic_id": "",
+        },
+    )
+    post_url = response.headers.get("Location")
+    if post_url:
+        response = auth_client.get(post_url)
+        assert b"<script>alert" not in response.data
+
+
+def test_xss_in_post_body_escaped(auth_client):
+    response = auth_client.post(
+        "/posts/new",
+        data={
+            "title": "XSS Body Test",
+            "body": "<script>alert('xss')</script>",
+            "topic_id": "",
+        },
+    )
+    post_url = response.headers.get("Location")
+    if post_url:
+        response = auth_client.get(post_url)
+        assert b"<script>alert" not in response.data
+
+
+def test_xss_in_reply_escaped(auth_client):
+    auth_client.post(
+        "/posts/new",
+        data={"title": "XSS Reply Test", "body": "Clean body", "topic_id": ""},
+    )
+    auth_client.post(
+        "/posts/1/reply",
+        data={"body": "<script>alert('xss')</script>"},
+    )
+    response = auth_client.get("/posts/1")
+    assert b"<script>alert" not in response.data
+
+
+def test_sql_injection_in_post_title(auth_client):
+    response = auth_client.post(
+        "/posts/new",
+        data={
+            "title": "'; DROP TABLE posts; --",
+            "body": "Clean body",
+            "topic_id": "",
+        },
+    )
+    # should either sanitize and create, or reject — but never crash
+    assert response.status_code in (200, 302)
+
+
+# --- rate limiting ---
+
+
+def test_rate_limit_on_post_creation(auth_client):
+    """Rapid post creation should eventually be rate limited."""
+    responses = []
+    for i in range(40):
+        r = auth_client.post(
+            "/posts/new",
+            data={"title": f"Spam Post {i}", "body": "Spam body", "topic_id": ""},
+        )
+        responses.append(r.status_code)
+
+    assert 429 in responses, "Rate limiting should have triggered before 40 requests"

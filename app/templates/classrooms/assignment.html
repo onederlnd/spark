@@ -157,7 +157,7 @@
       <div class="flash flash-error">{{ error }}</div>
       {% endif %}
 
-      <form method="POST" class="post-form">
+      <form method="POST" class="post-form" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="editor-tabs">
           <button type="button" class="editor-tab active" onclick="switchTab(this,'write-pane')">Write</button>
@@ -171,6 +171,18 @@
         </div>
         <div class="editor-pane" id="preview-pane">
           <div class="preview-pane" id="preview-output"></div>
+        </div>
+          <!-- file attachment at submission time -->
+        <div style="margin-top:0.75rem;">
+          <label style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:0.4rem;">
+            Attach files (optional)
+          </label>
+          <input type="file" name="files" multiple
+                 accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+                 style="font-size:0.85rem; color:var(--text);">
+          <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">
+            Max 10MB per file, 20MB total.
+          </div>
         </div>
         <div style="margin-top:0.75rem; text-align:right;">
           <button type="submit" class="btn btn-primary">Submit</button>

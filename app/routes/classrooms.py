@@ -219,6 +219,25 @@ def new_assignment(classroom_id):
                 error="Title and instructions are required.",
             )
         assignment_id = create_assignment(classroom_id, title, instructions, due_date)
+
+        files = request.files.getlist("files")
+        errors = []
+
+        for file in files:
+            if file and file.filename:
+                try:
+                    add_assignment_attachment(
+                        assignment_id,
+                        file,
+                        session["user_id"],
+                        current_app._get_current_object(),
+                    )
+                except ValueError as e:
+                    errors.append(str(e))
+
+        if errors:
+            flash(" ".join(errors), "errors")
+
         flash("Assignment created!", "success")
         return redirect(
             url_for(
@@ -276,6 +295,25 @@ def view_assignment(classroom_id, assignment_id):
             )
 
         create_submission(assignment_id, session["user_id"], body)
+        submission = get_submission(assignment_id, session["user_id"])
+
+        files = request.files.getlist("files")
+        errors = []
+        for file in files:
+            if file and file.filename:
+                try:
+                    add_submission_attachment(
+                        submission["id"],
+                        file,
+                        session["user_id"],
+                        current_app._get_current_object(),
+                    )
+                except ValueError as e:
+                    errors.append(str(e))
+
+        if errors:
+            flash(" ".join(errors), "error")
+
         flash("Submission saved!", "success")
         return redirect(
             url_for(

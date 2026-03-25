@@ -7,6 +7,7 @@ from flask import (
     session,
     redirect,
     url_for,
+    flash,
 )
 from app.models.post import (
     create_post,
@@ -23,6 +24,7 @@ from app.models.notifications import create_notification
 from app.utils.auth import login_required
 from app.utils.rate_limit import rate_limit
 from app.utils.sanitize import sanitize_plain, sanitize_bbcode
+from app.utils.content_filter import get_all_words
 
 # define blueprint
 posts_bp = Blueprint("posts", __name__, url_prefix="/posts")
@@ -31,6 +33,12 @@ posts_bp = Blueprint("posts", __name__, url_prefix="/posts")
 # --- posts
 TITLE_MAX = 200
 BODY_MAX = 10000
+
+
+def _contains_blocked_word(text):
+    words = [row["word"].lower() for row in get_all_words()]
+    text_lower = text.lower()
+    return any(word in text_lower for word in words)
 
 
 @posts_bp.route("/new", methods=["GET", "POST"])
@@ -56,6 +64,12 @@ def new_post():
                 "new_post.html", topic=topics, error="Title and body required"
             )
 
+        if _contains_blocked_word(title) or _contains_blocked_word(body):
+            return render_template(
+                "new_post.html",
+                topics=topics,
+                error="Your post contains a word that is not allowed.",
+            )
         post_id = create_post(session["user_id"], title, body, topic_id)
         return redirect(url_for("posts.view_post", post_id=post_id))
 
@@ -137,6 +151,10 @@ def reply(post_id):
 
     if not body:
         return redirect(url_for("post.view_post", post_id=post_id))
+
+    if _contains_blocked_word(body):
+        flash("Your reply contains a word that is not allowed.", "error")
+        return redirect(url_for("posts.view_post", post_id=post_id))
 
     if parent:
         create_post(

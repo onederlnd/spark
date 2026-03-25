@@ -45,8 +45,9 @@
   <a href="/auth/register" style="display:block; margin-top:1rem;">Don't have an account? Join free →</a>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script src="{{ url_for('static', filename='jsQR.js') }}"></script>
 <script>
+  window.addEventListener("pagehide", stopScan);
   let scanning = false;
   let stream = null;
   let animFrame = null;
@@ -83,7 +84,7 @@
     document.getElementById("qr-btn").textContent = "✕ Cancel Scan";
     document.getElementById("qr-error").style.display = "none";
 
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
       .then(s => {
         stream = s;
         video.srcObject = s;
@@ -101,7 +102,7 @@
         document.getElementById("qr-btn").textContent = "📷 Scan QR Code";
       });
 
-    function scanFrame() {
+   function scanFrame() {
       if (!scanning) return;
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -111,7 +112,7 @@
           const url = code.data;
           if (url.includes("/auth/qr-login")) {
             stopScan();
-            window.location.href = url;
+            setTimeout(() => { window.location.href = url; }, 100);
             return;
           } else {
             showQRError("Invalid QR code. Please use a SparK login QR code.");
@@ -119,7 +120,7 @@
         }
       }
       animFrame = requestAnimationFrame(scanFrame);
-    }
+ }
   }
 </script>
 
