@@ -7,6 +7,7 @@
   {% elif 'powerpoint' in mime or 'presentation' in mime %}📋
   {% else %}📎{% endif %}
 {% endmacro %}
+{% from "macros/bbcode_toolbar.html" import toolbar %}
 {% block title %}{{ assignment.title }} — SparK{% endblock %}
 
 {% block content %}
@@ -136,6 +137,7 @@
           </div>
           <div class="editor-pane active" id="write-pane">
             <div class="field-wrap">
+              {{ toolbar("body") }}
               <textarea name="body" id="body" rows="8" maxlength="10000" required
                 oninput="updateCounter(this,'body-counter',10000); schedulePreview()">{{ submission.body }}</textarea>
               <div class="char-counter" id="body-counter">0 / 10000</div>
@@ -164,6 +166,7 @@
           <button type="button" class="editor-tab" onclick="switchTab(this,'preview-pane')">Preview</button>
         </div>
         <div class="editor-pane active" id="write-pane">
+          {{ toolbar("body") }}
           <textarea name="body" id="body" rows="8" maxlength="10000" required
             placeholder="Write your response here..."
             oninput="updateCounter(this,'body-counter',10000); schedulePreview()"></textarea>

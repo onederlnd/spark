@@ -1,0 +1,12 @@
+{% macro toolbar(textarea_id) %}
+<div class="bbcode-toolbar" data-target="{{ textarea_id }}">
+  <button type="button" class="bb-btn" data-open="[b]" data-close="[/b]" title="Bold"><b>B</b></button>
+  <button type="button" class="bb-btn" data-open="[i]" data-close="[/i]" title="Italic"><i>I</i></button>
+  <button type="button" class="bb-btn" data-open="[u]" data-close="[/u]" title="Underline"><u>U</u></button>
+  <button type="button" class="bb-btn" data-open="[s]" data-close="[/s]" title="Strikethrough"><s>S</s></button>
+  <div class="bb-divider"></div>
+  <button type="button" class="bb-btn" data-open="[code]" data-close="[/code]" title="Code"><code>&lt;/&gt;</code></button>
+  <button type="button" class="bb-btn" data-open="[quote]" data-close="[/quote]" title="Quote">❝</button>
+  <button type="button" class="bb-btn" data-open="[url=]" data-close="[/url]" title="Link">🔗</button>
+</div>
+{% endmacro %}

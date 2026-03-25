@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ post.title }} — SparK{% endblock %}
-
+{% from "macros/bbcode_toolbar.html" import toolbar %}
 {% block content %}
 
 <div class="breadcrumb">
@@ -88,13 +88,17 @@
         <button type="button" class="editor-tab" onclick="switchReplyTab(this, 'reply-preview')">Preview</button>
       </div>
 
-      <div class="editor-pane active" id="reply-write">
-        <div class="field-wrap">
-          <textarea name="body" id="reply-body" placeholder="Write a helpful reply..." rows="3" required
-            oninput="updateCounter(this, 'reply-counter', 10000); scheduleReplyPreview()"></textarea>
-          <div class="char-counter" id="reply-counter">0 / 10000</div>
-        </div>
-      </div>
+
+
+{# replace the existing reply editor-pane block with: #}
+<div class="editor-pane active" id="reply-write">
+  <div class="field-wrap">
+    {{ toolbar("reply-body") }}
+    <textarea name="body" id="reply-body" placeholder="Write a helpful reply..." rows="3" required
+      oninput="updateCounter(this, 'reply-counter', 10000); scheduleReplyPreview()"></textarea>
+    <div class="char-counter" id="reply-counter">0 / 10000</div>
+  </div>
+</div>
 
       <div class="editor-pane" id="reply-preview">
         <div class="preview-pane" id="reply-preview-output"></div>
@@ -210,6 +214,49 @@ if (descField && descCounter) {
     else if (len >= 800) descCounter.classList.add('warn');
   });
 }
+
+function switchReplyTab(btn, paneId) {
+  // only toggle tabs within the reply form
+  const form = btn.closest('form');
+  form.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+  form.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(paneId).classList.add('active');
+  if (paneId === 'reply-preview') renderReplyPreview();
+}
+
+function renderReplyPreview() {
+  const body = document.getElementById('reply-body').value;
+  const output = document.getElementById('reply-preview-output');
+  if (!body.trim()) { output.innerHTML = ''; return; }
+  fetch('/api/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ body })
+  })
+  .then(r => r.json())
+  .then(data => { output.innerHTML = data.html || ''; })
+  .catch(() => { output.textContent = body; });
+}
+
+function scheduleReplyPreview() {
+  clearTimeout(window._replyPreviewTimer);
+  window._replyPreviewTimer = setTimeout(() => {
+    const pane = document.getElementById('reply-preview');
+    if (pane && pane.classList.contains('active')) renderReplyPreview();
+  }, 300);
+}
+
+function updateCounter(input, counterId, max) {
+  const counter = document.getElementById(counterId);
+  if (!counter) return;
+  const len = input.value.length;
+  counter.textContent = len + ' / ' + max;
+  counter.className = 'char-counter';
+  if (len / max >= 0.95) counter.classList.add('danger');
+  else if (len / max >= 0.8) counter.classList.add('warn');
+}
+
 </script>
 
 {% endblock %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% from "macros/bbcode_toolbar.html" import toolbar %}
 {% block title %}Edit Post — SparK{% endblock %}
 
 {% block content %}
@@ -28,13 +29,17 @@
       <button type="button" class="editor-tab" onclick="switchTab(this, 'preview-pane')">Preview</button>
     </div>
 
-    <div class="editor-pane active" id="write-pane">
-      <div class="field-wrap">
-        <textarea name="body" id="body" rows="8" maxlength="10000" required
-        placeholder="Write your response here..." oninput="updateCounter(this, 'body-counter', 10000); schedulePreview()">{{ post.body }}</textarea>
-        <div class="char-counter" id="body-counter">0 / 10000</div>
-      </div>
-    </div>
+
+
+{# replace the existing reply editor-pane block with: #}
+<div class="editor-pane active" id="reply-write">
+  <div class="field-wrap">
+    {{ toolbar("reply-body") }}
+    <textarea name="body" id="reply-body" placeholder="Write a helpful reply..." rows="3" required
+      oninput="updateCounter(this, 'reply-counter', 10000); scheduleReplyPreview()"></textarea>
+    <div class="char-counter" id="reply-counter">0 / 10000</div>
+  </div>
+</div>
 
     <div class="editor-pane" id="preview-pane">
       <div class="preview-pane" id="preview-output"></div>

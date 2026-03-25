@@ -310,6 +310,45 @@ document.addEventListener('click', function(e) {
     document.getElementById('avatar-menu').style.display = 'none';
   }
 });
+
+document.addEventListener("click", function(e) {
+  const btn = e.target.closest(".bb-btn");
+  if (!btn) return;
+
+  const toolbar = btn.closest(".bbcode-toolbar");
+  const targetId = toolbar.dataset.target;
+  const textarea = document.getElementById(targetId);
+  if (!textarea) return;
+
+  const open = btn.dataset.open;
+  const close = btn.dataset.close;
+  const start = textarea.selectionStart;
+  const end = textarea.selectionEnd;
+  const selected = textarea.value.slice(start, end);
+
+  // special case for url — put cursor inside the tag value
+  let insertion, cursorPos;
+  if (open === "[url=]") {
+    insertion = `[url=]${selected}[/url]`;
+    cursorPos = start + 5; // position inside [url=...]
+  } else {
+    insertion = open + selected + close;
+    cursorPos = selected.length
+      ? start + insertion.length
+      : start + open.length;
+  }
+
+  textarea.value =
+    textarea.value.slice(0, start) +
+    insertion +
+    textarea.value.slice(end);
+
+  textarea.focus();
+  textarea.setSelectionRange(cursorPos, cursorPos);
+
+  // trigger counter/preview update if bound
+  textarea.dispatchEvent(new Event("input"));
+});
     </script>
     {% endif %}
   </body>

@@ -13,6 +13,7 @@
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <label for="bio">Bio</label>
       <div class="field-wrap">
+        
         <textarea name="bio" id="bio" rows="3" maxlength="300"
           placeholder="Tell us about yourself..."
           oninput="updateCounter(this, 'bio-counter', 300)">{{ user.bio or '' }}</textarea>

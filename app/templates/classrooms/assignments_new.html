@@ -1,4 +1,5 @@
 {% extends "base.html" %} {% block title %}New Assignment — SparK{% endblock %}
+{% from "macros/bbcode_toolbar.html" import toolbar %}
 {% block content %}
 <div class="form-page">
   <div style="margin-bottom: 1rem">
@@ -51,23 +52,15 @@
       </button>
     </div>
 
-    <div class="editor-pane active" id="write-pane">
-      <div class="field-wrap">
-        <textarea
-          name="instructions"
-          id="body"
-          rows="8"
-          maxlength="10000"
-          placeholder="Write assignment instructions..."
-          required
-          oninput="
-            updateCounter(this, 'body-counter', 10000);
-            schedulePreview();
-          "
-        ></textarea>
-        <div class="char-counter" id="body-counter">0 / 10000</div>
-      </div>
-    </div>
+
+<div class="editor-pane active" id="reply-write">
+  <div class="field-wrap">
+    {{ toolbar("reply-body") }}
+    <textarea name="body" id="reply-body" placeholder="Write assignment instructions" rows="3" required
+      oninput="updateCounter(this, 'reply-counter', 10000); scheduleReplyPreview()"></textarea>
+    <div class="char-counter" id="reply-counter">0 / 10000</div>
+  </div>
+</div>
 
     <div class="editor-pane" id="preview-pane">
       <div class="preview-pane" id="preview-output"></div>

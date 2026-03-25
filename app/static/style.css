@@ -1863,3 +1863,50 @@ Modal
   cursor: pointer;
   font-size: 1.25rem;
 }
+
+.bbcode-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  flex-wrap: wrap;
+}
+
+.bb-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.82rem;
+  padding: 3px 7px;
+  line-height: 1.4;
+  transition: background 0.1s, border-color 0.1s;
+}
+
+.bb-btn:hover {
+  background: var(--bg);
+  border-color: var(--border);
+}
+
+.bb-btn:active {
+  background: var(--border);
+}
+
+.bb-divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 4px;
+}
+
+/* remove top radius on textarea when toolbar is above it */
+.bbcode-toolbar + textarea,
+.bbcode-toolbar + .field-wrap textarea {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}

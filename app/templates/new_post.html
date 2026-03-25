@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block title %}New Post — SparK{% endblock %}
-
+{% from "macros/bbcode_toolbar.html" import toolbar %}
 {% block content %}
 
 <div class="form-page">
@@ -36,8 +36,10 @@
       <button type="button" class="editor-tab" onclick="switchTab(this, 'preview-pane')">Preview</button>
     </div>
 
+{# replace the existing reply editor-pane block with: #}
     <div class="editor-pane active" id="write-pane">
       <div class="field-wrap">
+        {{ toolbar("body") }}
         <textarea name="body" id="body" rows="8" maxlength="10000"
           placeholder="Write something worth sharing... BBCode supported: [b]bold[/b] [i]italic[/i] [code]code[/code] [url=https://...]link[/url]"
           required
