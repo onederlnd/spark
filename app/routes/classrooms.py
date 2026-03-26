@@ -431,7 +431,7 @@ def delete_resource_route(classroom_id, resource_id):
 )
 @login_required
 @teacher_required
-def attach_resource_route(classroom_id, resource_id):
+def attach_resource_route(classroom_id, resource_id):  # DEBUG:
     classroom, role = _require_member(classroom_id)
     if not classroom or role != "teacher":
         return "Forbidden", 403
@@ -442,7 +442,6 @@ def attach_resource_route(classroom_id, resource_id):
     if not assignment or assignment["classroom_id"] != classroom_id:
         return "Assignment not found", 404
 
-    resource_id = request.form.get("resource_id", type=int)
     resource = get_resource(resource_id)
     if not resource or resource["classroom_id"] != classroom_id:
         return "Resource not found", 404
@@ -460,7 +459,8 @@ def attach_resource_route(classroom_id, resource_id):
 
 
 @classrooms_bp.route(
-    "/<int:classroom_id>/resources/<int:resource_id>/detach", methods=["POST"]
+    "/<int:classroom_id>/assignments/<int:assignment_id>/resources/<int:resource_id>/detach",
+    methods=["POST"],
 )
 @login_required
 @teacher_required
@@ -481,6 +481,7 @@ def detach_resource_route(classroom_id, assignment_id, resource_id):
             "classrooms.view_assignment",
             classroom_id=classroom_id,
             assignment_id=assignment_id,
+            resource_id=resource_id,
         )
     )
 

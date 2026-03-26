@@ -107,7 +107,7 @@
             <a href="{{ r.url }}" target="_blank" rel="noopener"
                class="btn btn-ghost" style="font-size:0.78rem;">Open ↗</a>
           {% else %}
-            <a href="{{ url_for('classrooms.download_resource', classroom_id=classroom.id, resource_id=r.id) }}"
+            <a href="{{ url_for('classrooms.download_resources', classroom_id=classroom.id, resource_id=r.id) }}"
                class="btn btn-ghost" style="font-size:0.78rem;">⬇ Download</a>
           {% endif %}
           {% if role == 'teacher' %}
