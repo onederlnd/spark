@@ -1,6 +1,6 @@
 import sqlite3
 
-conn = sqlite3.connect("spark-alpha-demo-seeded-full-school.db")
+conn = sqlite3.connect("spark-alpha-demo-seed-full-school.db")
 cur = conn.cursor()
 
 print("\nTABLES\n------")

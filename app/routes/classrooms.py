@@ -1024,3 +1024,38 @@ def download_submission_attachment(classroom_id, assignment_id, attachment_id):
         as_attachment=True,
         download_name=row["original_filename"],
     )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/print-submissions"
+)
+@login_required
+@coppa_required
+def print_submissions(classroom_id, assignment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if role != "teacher":
+        return "Forbidden", 403
+
+    assignment = get_assignment(assignment_id)
+    if not assignment or assignment["classroom_id"] != classroom_id:
+        return "Assignment not found", 404
+
+    submissions = get_submissions_for_assignment(assignment_id)
+
+    submissions_with_attachments = []
+    for sub in submissions:
+        attachments = get_assignment_attachments(sub["id"])
+        submissions_with_attachments.append(
+            {
+                "submission": sub,
+                "attachments": attachments,
+            }
+        )
+    return render_template(
+        "classrooms/print_submissions.html",
+        classroom=classroom,
+        assignment=assignment,
+        submissions=submissions_with_attachments,
+    )

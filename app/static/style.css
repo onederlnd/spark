@@ -542,12 +542,14 @@ a:hover { text-decoration: underline; }
    ============================================ */
 
 .flash {
-  padding: 12px 18px;
-  border-radius: var(--radius-sm);
-  margin-bottom: 16px;
-  font-size: 0.88rem;
-  font-weight: 600;
-  border-left: 4px solid;
+  position: fixed;
+  top: 5.0rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  min-width: v260px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
 
 .flash-error {

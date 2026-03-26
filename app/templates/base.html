@@ -221,6 +221,13 @@
 
     <script src="{{ url_for('static', filename='app.js') }}"></script>
     <script>
+      setTimeout(() => {
+  document.querySelectorAll('.flash').forEach(el => {
+    el.style.transition = 'opacity 0.4s ease';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 400);
+  });
+}, 3000);
       function applyTheme(theme) {
         document.documentElement.setAttribute("data-theme", theme);
         localStorage.setItem("spark-theme", theme);

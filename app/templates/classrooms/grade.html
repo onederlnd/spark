@@ -17,8 +17,12 @@
       {{ grid | selectattr('submission_id') | list | length }} of {{ grid | length }} submitted
     </p>
   </div>
-  <a href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
-     class="btn btn-ghost">View Assignment</a>
+  <div style="display:flex; gap:0.5rem;">
+    <a href="{{ url_for('classrooms.print_submissions', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+       class="btn btn-ghost" target="_blank">🖨</a>
+    <a href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+       class="btn btn-ghost">👁</a>
+  </div>
 </div>
 
 {% if grid %}
@@ -29,6 +33,8 @@
           <th style="text-align:left; padding: 0.75rem 1rem; font-size:0.85rem; color:var(--muted); font-weight:600;">Student</th>
           <th style="text-align:left; padding: 0.75rem 1rem; font-size:0.85rem; color:var(--muted); font-weight:600;">Status</th>
           <th style="text-align:left; padding: 0.75rem 1rem; font-size:0.85rem; color:var(--muted); font-weight:600;">Grade</th>
+          <th style="text-align:left; padding: 0.75rem 1rem; font-size:0.85rem; color:var(--muted); font-weight:600;"></th>
+
           <th style="text-align:left; padding: 0.75rem 1rem; font-size:0.85rem; color:var(--muted); font-weight:600;">Submitted</th>
           <th style="padding: 0.75rem 1rem;"></th>
         </tr>
@@ -52,6 +58,12 @@
             {% else %}
               —
             {% endif %}
+            
+          </td>
+          <td style="padding: 0.75rem 1rem;">
+            {% if row.feedback %}
+              <span title="{{ row.feedback }}" style="cursor:default;"><a href="{{ url_for('classrooms.grade_submission', classroom_id=classroom.id, assignment_id=assignment.id, student_id=row.user_id) }}"
+                 class="" style="font-size:0.8rem;">💬</span>{% endif %}
           </td>
           <td style="padding: 0.75rem 1rem; font-size:0.85rem; color:var(--muted);">
             {% if row.submitted_at %}{{ row.submitted_at | time_ago }}{% else %}—{% endif %}

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ assignment.title }} — Submissions — SparK</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: Georgia, serif;
+      font-size: 12pt;
+      color: #111;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ---- Print controls (screen only) ---- */
+    .print-controls {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #fff;
+      border-bottom: 1px solid #ddd;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 1.5rem;
+      z-index: 1000;
+      flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .print-controls-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+      flex-shrink: 0;
+    }
+
+    .print-controls button {
+      padding: 0.4rem 0.9rem;
+      font-size: 0.85rem;
+      border: 1px solid #999;
+      border-radius: 4px;
+      background: #fff;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .print-controls button.primary {
+      background: #1a7f72;
+      color: #fff;
+      border-color: #1a7f72;
+    }
+
+    .print-controls button.secondary {
+      background: #f5f5f5;
+      border-color: #ccc;
+      font-size: 0.78rem;
+    }
+
+    .page-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      align-items: center;
+      flex: 1;
+    }
+
+    .page-toggle {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.65rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      user-select: none;
+      background: #f9f9f9;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .page-toggle.active {
+      background: #e6f7f5;
+      border-color: #9dd8d0;
+      color: #1a7f72;
+      font-weight: 600;
+    }
+
+    .page-toggle input {
+      margin: 0;
+      accent-color: #1a7f72;
+    }
+
+    /* ---- Page wrapper ---- */
+    .print-page {
+      padding: 2rem;
+    }
+
+    .print-page.hidden {
+      display: none;
+    }
+
+    /* spacer so content doesn't hide under fixed controls bar */
+    .controls-spacer {
+      height: 70px;
+    }
+
+    /* ---- Teacher summary page ---- */
+    .teacher-page h1 { margin: 0 0 0.25rem; font-size: 1.5rem; }
+    .teacher-page .meta { font-size: 0.85rem; color: #555; margin-bottom: 2rem; }
+
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    .summary-table th {
+      text-align: left;
+      padding: 0.5rem 0.75rem;
+      border-bottom: 2px solid #111;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .summary-table td {
+      padding: 0.5rem 0.75rem;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .grade-badge {
+      display: inline-block;
+      font-weight: 700;
+      background: #e6f7f5;
+      color: #1a7f72;
+      border: 1px solid #9dd8d0;
+      border-radius: 4px;
+      padding: 1px 7px;
+    }
+
+    /* ---- Student submission pages ---- */
+    .submission-header {
+      border-bottom: 2px solid #111;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .submission-header h2 { margin: 0 0 0.25rem; font-size: 1.2rem; }
+    .submission-meta { font-size: 0.8rem; color: #666; }
+
+    .submission-body {
+      line-height: 1.7;
+      font-size: 0.95rem;
+      margin-bottom: 1rem;
+    }
+
+    .no-submission {
+      color: #999;
+      font-style: italic;
+    }
+
+    .feedback-block {
+      margin-top: 1rem;
+      padding: 0.75rem 1rem;
+      background: #f9f9f9;
+      border-left: 3px solid #ccc;
+      font-size: 0.88rem;
+      color: #444;
+    }
+
+    .attachments {
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      color: #555;
+    }
+
+    .attachments ul {
+      margin: 0.25rem 0 0;
+      padding-left: 1.25rem;
+    }
+
+    /* ---- Print media ---- */
+    @media print {
+      .print-controls, .controls-spacer { display: none; }
+      body { font-size: 11pt; }
+
+      .print-page {
+        page-break-after: always;
+        page-break-inside: avoid;
+      }
+
+      .print-page.hidden {
+        display: none !important;
+      }
+
+      /* no trailing blank page after last visible page */
+      .print-page:not(.hidden):last-of-type {
+        page-break-after: avoid;
+      }
+    }
+
+    @media screen {
+      .print-page {
+        border-bottom: 2px dashed #ddd;
+        margin-bottom: 1rem;
+      }
+      .print-page.hidden {
+        opacity: 0.25;
+        pointer-events: none;
+        border-style: dotted;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ==================== PRINT CONTROLS ==================== -->
+<div class="print-controls">
+  <div class="print-controls-actions">
+    <button onclick="window.close()">✕ Close</button>
+    <button class="primary" onclick="window.print()">🖨 Print</button>
+    <button class="secondary" onclick="selectAll()">Select All</button>
+    <button class="secondary" onclick="selectNone()">Select None</button>
+  </div>
+
+  <div class="page-list" id="page-list">
+    <!-- Populated by JS -->
+  </div>
+</div>
+
+<div class="controls-spacer"></div>
+
+<!-- ==================== PAGE 1: TEACHER SUMMARY ==================== -->
+<div class="print-page teacher-page" data-page-id="teacher" data-page-label="📋 Teacher Summary">
+  <h1>{{ assignment.title }}</h1>
+  <div class="meta">
+    {{ classroom.name }}
+    {% if assignment.due_date %} · Due: {{ assignment.due_date }}{% endif %}
+    · {{ submissions | length }} submission{{ 's' if submissions | length != 1 }}
+    · Printed {{ now.strftime('%B %d, %Y') if now else '' }}
+  </div>
+
+  <table class="summary-table">
+    <thead>
+      <tr>
+        <th>Student</th>
+        <th>Submitted</th>
+        <th>Grade</th>
+        <th>Feedback</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in submissions %}
+      <tr>
+        <td style="font-weight:600;">{{ item.submission.username }}</td>
+        <td>{{ item.submission.submitted_at if item.submission.submitted_at else '—' }}</td>
+        <td>
+          {% if item.submission.grade %}
+            <span class="grade-badge">{{ item.submission.grade }}</span>
+          {% else %}
+            <span style="color:#999;">Not graded</span>
+          {% endif %}
+        </td>
+        <td style="font-size:0.85rem; color:#555;">
+          {{ item.submission.feedback if item.submission.feedback else '—' }}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- ==================== PAGES 2+: STUDENT SUBMISSIONS ==================== -->
+{% for item in submissions %}
+<div class="print-page student-page"
+     data-page-id="student-{{ item.submission.user_id }}"
+     data-page-label="{{ item.submission.username }}">
+
+  <div class="submission-header">
+    <h2>{{ item.submission.username }}</h2>
+    <div class="submission-meta">
+      {{ assignment.title }} · {{ classroom.name }}
+      {% if item.submission.submitted_at %} · Submitted {{ item.submission.submitted_at }}{% endif %}
+      {% if item.submission.grade %} · Grade: {{ item.submission.grade }}{% endif %}
+    </div>
+  </div>
+
+  {% if item.submission.body %}
+    <div class="submission-body">{{ item.submission.body | bbcode }}</div>
+  {% else %}
+    <div class="no-submission">No written submission.</div>
+  {% endif %}
+
+  {% if item.submission.feedback %}
+    <div class="feedback-block">
+      <strong>Feedback:</strong> {{ item.submission.feedback }}
+    </div>
+  {% endif %}
+
+  {% if item.attachments %}
+    <div class="attachments">
+      📎 Attached files:
+      <ul>
+        {% for f in item.attachments %}
+          <li>{{ f.original_filename }} ({{ (f.file_size / 1024) | round(1) }} KB)</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+</div>
+{% endfor %}
+
+<script>
+  // Build toggle buttons from data attributes on each page
+  function buildToggles() {
+    const pages = document.querySelectorAll('.print-page');
+    const list = document.getElementById('page-list');
+
+    pages.forEach(page => {
+      const id = page.dataset.pageId;
+      const label = page.dataset.pageLabel;
+
+      const toggle = document.createElement('label');
+      toggle.className = 'page-toggle active';
+      toggle.dataset.pageId = id;
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = true;
+      checkbox.addEventListener('change', () => togglePage(id, checkbox.checked, toggle));
+
+      toggle.appendChild(checkbox);
+      toggle.appendChild(document.createTextNode(label));
+      list.appendChild(toggle);
+    });
+  }
+
+  function togglePage(id, visible, toggleEl) {
+    const page = document.querySelector(`.print-page[data-page-id="${id}"]`);
+    if (page) page.classList.toggle('hidden', !visible);
+    if (toggleEl) toggleEl.classList.toggle('active', visible);
+  }
+
+  function selectAll() {
+    document.querySelectorAll('.page-toggle input').forEach(cb => {
+      cb.checked = true;
+      const id = cb.closest('.page-toggle').dataset.pageId;
+      togglePage(id, true, cb.closest('.page-toggle'));
+    });
+  }
+
+  function selectNone() {
+    document.querySelectorAll('.page-toggle input').forEach(cb => {
+      cb.checked = false;
+      const id = cb.closest('.page-toggle').dataset.pageId;
+      togglePage(id, false, cb.closest('.page-toggle'));
+    });
+  }
+
+  buildToggles();
+</script>
+
+</body>
+</html>
