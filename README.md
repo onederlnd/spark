@@ -158,7 +158,7 @@ sudo docker-compose up
 
 ### Seeding Test Data
 ```bash
-python scripts/admin.py
+python seed_demo.py
 # select option 15 — seed data
 # choose dev seed or a grade-specific demo seed (3rd, 5th, 7th, 8th grade)
 ```

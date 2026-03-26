@@ -50,6 +50,7 @@
 - [x] Grading UI — inline feedback per submission
 - [x] Submission grid — teacher sees all students and status at a glance
 - [x] Role gating — teacher / student / parent enforcement across all classroom routes
+- [x] Global Resources - teachers can upload and add static resources to multiple assignments
 
 ### Security & Infrastructure
 - [x] Input sanitization / XSS prevention
@@ -102,8 +103,6 @@
 - [ ] Submission confirmation — clear success state after submitting
 - [ ] Grade notification — student notified when teacher grades their work
 
-### Parent Experience
-- [ ] Parent onboarding
 
 ### Stability
 - [ ] Structured logging — replace all `print()` statements with proper log levels

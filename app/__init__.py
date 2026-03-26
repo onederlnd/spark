@@ -81,6 +81,7 @@ def create_app(config=None):
     from app.routes.classrooms import classrooms_bp
     from app.routes.reports import reports_bp
     from app.routes.admin import admin_bp
+    from app.routes.health import health_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -95,6 +96,7 @@ def create_app(config=None):
     app.register_blueprint(classrooms_bp)
     app.register_blueprint(reports_bp)
     app.register_blueprint(admin_bp)
+    app.register_blueprint(health_bp)
 
     # root redirect
     @app.route("/")
