@@ -487,13 +487,12 @@ def detach_resource_route(classroom_id, assignment_id, resource_id):
 
 
 @classrooms_bp.route(
-    "/<int:classroom_id>/resources/<int:resource_id>/download", methods=["POST"]
+    "/<int:classroom_id>/resources/<int:resource_id>/download", methods=["GET"]
 )
 @login_required
-@teacher_required
 def download_resources(classroom_id, resource_id):
     classroom, role = _require_member(classroom_id)
-    if not classroom or role != "teacher":
+    if not classroom or not role:
         return "Forbidden", 403
 
     resource = get_resource(resource_id)

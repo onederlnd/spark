@@ -57,6 +57,7 @@ def add_resource_file(classroom_id, teacher_id, title, file, app):
 def delete_resource(resource_id, app):
     db = get_db()
     row = get_resource(resource_id)
+
     if not row:
         return False
 

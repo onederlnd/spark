@@ -273,12 +273,14 @@
         <div style="display:flex; gap:0.5rem; align-items:center;">
           <a href="{{ url_for('classrooms.download_submission_attachment', classroom_id=classroom.id, assignment_id=assignment.id, attachment_id=file.id) }}"
              class="btn btn-ghost" style="font-size:0.78rem;">⬇ Download</a>
-          <form method="POST"
+            {% if role == 'teacher' %}
+             <form method="POST"
                 action="{{ url_for('classrooms.delete_submission_attachment_route', classroom_id=classroom.id, assignment_id=assignment.id, attachment_id=file.id) }}"
                 onsubmit="return confirm('Delete this file?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-ghost" style="font-size:0.78rem; color:var(--rose);">✕ Delete</button>
           </form>
+          {% endif %}
         </div>
       </div>
       {% endfor %}
