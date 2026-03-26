@@ -1,12 +1,11 @@
-{% extends "base.html" %} {% block title %}New Assignment — SparK{% endblock %}
+{% extends "base.html" %}
+{% block title %}New Assignment — SparK{% endblock %}
 {% from "macros/bbcode_toolbar.html" import toolbar %}
 {% block content %}
 <div class="form-page">
   <div style="margin-bottom: 1rem">
-    <a
-      href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
-      style="color: var(--muted); font-size: 0.85rem; text-decoration: none"
-    >
+    <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
+       style="color: var(--muted); font-size: 0.85rem; text-decoration: none">
       ← {{ classroom.name }}
     </a>
   </div>
@@ -18,49 +17,31 @@
   <div class="flash flash-error">{{ error }}</div>
   {% endif %}
 
-  <form method="POST" class="post-form" enctype="multipart/form-data">
+  <form method="POST" class="post-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
 
     <label for="title">Title</label>
     <div class="field-wrap">
-      <input
-        type="text"
-        name="title"
-        id="title"
-        maxlength="200"
-        required
-        oninput="updateCounter(this, 'title-counter', 200)"
-      />
+      <input type="text" name="title" id="title" maxlength="200" required
+             oninput="updateCounter(this, 'title-counter', 200)" />
       <div class="char-counter" id="title-counter">0 / 200</div>
     </div>
 
     <label>Instructions</label>
     <div class="editor-tabs">
-      <button
-        type="button"
-        class="editor-tab active"
-        onclick="switchTab(this, 'write-pane')"
-      >
-        Write
-      </button>
-      <button
-        type="button"
-        class="editor-tab"
-        onclick="switchTab(this, 'preview-pane')"
-      >
-        Preview
-      </button>
+      <button type="button" class="editor-tab active" onclick="switchTab(this, 'write-pane')">Write</button>
+      <button type="button" class="editor-tab" onclick="switchTab(this, 'preview-pane')">Preview</button>
     </div>
 
-
-<div class="editor-pane active" id="reply-write">
-  <div class="field-wrap">
-    {{ toolbar("reply-body") }}
-    <textarea name="body" id="reply-body" placeholder="Write assignment instructions" rows="3" required
-      oninput="updateCounter(this, 'reply-counter', 10000); scheduleReplyPreview()"></textarea>
-    <div class="char-counter" id="reply-counter">0 / 10000</div>
-  </div>
-</div>
+    <div class="editor-pane active" id="write-pane">
+      <div class="field-wrap">
+        {{ toolbar("instructions") }}
+        <textarea name="instructions" id="instructions" rows="8" maxlength="10000" required
+                  placeholder="Write assignment instructions"
+                  oninput="updateCounter(this, 'instructions-counter', 10000); schedulePreview()"></textarea>
+        <div class="char-counter" id="instructions-counter">0 / 10000</div>
+      </div>
+    </div>
 
     <div class="editor-pane" id="preview-pane">
       <div class="preview-pane" id="preview-output"></div>
@@ -74,38 +55,46 @@
     <label for="due_date">Due Date</label>
     <input type="date" name="due_date" id="due_date" />
 
-    <div style="margin-top: 0.75rem; margin-bottom: 1rem">
-      <label
-        style="
-          font-size: 0.85rem;
-          color: var(--muted);
-          display: block;
-          margin-bottom: 0.4rem;
-        "
-      >
-        Attach files (optional)
+    <!-- Resource picker -->
+    {% if resources %}
+    <div style="margin-top: 1.25rem;">
+      <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:0.25rem;">
+        Attach from Resource Library
       </label>
-
-      <input
-        type="file"
-        name="files"
-        multiple
-        accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
-        style="font-size: 0.85rem; color: var(--text)"
-      />
-      <div style="font-size: 0.75rem; color: var(--muted); margin-top: 4px">
-        Max 10MB per file, 50MB total. You can add more files after creating the
-        assignment.
+      <p style="font-size:0.8rem; color:var(--muted); margin:0 0 0.6rem;">
+        Selected resources will be visible to students on this assignment.
+      </p>
+      <div style="display:flex; flex-direction:column; gap:0.4rem;">
+        {% for r in resources %}
+        <label style="display:flex; align-items:center; gap:0.6rem; padding:0.5rem 0.6rem;
+                      border:1px solid var(--border); border-radius:var(--radius-sm);
+                      cursor:pointer; font-size:0.88rem;">
+          <input type="checkbox" name="resource_ids" value="{{ r.id }}">
+          <span>{% if r.type == 'link' %}🔗{% else %}📎{% endif %}</span>
+          <span style="font-weight:600;">{{ r.title }}</span>
+          <span style="font-size:0.75rem; color:var(--muted); margin-left:auto;">
+            {% if r.type == 'link' %}{{ r.url }}{% else %}{{ r.original_filename }}{% endif %}
+          </span>
+        </label>
+        {% endfor %}
+      </div>
+      <div style="margin-top:0.5rem; font-size:0.75rem;">
+        <a href="{{ url_for('classrooms.resource_library', classroom_id=classroom.id) }}"
+           style="color:var(--teal);">Manage resource library →</a>
       </div>
     </div>
+    {% else %}
+    <div style="margin-top:1.25rem; font-size:0.85rem; color:var(--muted);">
+      No resources in your library yet.
+      <a href="{{ url_for('classrooms.resource_library', classroom_id=classroom.id) }}"
+         style="color:var(--teal);">Add some →</a>
+    </div>
+    {% endif %}
 
-    <div class="form-actions">
+    <div class="form-actions" style="margin-top:1.5rem;">
       <button type="submit" class="btn-submit">Create Assignment</button>
-      <a
-        href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
-        class="btn-cancel"
-        >Cancel</a
-      >
+      <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
+         class="btn-cancel">Cancel</a>
     </div>
   </form>
 </div>
@@ -122,15 +111,11 @@
   }
 
   updateCounter(document.getElementById("title"), "title-counter", 200);
-  updateCounter(document.getElementById("body"), "body-counter", 10000);
+  updateCounter(document.getElementById("instructions"), "instructions-counter", 10000);
 
   function switchTab(btn, paneId) {
-    document
-      .querySelectorAll(".editor-tab")
-      .forEach((t) => t.classList.remove("active"));
-    document
-      .querySelectorAll(".editor-pane")
-      .forEach((p) => p.classList.remove("active"));
+    document.querySelectorAll(".editor-tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".editor-pane").forEach(p => p.classList.remove("active"));
     btn.classList.add("active");
     document.getElementById(paneId).classList.add("active");
     if (paneId === "preview-pane") renderPreview();
@@ -146,24 +131,17 @@
   }
 
   function renderPreview() {
-    const body = document.getElementById("body").value;
+    const body = document.getElementById("instructions").value;
     const output = document.getElementById("preview-output");
-    if (!body.trim()) {
-      output.innerHTML = "";
-      return;
-    }
+    if (!body.trim()) { output.innerHTML = ""; return; }
     fetch("/api/preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body }),
     })
-      .then((r) => r.json())
-      .then((data) => {
-        output.innerHTML = data.html || "";
-      })
-      .catch(() => {
-        output.textContent = body;
-      });
+      .then(r => r.json())
+      .then(data => { output.innerHTML = data.html || ""; })
+      .catch(() => { output.textContent = body; });
   }
 </script>
 {% endblock %}

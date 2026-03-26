@@ -15,14 +15,12 @@
     />
     <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
-    <script>
-      (function () {
-        const t = localStorage.getItem("spark-theme") || "dark";        <li>
-          <a href="/notifications/" onclick="closeDrawer()"><span class="icon">🔔</span> Notifications</a>
-        </li>
-        document.documentElement.setAttribute("data-theme", t);
-      })();
-    </script>
+<script>
+  (function () {
+    const t = localStorage.getItem("spark-theme") || "dark";
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
   </head>
   <body>
     <!-- ============ DRAWER OVERLAY ============ -->
@@ -38,7 +36,7 @@
         <button class="drawer-close" onclick="closeDrawer()">✕</button>
       </div>
 
-      {% if session.username %}
+      {% if session.get("username") %}
       <div class="sidebar-title">Menu</div>
       <ul class="sidebar-nav">
         {% if session.get("coppa_status") != "denied" %}
@@ -49,6 +47,26 @@
         <li>
           <a href="/classrooms/" onclick="closeDrawer()"><span class="icon">🏫</span> Classrooms</a>
         </li>
+              
+        {% if role is defined and role == 'teacher' and classroom is defined %}
+        <li>
+          <a href="{{ url_for('moderation.moderation_dashboard', classroom_id=classroom.id) }}">
+            <span class="icon">🚩</span> Moderation Queue
+            {% if pending_reports is defined and pending_reports > 0 %}
+            <span style="background:var(--rose); color:#fff; border-radius:999px; padding:1px 7px; font-size:0.75rem; margin-left:4px;">
+              {{ pending_reports }}
+            </span>
+            {% endif %}
+          </a>
+        </li>
+        
+        <li>
+          <a href="{{ url_for('classrooms.resource_library', classroom_id=classroom.id) }}">
+            <span class="icon">📚</span> Resource Library
+          </a>
+        </li>
+        {% endif %}
+
         <li>
           <a href="/?feed=following" onclick="closeDrawer()"><span class="icon">👥</span> Following</a>
         </li>
@@ -125,7 +143,7 @@
           <span class="toggle-label" id="themeLabel">Light</span>
         </button>
 
-        {% if session.username %}
+        {% if session.get("username") %}
         <a href="/classrooms" class="nav-link">Classrooms</a>
         {% if session.get("role") == "teacher" %}
         <a href="/auth/coppa/pending" class="nav-link">Pending COPPA</a>
@@ -133,13 +151,13 @@
         <a href="/topics" class="nav-link {% if request.path == '/topics' %}active{% endif %}">Topics</a>
         <a href="/posts/new" class="btn btn-primary">+ New Post</a>
         <a href="/notifications/" class="nav-bell">
-          🔔 {% if unread_count > 0 %}
+          🔔 {% if unread_count is defined and unread_count > 0 %}
           <span class="nav-badge">{{ unread_count }}</span>
           {% endif %}
         </a>
 <div class="nav-avatar-wrap" style="position:relative;">
   <button class="nav-avatar" onclick="toggleAvatarMenu()" title="{{ session.username }}" style="cursor:pointer; border:none; background:var(--teal);">
-    {{ session.username[:2].upper() }}
+    {{ session.get("username", "")[:2].upper() }}
   </button>
   <div id="avatar-menu" style="
     display:none;
@@ -278,7 +296,7 @@
       });
     </script>
 
-    {% if session.username %}
+    {% if session.get("username") %}
     <script>
       const socket = io();
       socket.on("connect", () => {

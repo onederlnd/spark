@@ -71,7 +71,8 @@ def init_db(app):
 
     with app.app_context():
         db = get_db()
-        db.executescript("""
+        (
+            db.executescript("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
@@ -190,7 +191,7 @@ def init_db(app):
                 title TEXT NOT NULL,
                 instructions TEXT NOT NULL,
                 due_date TEXT,
-                post_id INTEGER REFERENCES POST(id),
+                post_id INTEGER REFERENCES post(id),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (classroom_id) REFERENCES classrooms(id)
             );
@@ -259,5 +260,24 @@ def init_db(app):
                 mime_type TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-        """)
+            CREATE TABLE IF NOT EXISTS resources (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                classroom_id INTEGER NOT NULL REFERENCES classrooms(id) ON DELETE CASCADE,
+                teacher_id INTEGER NOT NULL REFERENCES users(id),
+                type TEXT NOT NULL CHECK(type IN ('file', 'link')),
+                title TEXT NOT NULL,
+                url TEXT,
+                filename TEXT,
+                original_filename TEXT,
+                file_size INTEGER,
+                mime_type TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS assignment_resources (
+                assignment_id INTEGER NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+                resource_id INTEGER NOT NULL REFERENCES resources(id) ON DELETE CASCADE,
+                PRIMARY KEY (assignment_id, resource_id)
+            );
+        """),
+        )
         db.commit()

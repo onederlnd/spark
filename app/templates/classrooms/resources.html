@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% macro file_icon(mime) %}
+  {% if 'pdf' in mime %}📄
+  {% elif 'image' in mime %}🖼️
+  {% elif 'word' in mime or 'document' in mime %}📝
+  {% elif 'excel' in mime or 'sheet' in mime %}📊
+  {% elif 'powerpoint' in mime or 'presentation' in mime %}📋
+  {% else %}📎{% endif %}
+{% endmacro %}
+{% block title %}Resource Library — {{ classroom.name }} — SparK{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div style="margin-bottom: 1rem;">
+    <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
+       style="color: var(--muted); font-size: 0.85rem; text-decoration: none;">
+      ← {{ classroom.name }}
+    </a>
+  </div>
+
+  <h1 class="form-title">Resource Library</h1>
+  <p class="form-subtitle">Files and links you can attach to any assignment in this classroom.</p>
+
+  <!-- Add a link -->
+  <div class="card" style="margin-bottom: 1.25rem;">
+    <div class="card-body">
+      <h3 style="font-size:0.88rem; font-weight:800; margin-bottom:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">
+        Add a Link
+      </h3>
+      <form method="POST"
+            action="{{ url_for('classrooms.add_resource_link_route', classroom_id=classroom.id) }}"
+            style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div style="flex:1; min-width:160px;">
+          <label style="font-size:0.8rem; color:var(--muted); display:block; margin-bottom:0.3rem;">Title</label>
+          <input type="text" name="title" maxlength="200" required
+                 placeholder="e.g. SparK — Fractions"
+                 style="width:100%; padding:0.45rem 0.6rem; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:0.9rem;">
+        </div>
+        <div style="flex:2; min-width:200px;">
+          <label style="font-size:0.8rem; color:var(--muted); display:block; margin-bottom:0.3rem;">URL</label>
+          <input type="url" name="url" required
+                 placeholder="https://"
+                 style="width:100%; padding:0.45rem 0.6rem; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:0.9rem;">
+        </div>
+        <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">Add Link</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Upload a file -->
+  <div class="card" style="margin-bottom: 1.25rem;">
+    <div class="card-body">
+      <h3 style="font-size:0.88rem; font-weight:800; margin-bottom:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">
+        Upload a File
+      </h3>
+      <form method="POST"
+            action="{{ url_for('classrooms.add_resource_file_route', classroom_id=classroom.id) }}"
+            enctype="multipart/form-data"
+            style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:flex-end;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div style="flex:1; min-width:160px;">
+          <label style="font-size:0.8rem; color:var(--muted); display:block; margin-bottom:0.3rem;">Title</label>
+          <input type="text" name="title" maxlength="200" required
+                 placeholder="e.g. Chapter 3 Reading"
+                 style="width:100%; padding:0.45rem 0.6rem; border:1px solid var(--border); border-radius:var(--radius-sm); font-size:0.9rem;">
+        </div>
+        <div style="flex:2; min-width:200px;">
+          <label style="font-size:0.8rem; color:var(--muted); display:block; margin-bottom:0.3rem;">File</label>
+          <input type="file" name="file" required
+                 accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+                 style="font-size:0.85rem; color:var(--text);">
+        </div>
+        <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">Upload</button>
+      </form>
+      <div style="font-size:0.75rem; color:var(--muted); margin-top:6px;">
+        Max 10MB per file, 100MB total library size.
+      </div>
+    </div>
+  </div>
+
+  <!-- Resource list -->
+  {% if resources and resources|length > 0 %}
+  <div class="card">
+    <div class="card-body" style="padding:0;">
+      {% for r in resources %}
+      <div style="display:flex; justify-content:space-between; align-items:center;
+                  padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);">
+        <div style="display:flex; align-items:center; gap:0.6rem;">
+          {% if r.type == 'link' %}
+            <span>🔗</span>
+          {% else %}
+            <span>{{ file_icon(r.mime_type or '') }}</span>
+          {% endif %}
+          <div>
+            <div style="font-size:0.9rem; font-weight:600;">{{ r.title }}</div>
+            <div style="font-size:0.75rem; color:var(--muted);">
+              {% if r.type == 'link' %}
+                <a href="{{ r.url }}" target="_blank" rel="noopener"
+                   style="color:var(--teal);">{{ r.url }}</a>
+              {% else %}
+                {{ r.original_filename }} · {{ ((r.file_size or 0) / 1024) | round(1) }} KB
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        <form method="POST"
+              action="{{ url_for('classrooms.delete_resource_route', classroom_id=classroom.id, resource_id=r.id) }}"
+              onsubmit="return confirm('Delete this resource? It will be removed from all assignments.')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-ghost"
+                  style="font-size:0.78rem; color:var(--rose);">🗑 Delete</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-state-title">No resources yet</div>
+    <div class="empty-state-desc">Add links or files above to build your library.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

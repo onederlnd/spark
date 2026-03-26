@@ -47,7 +47,7 @@
   </div>
 </div>
 
-<!-- Assignment attachments — visible to all members -->
+<!-- Assignment file attachments (teacher-uploaded direct files, visible to all) -->
 {% if assignment_attachments %}
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
@@ -81,28 +81,88 @@
 </div>
 {% endif %}
 
-<!-- Teacher file upload -->
-{% if role == 'teacher' %}
+<!-- Resources (from library) — visible to all members -->
+{% if assignment_resources %}
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
     <h3 style="font-size:0.88rem; font-weight:800; margin-bottom:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">
-      Add Files to Assignment
+      Resources
     </h3>
-    <form method="POST"
-          action="{{ url_for('classrooms.upload_assignment_attachment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
-          enctype="multipart/form-data"
-          style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <input type="file" name="file"
-             accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
-             style="font-size:0.85rem; color:var(--text);" required>
-      <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">Upload</button>
-    </form>
-    <div style="font-size:0.75rem; color:var(--muted); margin-top:6px;">
-      Max 10MB per file, 50MB total. PDF, images, Word, Excel, PowerPoint accepted.
+    <div style="display:flex; flex-direction:column; gap:0.4rem;">
+      {% for r in assignment_resources %}
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:0.9rem;">{% if r.type == 'link' %}🔗{% else %}📎{% endif %}</span>
+          <div>
+            <div style="font-size:0.88rem; font-weight:600;">{{ r.title }}</div>
+            {% if r.type == 'link' %}
+              <div style="font-size:0.75rem; color:var(--muted);">{{ r.url }}</div>
+            {% else %}
+              <div style="font-size:0.75rem; color:var(--muted);">{{ r.original_filename }}</div>
+            {% endif %}
+          </div>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          {% if r.type == 'link' %}
+            <a href="{{ r.url }}" target="_blank" rel="noopener"
+               class="btn btn-ghost" style="font-size:0.78rem;">Open ↗</a>
+          {% else %}
+            <a href="{{ url_for('classrooms.download_resource', classroom_id=classroom.id, resource_id=r.id) }}"
+               class="btn btn-ghost" style="font-size:0.78rem;">⬇ Download</a>
+          {% endif %}
+          {% if role == 'teacher' %}
+          <form method="POST"
+                action="{{ url_for('classrooms.detach_resource_route', classroom_id=classroom.id, assignment_id=assignment.id, resource_id=r.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-ghost" style="font-size:0.78rem; color:var(--rose);">✕ Remove</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
     </div>
   </div>
 </div>
+{% endif %}
+
+<!-- Teacher: attach more resources from library -->
+{% if role == 'teacher' %}
+  {% set attached_ids = assignment_resources | map(attribute='id') | list %}
+  {% set available = classroom_resources | rejectattr('id', 'in', attached_ids) | list %}
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-body">
+      <h3 style="font-size:0.88rem; font-weight:800; margin-bottom:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">
+        Resources
+      </h3>
+    {% if available %}
+<div style="display:flex; flex-direction:column; gap:0.4rem;">
+  {% for r in available %}
+  <form method="POST"
+        action="{{ url_for('classrooms.attach_resource_route', classroom_id=classroom.id, resource_id=r.id) }}"
+        style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--soft); border-radius:var(--radius-sm);">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
+    <span style="font-size:0.85rem;">
+      {% if r.type == 'link' %}🔗{% else %}📎{% endif %} {{ r.title }}
+    </span>
+    <button type="submit" class="btn btn-primary" style="font-size:0.8rem;">Attach</button>
+  </form>
+  {% endfor %}
+</div>
+        </select>
+        <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">Attach</button>
+      </form>
+      {% else %}
+        <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.5rem;">
+          All library resources are already attached.
+        </p>
+      {% endif %}
+      <div style="margin-top:0.6rem; font-size:0.75rem;">
+        <a href="{{ url_for('classrooms.resource_library', classroom_id=classroom.id) }}"
+           style="color:var(--teal);">Manage resource library →</a>
+      </div>
+    </div>
+  </div>
 {% endif %}
 
 <!-- Student submission section -->
@@ -175,7 +235,6 @@
         <div class="editor-pane" id="preview-pane">
           <div class="preview-pane" id="preview-output"></div>
         </div>
-          <!-- file attachment at submission time -->
         <div style="margin-top:0.75rem;">
           <label style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:0.4rem;">
             Attach files (optional)
@@ -195,7 +254,7 @@
   </div>
 </div>
 
-<!-- Student file attachments — outside the submission card -->
+<!-- Student file attachments -->
 {% if submission %}
 <div class="card" style="margin-bottom:1.5rem;">
   <div class="card-body">
@@ -251,7 +310,8 @@ function updateCounter(input,counterId,max){
   counter.className='char-counter';
   if(len/max>=0.95)counter.classList.add('danger');else if(len/max>=0.8)counter.classList.add('warn');
 }
-updateCounter(document.getElementById('body'),'body-counter',10000);
+const bodyEl=document.getElementById('body');
+if(bodyEl) updateCounter(bodyEl,'body-counter',10000);
 
 let previewTimer=null;
 function schedulePreview(){clearTimeout(previewTimer);previewTimer=setTimeout(()=>{const pane=document.getElementById('preview-pane');if(pane&&pane.classList.contains('active'))renderPreview();},300);}

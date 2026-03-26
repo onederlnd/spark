@@ -55,7 +55,16 @@ from app.models.attachments import (
     delete_submission_attachment,
     get_upload_dir,
 )
-
+from app.models.resources import (
+    add_resource_link,
+    add_resource_file,
+    delete_resource,
+    get_resource,
+    get_resources_for_classroom,
+    get_resources_for_assignment,
+    attach_resources_to_assignment,
+    detach_resource_from_assignment,
+)
 
 classrooms_bp = Blueprint("classrooms", __name__, url_prefix="/classrooms")
 
@@ -205,6 +214,8 @@ def new_assignment(classroom_id):
     if role != "teacher":
         return "Forbidden", 403
 
+    resources = get_resources_for_classroom(classroom_id)
+
     if request.method == "POST":
         title = sanitize_plain(request.form.get("title", ""), max_length=TITLE_MAX)
         instructions = sanitize_bbcode(
@@ -216,28 +227,14 @@ def new_assignment(classroom_id):
             return render_template(
                 "classrooms/assignments_new.html",
                 classroom=classroom,
+                resources=resources,
                 error="Title and instructions are required.",
             )
         assignment_id = create_assignment(classroom_id, title, instructions, due_date)
 
-        files = request.files.getlist("files")
-        errors = []
-
-        for file in files:
-            if file and file.filename:
-                try:
-                    add_assignment_attachment(
-                        assignment_id,
-                        file,
-                        session["user_id"],
-                        current_app._get_current_object(),
-                    )
-                except ValueError as e:
-                    errors.append(str(e))
-
-        if errors:
-            flash(" ".join(errors), "errors")
-
+        resource_ids = request.form.getlist("resource_ids", type=int)
+        if resource_ids:
+            attach_resources_to_assignment(assignment_id, resource_ids)
         flash("Assignment created!", "success")
         return redirect(
             url_for(
@@ -246,8 +243,11 @@ def new_assignment(classroom_id):
                 assignment_id=assignment_id,
             )
         )
-
-    return render_template("classrooms/assignments_new.html", classroom=classroom)
+    return render_template(
+        "classrooms/assignments_new.html",
+        classroom=classroom,
+        resources=resources,
+    )
 
 
 # --- view assignments + submit
@@ -268,18 +268,19 @@ def view_assignment(classroom_id, assignment_id):
     assignment = get_assignment(assignment_id)
     if not assignment or assignment["classroom_id"] != classroom_id:
         return "Assignment not found", 404
-
     submission = get_submission(assignment_id, session["user_id"])
     submission_count = len(get_submissions_for_assignment(assignment_id))
     assignment_attachments = get_assignment_attachments(assignment_id)
     submission_attachments = (
         get_submission_attachments(submission["id"]) if submission else []
     )
-
+    assignment_resources = get_resources_for_assignment(assignment_id)
+    classroom_resources = (
+        get_resources_for_classroom(classroom_id) if role == "teacher" else []
+    )
     if request.method == "POST":
         if role != "student":
             return "Forbidden", 403
-
         body = sanitize_bbcode(request.form.get("body", ""), max_length=BODY_MAX)
         if not body:
             return render_template(
@@ -291,12 +292,12 @@ def view_assignment(classroom_id, assignment_id):
                 submission_count=submission_count,
                 assignment_attachments=assignment_attachments,
                 submission_attachments=submission_attachments,
+                assignment_resources=assignment_resources,
+                classroom_resources=classroom_resources,
                 error="Submission cannot be empty.",
             )
-
         create_submission(assignment_id, session["user_id"], body)
         submission = get_submission(assignment_id, session["user_id"])
-
         files = request.files.getlist("files")
         errors = []
         for file in files:
@@ -332,12 +333,189 @@ def view_assignment(classroom_id, assignment_id):
         submission_count=submission_count,
         assignment_attachments=assignment_attachments,
         submission_attachments=submission_attachments,
+        assignment_resources=assignment_resources,
+        classroom_resources=classroom_resources,
+    )
+
+
+@classrooms_bp.route("/<int:classroom_id>/resources")
+@login_required
+@teacher_required
+def resource_library(classroom_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if role != "teacher":
+        return "Forbidden", 403
+
+    resources = get_resources_for_classroom(classroom_id)
+    return render_template(
+        "classrooms/resources.html",
+        classroom=classroom,
+        resources=resources,
+    )
+
+
+@classrooms_bp.route("/<int:classroom_id>/resources/add-link", methods=["POST"])
+@login_required
+@teacher_required
+def add_resource_link_route(classroom_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    title = sanitize_plain(request.form.get("title", "").strip(), max_length=200)
+    url = request.form.get("url", "").strip()
+
+    try:
+        add_resource_link(classroom_id, session["user_id"], title, url)
+        flash("Link added to resource library.", "success")
+    except ValueError as e:
+        flash(str(e), "error")
+
+    return redirect(
+        url_for(
+            "classrooms.resource_library",
+            classroom_id=classroom_id,
+        )
+    )
+
+
+@classrooms_bp.route("/<int:classroom_id>/resources/add-file", methods=["POST"])
+@login_required
+@teacher_required
+def add_resource_file_route(classroom_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    title = sanitize_plain(request.form.get("title", "").strip(), max_length=200)
+    file = request.files.get("file")
+
+    try:
+        add_resource_file(
+            classroom_id,
+            session["user_id"],
+            title,
+            file,
+            current_app._get_current_object(),
+        )
+        flash("File added to resource library.", "success")
+    except ValueError as e:
+        flash(str(e), "error")
+
+    return redirect(url_for("classrooms.resource_library", classroom_id=classroom_id))
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/resources/<int:resource_id>/delete", methods=["POST"]
+)
+@login_required
+@teacher_required
+def delete_resource_route(classroom_id, resource_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+    resource = get_resource(resource_id)
+    if not resource or resource["classroom_id"] != classroom_id:
+        return "Resource not found", 404
+    if resource["teacher_id"] != session["user_id"]:
+        return "Forbidden", 403
+    delete_resource(resource_id, current_app._get_current_object())
+    flash("Resource deleted.", "success")
+    return redirect(url_for("classrooms.resource_library", classroom_id=classroom_id))
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/resources/<int:resource_id>/attach", methods=["POST"]
+)
+@login_required
+@teacher_required
+def attach_resource_route(classroom_id, resource_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    assignment_id = request.form.get("assignment_id", type=int)
+    assignment = get_assignment(assignment_id)
+
+    if not assignment or assignment["classroom_id"] != classroom_id:
+        return "Assignment not found", 404
+
+    resource_id = request.form.get("resource_id", type=int)
+    resource = get_resource(resource_id)
+    if not resource or resource["classroom_id"] != classroom_id:
+        return "Resource not found", 404
+
+    attach_resources_to_assignment(assignment_id, [resource_id])
+
+    flash("Resource attached.", "success")
+    return redirect(
+        url_for(
+            "classrooms.view_assignment",
+            classroom_id=classroom_id,
+            assignment_id=assignment_id,
+        )
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/resources/<int:resource_id>/detach", methods=["POST"]
+)
+@login_required
+@teacher_required
+def detach_resource_route(classroom_id, assignment_id, resource_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    assignment = get_assignment(assignment_id)
+
+    if not assignment or assignment["classroom_id"] != classroom_id:
+        return "Assignment not found", 404
+
+    detach_resource_from_assignment(assignment_id, resource_id)
+    flash("Resource removed.", "success")
+    return redirect(
+        url_for(
+            "classrooms.view_assignment",
+            classroom_id=classroom_id,
+            assignment_id=assignment_id,
+        )
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/resources/<int:resource_id>/download", methods=["POST"]
+)
+@login_required
+@teacher_required
+def download_resources(classroom_id, resource_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    resource = get_resource(resource_id)
+    if (
+        not resource
+        or resource["classroom_id"] != classroom_id
+        or resource["type"] != "file"
+    ):
+        return "Resource not found", 404
+
+    upload_dir = get_upload_dir(current_app._get_current_object())
+    folder = os.path.join(upload_dir, f"resources/{classroom_id}")
+    return send_from_directory(
+        folder,
+        resource["filename"],
+        as_attachment=True,
+        download_name=resource["original_filename"],
     )
 
 
 @classrooms_bp.route("/<int:classroom_id>/assignments/<int:assignment_id>/grade")
 @login_required
-@coppa_required
+@teacher_required
 def grade_grid(classroom_id, assignment_id):
     classroom, role = _require_member(classroom_id)
     if not classroom:
