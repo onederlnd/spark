@@ -1,6 +1,18 @@
 import logging
 import sys
 
+"""
+add functionality for logging
+
+from app.utils.logger import get_logger
+log = get_logger(__name__)
+
+log.info("Resource attached: resource_id=%s assignment_id=%s", resource_id, assignment_id)
+log.warning("Failed login attempt: user_id=%s", user_id)
+log.error("DB error during submission upload: %s", e)
+
+"""
+
 
 def get_logger(name: str) -> logging.Logger:
     return logging.getLogger(name)
