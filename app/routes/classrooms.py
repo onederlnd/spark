@@ -315,8 +315,11 @@ def view_assignment(classroom_id, assignment_id):
 
         if errors:
             flash(" ".join(errors), "error")
+        else:
+            flash(
+                f'Your submission for "{assignment["title"]}" has been saved', "success"
+            )
 
-        flash("Submission saved!", "success")
         return redirect(
             url_for(
                 "classrooms.view_assignment",

@@ -250,3 +250,144 @@ def test_join_classroom_unauthenticated(client, app, teacher_client, classroom):
     response = client.post("/classrooms/join", data={"join_code": join_code})
     assert response.status_code == 302
     assert "/auth/login" in response.headers["Location"]
+
+
+# tests/test_submission_confirmation.py
+
+
+def _enroll_student(app, classroom_id):
+    """Helper — enroll student1 in a classroom and return their user_id."""
+    with app.app_context():
+        from app.models import get_db
+
+        db = get_db()
+        student = db.execute(
+            "SELECT id FROM users WHERE username = 'student1'"
+        ).fetchone()
+        student_id = student["id"]
+        db.execute(
+            "INSERT OR IGNORE INTO classroom_members (classroom_id, user_id, role) VALUES (?, ?, 'student')",
+            (classroom_id, student_id),
+        )
+        db.commit()
+    return student_id
+
+
+# --- happy path ---
+
+
+def test_submission_confirmation_flash(app, student_client, classroom, assignment):
+    """Successful submission shows a confirmation flash message."""
+    _enroll_student(app, classroom)
+
+    response = student_client.post(
+        f"/classrooms/{classroom}/assignments/{assignment}",
+        data={"body": "My answer"},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"has been saved" in response.data
+
+
+def test_submission_confirmation_includes_assignment_title(
+    app, student_client, classroom, assignment
+):
+    """The confirmation message includes the assignment title."""
+    _enroll_student(app, classroom)
+
+    response = student_client.post(
+        f"/classrooms/{classroom}/assignments/{assignment}",
+        data={"body": "My answer"},
+        follow_redirects=True,
+    )
+
+    assert b"Test Assignment" in response.data
+
+
+def test_submission_confirmation_no_error_flash(
+    app, student_client, classroom, assignment
+):
+    """A clean submission does not show an error flash."""
+    _enroll_student(app, classroom)
+
+    response = student_client.post(
+        f"/classrooms/{classroom}/assignments/{assignment}",
+        data={"body": "My answer"},
+        follow_redirects=True,
+    )
+
+    assert b"has been saved" in response.data
+    assert b"Something went wrong" not in response.data
+
+
+# --- redirect behaviour ---
+
+
+def test_submission_redirects_back_to_assignment(
+    app, student_client, classroom, assignment
+):
+    """After submitting, the student is redirected back to the assignment page."""
+    _enroll_student(app, classroom)
+
+    response = student_client.post(
+        f"/classrooms/{classroom}/assignments/{assignment}",
+        data={"body": "My answer"},
+    )
+
+    assert response.status_code == 302
+    assert (
+        f"/classrooms/{classroom}/assignments/{assignment}"
+        in response.headers["Location"]
+    )
+
+
+# --- empty submission ---
+
+
+def test_empty_submission_shows_error(app, student_client, classroom, assignment):
+    """Submitting an empty body does not show a confirmation and returns an error."""
+    _enroll_student(app, classroom)
+
+    response = student_client.post(
+        f"/classrooms/{classroom}/assignments/{assignment}",
+        data={"body": ""},
+        follow_redirects=True,
+    )
+
+    assert response.status_code == 200
+    assert b"has been saved" not in response.data
+    assert b"empty" in response.data or b"required" in response.data.lower()
+
+
+# --- teacher cannot submit ---
+
+
+def test_teacher_cannot_submit(teacher_client, classroom, assignment):
+    """Teachers posting to the submission endpoint are forbidden."""
+    response = teacher_client.post(
+        f"/classrooms/{classroom}/assignments/{assignment}",
+        data={"body": "Teacher trying to submit"},
+    )
+
+    assert response.status_code == 403
+
+
+# --- submission is persisted ---
+
+
+def test_submission_saved_to_db(app, student_client, classroom, assignment):
+    """After a confirmed submission, the record exists in the database."""
+    student_id = _enroll_student(app, classroom)
+
+    student_client.post(
+        f"/classrooms/{classroom}/assignments/{assignment}",
+        data={"body": "Persisted answer"},
+    )
+
+    with app.app_context():
+        from app.models.classroom import get_submission
+
+        submission = get_submission(assignment, student_id)
+        assert submission is not None
+        assert "Persisted answer" in submission["body"]
