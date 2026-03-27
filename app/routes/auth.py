@@ -68,7 +68,10 @@ def login():
         locked, seconds_remaining = is_locked_out(username, ip)
         if locked:
             minutes = seconds_remaining // 60 + 1
-            flash(f"Too many failed attempts. Try again in {minutes} minutes.")
+            flash(
+                f"Too many failed attempts. Ask your teacher to unlock your account, or try again in {minutes} minutes",
+                "error",
+            )
             return render_template("auth/login.html")
 
         user = check_password(username, password)
@@ -217,6 +220,16 @@ def qr_login():
 
     if not user:
         flash("Invalid or expired QR code.", "error")
+        return redirect(url_for("auth.login"))
+
+    ip = request.remote_addr
+    locked, seconds_remaining = is_locked_out(user["username"], ip)
+    if locked:
+        minutes = seconds_remaining // 60 + 1
+        flash(
+            f"This account is locked. Ask your teacher to unlock it, or try again in {minutes} minutes.",
+            "error",
+        )
         return redirect(url_for("auth.login"))
 
     session.clear()

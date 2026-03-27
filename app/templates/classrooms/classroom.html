@@ -179,7 +179,13 @@
                class="btn btn-ghost" style="font-size:0.78rem;">📱 Show QR</a>
           </div>
           {% endif %}
-        </div>
+
+        </div>{% if member.locked_out %}
+<form method="POST" action="{{ url_for('classrooms.unlock_student', classroom_id=classroom.id, student_id=member.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <button type="submit" class="btn btn-ghost" style="font-size:0.78rem;">🔓</button>
+</form>
+{% endif %}
         {% endfor %}
       </div>
       {% else %}

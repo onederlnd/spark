@@ -60,4 +60,8 @@ def record_success(username):
     _lockouts.pop(user_key, None)
 
 
-# est this sia  test
+def unlock_user(username):
+    """Manually clear a user lockout - called by teacher"""
+    user_key = f"user:{username}"
+    _lockouts.pop(user_key, None)
+    _failed_attempts[user_key] = []

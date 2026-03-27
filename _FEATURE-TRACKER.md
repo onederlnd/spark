@@ -101,16 +101,16 @@
 - [x] QR code login sheet
 
 ### Student Experience
-- [ ] Student onboarding — first-login guide for students
+- [x] Student onboarding — first-login guide for students
 - [x] Submission confirmation — clear success state after submitting
-- [x] Grade notification — student notified when teacher grades their work
-- [ ] 
+- [x] Grade notification — student notified when teacher grades their work 
 
 ### Stability
 - [x] Structured logging — replace all `print()` statements with proper log levels
 - [x] Health check endpoint — `/health` returns app and DB status
+- [ ] Rate limit / lockout recovery UX 
 - [ ] Smoke Test/Manual QA pass — full walkthrough as teacher, student, and parent
-- [ ] Database backups — scheduled backup with rotation before go-live
+
 
 ---
 
@@ -123,7 +123,7 @@
 - [ ] Bug tracking — structured log of issues found in live use
 - [ ] Safety incident review — confirm moderation workflow holds under real usage
 - [ ] Session stability — confirm WebSocket and session timeout work in production
-
+- [ ] Database backups — scheduled backup with rotation before go-live
 
 ---
 

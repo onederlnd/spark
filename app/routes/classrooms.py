@@ -15,6 +15,8 @@ from flask import (
 )
 from app.utils.auth import login_required, teacher_required
 from app.utils.rate_limit import rate_limit
+from app.utils.brute_force import unlock_user, is_locked_out
+from app.utils.content_filter import add_word, remove_word, get_all_words
 from app.utils.sanitize import sanitize_plain, sanitize_bbcode
 from app.models.classroom import (
     create_classroom,
@@ -45,7 +47,6 @@ from app.models.user import (
     regenerate_qr_token,
 )
 from app.models.report import get_reports_for_classroom
-from app.utils.content_filter import add_word, remove_word, get_all_words
 from app.models.attachments import (
     get_assignment_attachments,
     add_assignment_attachment,
@@ -190,8 +191,14 @@ def classroom_home(classroom_id):
     if not role:
         return "Forbidden", 403
 
-    assignments = get_assignments_for_classroom(classroom_id)
     members = get_classroom_members(classroom_id)
+    members = [dict(m) for m in members]
+    for member in members:
+        locked, seconds = is_locked_out(member["username"], ip="")
+        member["locked_out"] = locked
+        member["lockout_remaining"] = seconds
+
+    assignments = get_assignments_for_classroom(classroom_id)
     pending_reports = (
         len(get_reports_for_classroom(classroom_id)) if role == "teacher" else 0
     )
@@ -1266,3 +1273,20 @@ def print_submissions(classroom_id, assignment_id):
         assignment=assignment,
         submissions=submissions_with_attachments,
     )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/students/<int:student_id>/unlock", methods=["POST"]
+)
+@login_required
+@teacher_required
+def unlock_student(classroom_id, student_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+    student = get_user_by_id(student_id)
+    if not student:
+        return "Not found", 404
+    unlock_user(student["username"])
+    flash(f"{student['username']} has been unlocked.success")
+    return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
