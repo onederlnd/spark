@@ -97,17 +97,20 @@
 - [x] Teacher onboarding — first-login guide for classroom setup
 - [x] Classroom invite flow polish — copy-to-clipboard join code
 - [x] Assignment status dashboard — quick view of pending grades
+- [x] Teacher provisioned student accounts (CSV + manual)
+- [x] QR code login sheet
 
 ### Student Experience
 - [ ] Student onboarding — first-login guide for students
 - [ ] Submission confirmation — clear success state after submitting
 - [ ] Grade notification — student notified when teacher grades their work
-
+- [ ] Rate limit / lockout recovery UX 
 
 ### Stability
-- [ ] Structured logging — replace all `print()` statements with proper log levels
-- [ ] Health check endpoint — `/health` returns app and DB status
-- [ ] Manual QA pass — full walkthrough as teacher, student, and parent
+- [x] Structured logging — replace all `print()` statements with proper log levels
+- [x] Health check endpoint — `/health` returns app and DB status
+- [ ] Smoke Test/Manual QA pass — full walkthrough as teacher, student, and parent
+- [ ] Database backups — scheduled backup with rotation before go-live
 
 ---
 
@@ -120,7 +123,7 @@
 - [ ] Bug tracking — structured log of issues found in live use
 - [ ] Safety incident review — confirm moderation workflow holds under real usage
 - [ ] Session stability — confirm WebSocket and session timeout work in production
-- [ ] Database backups — scheduled backup with rotation before go-live
+
 
 ---
 
@@ -173,7 +176,7 @@
 - [ ] Full audit log — track all data changes with who / when / what
 - [ ] Dependency vulnerability scanning — `pip-audit` in CI pipeline
 - [ ] Feature flags — toggle features without deploying
-- [ ] BBCode standalone install / package
+- [x] BBCode standalone install / package
 - [ ] PostgreSQL migration — replace SQLite for multi-tenant scale
 
 ---
@@ -184,7 +187,7 @@ Items captured but not yet assigned to a version.
 
 - [ ] Rubric grading UI improvements
 - [ ] Admin CLI expansion — more management commands
-- [ ] API documentation
+- [ ] API documentation/update
 - [ ] Rate limit tuning — review thresholds after alpha data
 
 ---

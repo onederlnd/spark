@@ -65,6 +65,7 @@ from app.models.resources import (
     attach_resources_to_assignment,
     detach_resource_from_assignment,
 )
+from app.models.notifications import create_notification
 
 classrooms_bp = Blueprint("classrooms", __name__, url_prefix="/classrooms")
 
@@ -570,6 +571,18 @@ def grade_submission(classroom_id, assignment_id, student_id):
             save_grade(submission_id, grade, feedback)
         else:
             save_grade(submission["id"], grade, feedback)
+
+        if not submission or not submission["grade"]:
+            create_notification(
+                user_id=student_id,
+                type="grade",
+                message=f'Your submission for "{assignment["title"]}" has been graded.',
+                link=url_for(
+                    "classrooms.view_assignment",
+                    classroom_id=classroom_id,
+                    assignment_id=assignment_id,
+                ),
+            )
 
         flash("Grade saved.", "success")
         return redirect(
