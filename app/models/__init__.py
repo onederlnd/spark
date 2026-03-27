@@ -76,6 +76,7 @@ def init_db(app):
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
+                display_name TEXT,
                 password_hash TEXT NOT NULL,
                 dob TEXT,
                 bio TEXT DEFAULT '',
@@ -83,6 +84,8 @@ def init_db(app):
                 coppa_status TEXT NOT NULL DEFAULT 'approved',
                 provisional INTEGER NOT NULL DEFAULT 0,
                 onboarded INTEGER NOT NULL DEFAULT 0,
+                avatar_emoji TEXT DEFAULT '🌱',
+                avatar_bg TEXT DEFAULT '#E1F5EE',
                 qr_token TEXT DEFAULT NULL,
                 created_by INTEGER REFERENCES users(id) DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

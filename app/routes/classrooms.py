@@ -109,7 +109,7 @@ def dashboard():
     )
     classroom_names = {c["id"]: c["name"] for c in classrooms}
     user = get_user_by_id(session["user_id"])
-    show_onboarding = is_teacher and not user["onboarded"]
+    show_onboarding = not user["onboarded"] and user["role"] in ("teacher", "student")
 
     return render_template(
         "classrooms/dashboard.html",
@@ -637,6 +637,19 @@ def manage_filter():
 @classrooms_bp.route("/onboarding/complete", methods=["POST"])
 @login_required
 def complete_onboarding():
+    user = get_user_by_id(session["user_id"])
+    if user["role"] != "teacher":
+        return "Forbidden", 403
+    mark_onboarded(session["user_id"])
+    return "", 204
+
+
+@classrooms_bp.route("/student-onboarding/complete", methods=["POST"])
+@login_required
+def complete_student_onboarding():
+    user = get_user_by_id(session["user_id"])
+    if user["role"] != "student":
+        return "Forbidden", 403
     mark_onboarded(session["user_id"])
     return "", 204
 

@@ -102,9 +102,9 @@
 
 ### Student Experience
 - [ ] Student onboarding — first-login guide for students
-- [ ] Submission confirmation — clear success state after submitting
-- [ ] Grade notification — student notified when teacher grades their work
-- [ ] Rate limit / lockout recovery UX 
+- [x] Submission confirmation — clear success state after submitting
+- [x] Grade notification — student notified when teacher grades their work
+- [ ] 
 
 ### Stability
 - [x] Structured logging — replace all `print()` statements with proper log levels

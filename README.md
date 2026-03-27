@@ -238,10 +238,11 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Teacher-provisioned student accounts (CSV + manual)
 - [x] QR code login sheets
 - [ ] Student onboarding
-- [ ] Submission confirmation
-- [ ] Grade notification
-- [ ] Structured logging
-- [ ] Health check endpoint
+- [x] Submission confirmation
+- [x] Grade notification
+- [x] Structured logging
+- [x] Health check endpoint
+- [ ] Rate limit / lockout recovery UX 
 - [ ] Manual QA pass
 
 ### v1.0 — Closed Beta
