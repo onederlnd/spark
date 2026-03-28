@@ -22,12 +22,11 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 LEFT JOIN topics ON posts.topic_id = topics.id
                 WHERE posts.parent_id IS NULL
                 AND posts.is_hidden = 0
-                AND posts.topic_id = ?
                 AND posts.user_id NOT IN ({placeholders})
                 ORDER BY posts.votes DESC, posts.created_at DESC
                 LIMIT ? OFFSET ?
         """,
-                (topic_id, *blocked_ids, PER_PAGE + 1, offset),
+                (*blocked_ids, PER_PAGE + 1, offset),
             ).fetchall()
         else:
             rows = db.execute(

@@ -224,13 +224,14 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 |-----------|---------|--------|
 | Core platform complete | v0.1 | ✅ Done |
 | Safety core complete | v0.2 | ✅ Done |
-| Alpha classroom ready | v0.3 | 🔧 In Progress |
+| Alpha classroom ready | v0.3 | ✅ Done |
 | Closed beta (single classroom live) | v1.0 | 🔲 Planned |
 | Trust & verification | v1.1 | 🔲 Planned |
 | Public launch | v1.2 | 🔲 Planned |
 | Growth & engagement | v1.3 | 🔲 Planned |
 | Ops & hardening | v2.0 | 🔲 Planned |
 
+[🔧 In Progress]
 ### v0.3 — Alpha Classroom Ready (current)
 - [x] Teacher onboarding modal
 - [x] Copy-to-clipboard join code
@@ -242,7 +243,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Grade notification
 - [x] Structured logging
 - [x] Health check endpoint
-- [ ] Rate limit / lockout recovery UX 
+- [x] Rate limit / lockout recovery UX 
 - [ ] Manual QA pass
 
 ### v1.0 — Closed Beta
@@ -253,7 +254,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 
 ### v1.1 — Trust & Verification
 - [ ] Email verification
-- [ ] Admin dashboard
+- [x] Admin dashboard
 - [ ] Parent dashboard
 - [ ] Topic moderators
 - [ ] School / district accounts

@@ -281,6 +281,11 @@ def init_db(app):
                 resource_id INTEGER NOT NULL REFERENCES resources(id) ON DELETE CASCADE,
                 PRIMARY KEY (assignment_id, resource_id)
             );
+            CREATE TABLE IF NOT EXISTS waitlist (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                email TEXT NOT NULL UNIQUE,
+                joined_at TEXT NOT NULL
+            )
         """),
         )
         db.commit()

@@ -10,3 +10,4 @@ beautifulsoup4==4.14.3
 CairoSVG==2.8.2
 pillow==12.1.1
 better-profanity==0.7.0
+Flask-Mail==0.10.0

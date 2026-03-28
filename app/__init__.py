@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 from datetime import datetime, timezone
 from flask_wtf.csrf import CSRFProtect
 from app.sockets import init_socketio
+from app.extensions import mail
 from app.utils.bbcode import render_bbcode
 from markupsafe import Markup
 
@@ -58,6 +59,17 @@ def create_app(config=None):
     app.config["SESSION_TIMEOUT_MINUTES"] = int(
         os.environ.get("SESSION_TIMEOUT_MINUTES", 30)
     )
+    # Mail Config
+    app.config["MAIL_SERVER"] = os.environ.get("MAIL_SERVER")
+    app.config["MAIL_PORT"] = int(os.environ.get("MAIL_PORT", 587))
+    app.config["MAIL_USE_TLS"] = True
+    app.config["MAIL_USE_SSL"] = False
+    app.config["MAIL_USERNAME"] = os.environ.get("MAIL_USERNAME")
+    app.config["MAIL_PASSWORD"] = os.environ.get("MAIL_PASSWORD")
+    app.config["MAIL_DEFAULT_SENDER"] = os.environ.get("MAIL_DEFAULT_SENDER")
+    app.config["ADMIN_EMAIL"] = os.environ.get("ADMIN_EMAIL")
+
+    mail.init_app(app)
 
     if config:
         app.config.update(config)
@@ -82,6 +94,7 @@ def create_app(config=None):
     from app.routes.reports import reports_bp
     from app.routes.admin import admin_bp
     from app.routes.health import health_bp
+    from app.routes.landing import marketing_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -97,13 +110,7 @@ def create_app(config=None):
     app.register_blueprint(reports_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(health_bp)
-
-    # root redirect
-    @app.route("/")
-    def root():
-        from app.routes.feed import index
-
-        return index()
+    app.register_blueprint(marketing_bp)
 
     app.jinja_env.filters["time_ago"] = time_ago
 

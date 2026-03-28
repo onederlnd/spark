@@ -3,10 +3,12 @@
 from app import create_app
 from app.sockets import socketio
 from app.utils.logger import init_logging, get_logger
+from dotenv import load_dotenv
+
 
 init_logging(debug=True)
 log = get_logger(__name__)
-
+load_dotenv()
 app = create_app()
 
 if __name__ == "__main__":

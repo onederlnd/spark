@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 
 def test_active_session_not_expired(auth_client):
     """A user who just logged in is not logged out."""
-    response = auth_client.get("/")
+    response = auth_client.get("/", follow_redirects=True)
     assert response.status_code == 200
 
 
@@ -40,7 +40,7 @@ def test_inactive_session_clears_user(auth_client, app):
     with auth_client.session_transaction() as sess:
         sess["last_active"] = expired.isoformat()
 
-    auth_client.get("/")
+    auth_client.get("/", follow_redirects=True)
 
     with auth_client.session_transaction() as sess:
         assert "user_id" not in sess
@@ -51,7 +51,7 @@ def test_last_active_updated_on_request(auth_client):
     with auth_client.session_transaction() as sess:
         sess["last_active"] = datetime.now(timezone.utc).isoformat()
 
-    auth_client.get("/")
+    auth_client.get("/", follow_redirects=True)
 
     with auth_client.session_transaction() as sess:
         after = sess.get("last_active")

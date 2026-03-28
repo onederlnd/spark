@@ -16,8 +16,8 @@ def block_user(blocker_id, blocked_id):
         return False
 
     db.execute(
-        "INSERT INTO blocks (blocked_id, blocker_id) VALUES (?,?)",
-        (blocked_id, blocker_id),
+        "INSERT INTO blocks (blocker_id, blocked_id) VALUES (?,?)",
+        (blocker_id, blocked_id),
     )
     db.commit()
     return True

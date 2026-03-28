@@ -108,7 +108,7 @@
 ### Stability
 - [x] Structured logging — replace all `print()` statements with proper log levels
 - [x] Health check endpoint — `/health` returns app and DB status
-- [ ] Rate limit / lockout recovery UX 
+- [x] Rate limit / lockout recovery UX 
 - [ ] Smoke Test/Manual QA pass — full walkthrough as teacher, student, and parent
 
 

@@ -29,10 +29,12 @@
     <!-- ============ MOBILE DRAWER ============ -->
     <div class="drawer" id="drawer">
       <div class="drawer-header">
-        <a href="/" class="nav-logo" onclick="closeDrawer()">
-          <div class="nav-hex">⚡</div>
-          SparK
-        </a>
+{% set logo_href = url_for('landing.index') if request.endpoint and request.endpoint.startswith('landing.') else url_for('feed.index') %}
+<a href="{{ logo_href }}" class="nav-logo" onclick="closeDrawer()">
+    <div class="nav-hex">⚡</div>
+    SparK
+</a>
+
         <button class="drawer-close" onclick="closeDrawer()">✕</button>
       </div>
 
@@ -119,10 +121,11 @@
     <nav class="topbar">
       <button class="hamburger" onclick="openDrawer()" aria-label="Menu">☰</button>
 
-      <a href="/" class="nav-logo">
-        <div class="nav-hex">⚡</div>
-        SparK
-      </a>
+        {% set logo_href = url_for('landing.index') if request.endpoint and request.endpoint.startswith('landing.') else url_for('feed.index') %}
+        <a href="{{ logo_href }}" class="nav-logo" onclick="closeDrawer()">
+            <div class="nav-hex">⚡</div>
+            SparK
+</a>
 
       <div class="nav-search">
         <form method="GET" action="/search">

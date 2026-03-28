@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>You're on the list — SparK</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: #1a1f26;
+        }
+
+        .lp-root {
+            --sky: #1e2a3a;
+            --blue: #5ba3d9;
+            --teal: #3ABCB1;
+            --soft: #1a1f26;
+            --card: #222831;
+            --border: #2e3744;
+            --text: #dce6f0;
+            --muted: #7a92aa;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --font: 'Nunito', sans-serif;
+            --font-serif: 'Lora', serif;
+            font-family: var(--font);
+            background: var(--soft);
+            color: var(--text);
+            font-size: 15px;
+            line-height: 1.65;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lp-root * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        .lp-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            height: 64px;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            gap: 16px;
+            flex-shrink: 0;
+        }
+
+        .lp-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 900;
+            font-size: 1.3rem;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .lp-hex {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--blue), var(--teal));
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .lp-btn-login {
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-family: var(--font);
+            font-weight: 700;
+            font-size: 0.88rem;
+            background: linear-gradient(135deg, var(--blue), var(--teal));
+            color: white;
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 3px 12px rgba(91, 163, 217, 0.25);
+        }
+
+        .lp-btn-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 18px rgba(91, 163, 217, 0.35);
+        }
+
+        .lp-hero {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 80px 28px;
+        }
+
+        .lp-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--teal);
+            background: rgba(58, 188, 177, 0.12);
+            border: 1px solid rgba(58, 188, 177, 0.25);
+            padding: 5px 14px;
+            border-radius: 50px;
+            margin-bottom: 28px;
+        }
+
+        .lp-eyebrow::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--teal);
+            animation: lp-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes lp-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .5; transform: scale(.7); }
+        }
+
+        .lp-h1 {
+            font-family: var(--font-serif);
+            font-size: clamp(42px, 7vw, 76px);
+            font-weight: 700;
+            line-height: 1.08;
+            letter-spacing: -1.5px;
+            color: var(--text);
+            max-width: 760px;
+            margin: 0 auto 20px;
+        }
+
+        .lp-sub {
+            font-size: 17px;
+            color: var(--muted);
+            max-width: 480px;
+            margin: 0 auto 44px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .lp-btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 11px 24px;
+            font-family: var(--font);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--blue), var(--teal));
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 3px 12px rgba(91, 163, 217, 0.3);
+            text-decoration: none;
+        }
+
+        .lp-btn-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 18px rgba(91, 163, 217, 0.4);
+        }
+
+        .lp-footer {
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: 32px 28px;
+            flex-shrink: 0;
+        }
+
+        .lp-footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .lp-footer-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .lp-footer-links a {
+            font-size: 0.82rem;
+            color: var(--muted);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .lp-footer-links a:hover { color: var(--text); }
+
+        .lp-footer-copy {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 500;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="lp-root">
+
+    <nav class="lp-nav">
+        <a href="{{ url_for('landing.index') }}" class="lp-logo">
+            <div class="lp-hex">⚡</div>
+            SparK
+        </a>
+        <div>
+            <a href="{{ url_for('auth.login') }}" class="lp-btn-login">Log in</a>
+        </div>
+    </nav>
+
+    <section class="lp-hero">
+        <div class="lp-eyebrow">You're in</div>
+        <h1 class="lp-h1">Check your inbox.</h1>
+        <p class="lp-sub">We've sent a confirmation to your email. We'll be in touch when SparK is ready for your classroom.</p>
+        <a href="{{ url_for('landing.index') }}" class="lp-btn-cta">Back to home</a>
+    </section>
+
+    <footer class="lp-footer">
+        <div class="lp-footer-inner">
+            <a href="{{ url_for('landing.index') }}" class="lp-logo" style="font-size:1.1rem">
+                <div class="lp-hex" style="width:28px;height:28px;font-size:.8rem">⚡</div>
+                SparK
+            </a>
+            <div class="lp-footer-links">
+                <a href="{{ url_for('auth.terms') }}">Terms of Service</a>
+                <a href="{{ url_for('auth.privacy') }}">Privacy Policy</a>
+            </div>
+        </div>
+        <div class="lp-footer-copy">Built for the classroom. Designed for kids. Trusted by educators.</div>
+    </footer>
+
+</div>
+</body>
+</html>

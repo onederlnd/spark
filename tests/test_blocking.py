@@ -162,7 +162,7 @@ def test_blocked_user_hidden_from_feed(app, client):
         sess["coppa_status"] = "approved"
         sess["role"] = "student"
 
-    response = client.get("/")
+    response = client.get("/", follow_redirects=True)
     assert b"Hidden Post" not in response.data
 
 
@@ -182,7 +182,7 @@ def test_unblocked_user_appears_in_feed(app, client):
         sess["coppa_status"] = "approved"
         sess["role"] = "student"
 
-    response = client.get("/")
+    response = client.get("/", follow_redirects=True)
     assert b"Visible Post" in response.data
 
 
@@ -205,6 +205,6 @@ def test_non_blocked_posts_still_visible(app, client):
         sess["coppa_status"] = "approved"
         sess["role"] = "student"
 
-    response = client.get("/")
+    response = client.get("/", follow_redirects=True)
     assert b"Hidden Post" not in response.data
     assert b"Normal Post" in response.data

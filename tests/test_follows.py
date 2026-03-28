@@ -48,11 +48,11 @@ def test_follow_nonexistent_user(auth_client):
 
 def test_following_feed(auth_client):
     """Following feed loads successfully."""
-    response = auth_client.get("/?feed=following")
+    response = auth_client.get("/feed/?feed=following", follow_redirects=True)
     assert response.status_code == 200
 
 
 def test_following_feed_empty_state(auth_client):
     """Following feed shows empty state when not following anyone."""
-    response = auth_client.get("/?feed=following")
+    response = auth_client.get("/feed/?feed=following", follow_redirects=True)
     assert b"Your following feed is empty" in response.data

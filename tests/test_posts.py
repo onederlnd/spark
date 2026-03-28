@@ -141,10 +141,10 @@ def test_edit_post_forbidden(auth_client, app):
 
 
 def test_feed_pagination(auth_client):
-    response = auth_client.get("/?page=1")
+    response = auth_client.get("/feed/?page=1", follow_redirects=True)
     assert response.status_code == 200
 
-    response = auth_client.get("/?page=99")
+    response = auth_client.get("/feed/?page=99", follow_redirects=True)
     assert response.status_code == 200
 
 

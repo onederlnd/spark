@@ -1,0 +1,889 @@
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SparK - Built for the classroom. Designed for kids. Trusted by educators.</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1f26;
+        }
+
+        .lp-root {
+            --sky: #1e2a3a;
+            --navy: #e2eaf4;
+            --blue: #5ba3d9;
+            --teal: #3ABCB1;
+            --amber: #F5A623;
+            --rose: #F26B6B;
+            --green: #4CAF82;
+            --soft: #1a1f26;
+            --card: #222831;
+            --border: #2e3744;
+            --text: #dce6f0;
+            --muted: #7a92aa;
+            --radius: 16px;
+            --radius-sm: 10px;
+            --font: 'Nunito', sans-serif;
+            --font-serif: 'Lora', serif;
+            font-family: var(--font);
+            background: var(--soft);
+            color: var(--text);
+            font-size: 15px;
+            line-height: 1.65;
+        }
+
+        .lp-root * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        .lp-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 28px;
+        height: 64px;
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+        gap: 16px;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        }
+
+        .lp-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 900;
+            font-size: 1.3rem;
+            color: var(--text);
+            text-decoration: none;
+            letter-spacing: -0.5px;
+        }
+
+        .lp-hex {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, var(--blue), var(--teal));
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .lp-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lp-nav-link {
+            padding: 7px 14px;
+            border-radius: var(--radius-sm);
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            background: none;
+            border: none;
+            font-family: var(--font);
+            text-decoration: none;
+        }
+
+        .lp-nav-link:hover {
+            background: var(--sky);
+            color: var(--blue);
+        }
+
+        .lp-btn-login {
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-family: var(--font);
+            font-weight: 700;
+            font-size: 0.88rem;
+            background: linear-gradient(135deg, var(--blue), var(--teal));
+            color: white;
+            border: none;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 3px 12px rgba(91, 163, 217, 0.25);
+        }
+
+        .lp-btn-login:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 18px rgba(91, 163, 217, 0.35);
+        }
+
+        .lp-hero {
+            padding: 80px 28px 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .lp-eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--teal);
+            background: rgba(58, 188, 177, 0.12);
+            border: 1px solid rgba(58, 188, 177, 0.25);
+            padding: 5px 14px;
+            border-radius: 50px;
+            margin-bottom: 28px;
+        }
+
+        .lp-eyebrow::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--teal);
+            animation: lp-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes lp-pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .5; transform: scale(.7); }
+        }
+
+        .lp-h1 {
+            font-family: var(--font-serif);
+            font-size: clamp(42px, 7vw, 76px);
+            font-weight: 700;
+            line-height: 1.08;
+            letter-spacing: -1.5px;
+            color: var(--text);
+            max-width: 760px;
+            margin: 0 auto 20px;
+        }
+
+        .lp-h1 em {
+            font-style: italic;
+            font-weight: 400;
+            color: var(--blue);
+        }
+
+        .lp-sub {
+            font-size: 17px;
+            color: var(--muted);
+            max-width: 480px;
+            margin: 0 auto 44px;
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .lp-form {
+            display: flex;
+            gap: 10px;
+            max-width: 420px;
+            margin: 0 auto 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .lp-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 11px 18px;
+            font-family: var(--font);
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            background: var(--card);
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        .lp-input:focus { border-color: var(--blue); }
+        .lp-input::placeholder { color: var(--muted); }
+
+        .lp-btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 11px 24px;
+            font-family: var(--font);
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, var(--blue), var(--teal));
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 3px 12px rgba(91, 163, 217, 0.3);
+            white-space: nowrap;
+            text-decoration: none;
+        }
+
+        .lp-btn-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 18px rgba(91, 163, 217, 0.4);
+        }
+
+        .lp-note {
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .lp-flash {
+            text-align: center;
+            padding: 12px 24px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 50px;
+            margin: 0 auto 20px;
+            max-width: 420px;
+        }
+        .lp-flash-success { background: rgba(58,188,177,0.12); color: var(--teal); border: 1px solid rgba(58,188,177,0.25); }
+        .lp-flash-error   { background: rgba(242,107,107,0.12); color: var(--rose); border: 1px solid rgba(242,107,107,0.25); }
+        .lp-flash-info    { background: rgba(91,163,217,0.12); color: var(--blue); border: 1px solid rgba(91,163,217,0.25); }
+
+        .lp-strip {
+            margin: 52px auto 0;
+            max-width: 820px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: flex-stretch;
+            padding: 0 20px;
+        }
+
+        .lp-strip-card {
+            flex: 1;
+            min-width: 0;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: left;
+            animation: lp-rise 0.5s ease both;
+            display:flex;
+            flex-direction: column;
+        }
+
+        .lp-strip-card:nth-child(2) {
+            animation-delay: .08s;
+        }
+
+        .lp-strip-card:nth-child(3) { animation-delay: .16s; }
+
+        @keyframes lp-rise {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .lp-strip-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 17px;
+            margin-bottom: 10px;
+        }
+
+        .lp-strip-icon.blue-bg { background: rgba(91, 163, 217, 0.15); }
+        .lp-strip-icon.teal-bg { background: rgba(58, 188, 177, 0.15); }
+        .lp-strip-icon.gray-bg { background: rgba(46, 55, 68, 0.6); }
+
+        .lp-strip-card h3 {
+            font-family: var(--font-serif);
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .lp-strip-card p {
+            font-size: 0.78rem;
+            color: var(--muted);
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .lp-fake-post {
+            margin-top: auto;
+            padding: 8px 12px;
+            background: var(--soft);
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .lp-fake-meta {
+            font-size: 0.7rem;
+            color: var(--muted);
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .lp-section {
+            padding: 80px 28px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .lp-section-label {
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--blue);
+            margin-bottom: 12px;
+        }
+
+        .lp-section-heading {
+            font-family: var(--font-serif);
+            font-size: clamp(28px, 4vw, 44px);
+            font-weight: 700;
+            line-height: 1.15;
+            letter-spacing: -0.5px;
+            color: var(--text);
+            max-width: 580px;
+            margin-bottom: 12px;
+        }
+
+        .lp-section-sub {
+            font-size: 0.95rem;
+            color: var(--muted);
+            max-width: 460px;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+
+        .lp-features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 16px;
+        }
+
+        .lp-feature-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            transition: all 0.18s;
+        }
+
+        .lp-feature-card:hover {
+            border-color: rgba(91, 163, 217, 0.3);
+            box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .lp-feature-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-bottom: 14px;
+        }
+
+        .lp-feature-icon.blue  { background: rgba(91, 163, 217, 0.15); }
+        .lp-feature-icon.teal  { background: rgba(58, 188, 177, 0.15); }
+        .lp-feature-icon.amber { background: rgba(245, 166, 35, 0.15); }
+
+        .lp-feature-card h3 {
+            font-family: var(--font-serif);
+            font-size: 17px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 6px;
+        }
+
+        .lp-feature-card p {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+
+        .lp-tag {
+            display: inline-block;
+            margin-top: 12px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 50px;
+            background: rgba(58, 188, 177, 0.12);
+            color: var(--teal);
+            border: 1px solid rgba(58, 188, 177, 0.25);
+        }
+
+        .lp-safety-section {
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+            padding: 80px 28px;
+        }
+
+        .lp-safety-inner { max-width: 1100px; margin: 0 auto; }
+
+        .lp-safety-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: var(--border);
+            border: 1px solid var(--border);
+            margin-top: 8px;
+        }
+
+        .lp-safety-item { padding: 24px; background: var(--soft); }
+
+        .lp-safety-item h4 {
+            font-family: var(--font);
+            font-size: 0.9rem;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .lp-safety-item h4::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--teal);
+            flex-shrink: 0;
+        }
+
+        .lp-safety-item p {
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.6;
+            padding-left: 15px;
+            font-weight: 500;
+        }
+
+        .lp-safety-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--muted);
+            background: var(--sky);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 50px;
+        }
+
+        .lp-safety-badge::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--teal);
+        }
+
+        .lp-audience-section {
+            padding: 80px 28px;
+            background: var(--sky);
+            border-top: 1px solid var(--border);
+        }
+
+        .lp-audience-inner { max-width: 1100px; margin: 0 auto; }
+
+        .lp-audience-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .lp-audience-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 28px;
+        }
+
+        .lp-audience-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 16px;
+        }
+
+        .lp-audience-card:nth-child(1) .lp-audience-avatar { background: rgba(58, 188, 177, 0.15); }
+        .lp-audience-card:nth-child(2) .lp-audience-avatar { background: rgba(91, 163, 217, 0.15); }
+        .lp-audience-card:nth-child(3) .lp-audience-avatar { background: rgba(245, 166, 35, 0.15); }
+
+        .lp-audience-card h3 {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .lp-audience-card p {
+            font-size: 0.85rem;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            font-weight: 500;
+        }
+
+        .lp-perks {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+        }
+
+        .lp-perks li {
+            font-size: 0.82rem;
+            color: var(--muted);
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-weight: 600;
+        }
+
+        .lp-perks li::before {
+            content: '';
+            flex-shrink: 0;
+            width: 15px;
+            height: 15px;
+            margin-top: 1px;
+            border-radius: 50%;
+            background: var(--teal);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8l3 3 6-6' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E");
+        }
+
+        .lp-cta-section {
+            padding: 80px 28px;
+            background: rgba(91, 163, 217, 0.07);
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .lp-footer {
+            background: var(--card);
+            border-top: 1px solid var(--border);
+            padding: 32px 28px;
+        }
+
+        .lp-footer-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 14px;
+        }
+
+        .lp-footer-links {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .lp-footer-links a {
+            font-size: 0.82rem;
+            color: var(--muted);
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .lp-footer-links a:hover { color: var(--text); }
+
+        .lp-footer-copy {
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--muted);
+            font-weight: 500;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="lp-root">
+
+        <nav class="lp-nav">
+            {% if request.endpoint.startswith('landing.') %}
+            <a href="{{ url_for('landing.index') }}" class="lp-logo">
+            {% else %}
+            <a href="{{ url_for('feed.index') }}" class="lp-logo">
+            {% endif %}
+                <div class="lp-hex">⚡</div>
+                SparK
+            </a>
+            <div class="lp-nav-links">
+                <a href="#features" class="lp-nav-link">Features</a>
+                <a href="#safety" class="lp-nav-link">Safety</a>
+                <a href="{{ url_for('feed.index') if session.get('user_id') else url_for('auth.login') }}"
+                    class="lp-btn-login">Log in</a>
+            </div>
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="lp-flash lp-flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
+        <section class="lp-hero">
+            <div class="lp-eyebrow">Now in closed beta</div>
+            <h1 class="lp-h1">Where <em>curiosity</em><br>meets community</h1>
+            <p class="lp-sub">A safe, moderated space for students to learn, share, and connect — built for the
+                classroom and trusted by educators.</p>
+
+            <form class="lp-form" method="POST" action="{{ url_for('landing.waitlist') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input class="lp-input" type="email" name="email" placeholder="your@school.edu" required />
+                <button type="submit" class="lp-btn-cta">Join the waitlist</button>
+            </form>
+            <p class="lp-note">No spam, ever. We'll only reach out when we're ready for you.</p>
+
+            <div class="lp-strip">
+                <div class="lp-strip-card">
+                    <div class="lp-strip-icon blue-bg">✏️</div>
+                    <h3>Ask anything</h3>
+                    <p>Post questions and get answers from classmates and teachers.</p>
+                    <div class="lp-fake-post">
+                        <div class="lp-fake-meta">Maya C. · Science</div>
+                        Why do leaves change color in fall?
+                    </div>
+                </div>
+                <div class="lp-strip-card">
+                    <div class="lp-strip-icon teal-bg">📋</div>
+                    <h3>Class assignments</h3>
+                    <p>Submit work, get feedback, and track grades — all in one place.</p>
+                    <div class="lp-fake-post">
+                        <div class="lp-fake-meta">Due Friday · Ms. Rivera</div>
+                        Chapter 5 reading response
+                    </div>
+                </div>
+                <div class="lp-strip-card">
+                    <div class="lp-strip-icon gray-bg">🔒</div>
+                    <h3>Always safe</h3>
+                    <p>Teacher-moderated with COPPA compliance built in from day one.</p>
+                    <div class="lp-fake-post">
+                        <div class="lp-fake-meta">Content review</div>
+                        All posts reviewed before going live
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="lp-safety-section" id="safety">
+            <div class="lp-safety-inner">
+                <div class="lp-section-label">Safety &amp; privacy</div>
+                <h2 class="lp-section-heading">Safety isn't a feature. It's the entire point.</h2>
+                <p class="lp-section-sub">Every layer of SparK was designed to protect young people — not as an
+                    afterthought, but as the foundation everything else is built on.</p>
+                <div class="lp-safety-grid">
+                    <div class="lp-safety-item">
+                        <h4>COPPA compliance</h4>
+                        <p>Age-gated registration with teacher approval for students under 13.</p>
+                    </div>
+                    <div class="lp-safety-item">
+                        <h4>Content moderation queue</h4>
+                        <p>Posts auto-hide after three reports before a teacher reviews them.</p>
+                    </div>
+                    <div class="lp-safety-item">
+                        <h4>XSS &amp; input sanitization</h4>
+                        <p>All user input sanitized. BBCode gives rich formatting without raw HTML.</p>
+                    </div>
+                    <div class="lp-safety-item">
+                        <h4>Brute force protection</h4>
+                        <p>Automatic account lockout after repeated failed logins. Rate limiting on every route.</p>
+                    </div>
+                    <div class="lp-safety-item">
+                        <h4>CSRF protection</h4>
+                        <p>Every form submission verified with a CSRF token.</p>
+                    </div>
+                    <div class="lp-safety-item">
+                        <h4>Bcrypt password hashing</h4>
+                        <p>Passwords are never stored in plain text — bcrypt with appropriate work factors.</p>
+                    </div>
+                    <div class="lp-safety-item">
+                        <h4>Role-based access control</h4>
+                        <p>Teacher and student roles enforced across every route.</p>
+                    </div>
+                    <div class="lp-safety-item">
+                        <h4>Session timeout &amp; QR tokens</h4>
+                        <p>Sessions expire automatically. QR login tokens are revocable by teachers.</p>
+                    </div>
+                </div>
+                <div class="lp-safety-badge">COPPA compliant · No ads · No data selling · Closed platform</div>
+            </div>
+        </div>
+
+        <section style="padding:0" id="features">
+            <div class="lp-section">
+                <div class="lp-section-label">What's built</div>
+                <h2 class="lp-section-heading">Everything a classroom needs, nothing it doesn't</h2>
+                <p class="lp-section-sub">SparK combines a social learning platform with a full classroom management
+                    system — designed for kids, trusted by teachers.</p>
+                <div class="lp-features-grid">
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon blue">💬</div>
+                        <h3>Social learning feed</h3>
+                        <p>Students post, reply, vote, and bookmark in topic channels. A personalized feed surfaces what
+                            matters most to each learner.</p>
+                        <span class="lp-tag">Live</span>
+                    </div>
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon teal">📚</div>
+                        <h3>Classroom &amp; assignments</h3>
+                        <p>Teacher-owned classrooms with join codes, assignment submissions, due dates, inline grading,
+                            and a status dashboard.</p>
+                        <span class="lp-tag">Live</span>
+                    </div>
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon amber">🔔</div>
+                        <h3>Real-time notifications</h3>
+                        <p>Students get notified when assignments are graded or replies land on their posts — no more
+                            checking back constantly.</p>
+                        <span class="lp-tag">Live</span>
+                    </div>
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon blue">🪪</div>
+                        <h3>Student provisioning</h3>
+                        <p>Teachers import students by CSV or manual entry. Accounts auto-created — no email addresses
+                            needed from students.</p>
+                        <span class="lp-tag">Live</span>
+                    </div>
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon teal">📸</div>
+                        <h3>QR code login sheets</h3>
+                        <p>Print a login card per student with a scannable QR code. Kids scan and they're in — no
+                            passwords to forget.</p>
+                        <span class="lp-tag">Live</span>
+                    </div>
+                    <div class="lp-feature-card">
+                        <div class="lp-feature-icon amber">🔍</div>
+                        <h3>Full-text search</h3>
+                        <p>Find anything across posts and topics instantly, powered by SQLite FTS5 — no waiting, no
+                            missing results.</p>
+                        <span class="lp-tag">Live</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="lp-audience-section">
+            <div class="lp-audience-inner">
+                <div class="lp-section-label">Who it's for</div>
+                <h2 class="lp-section-heading">Built for everyone in the classroom</h2>
+                <p class="lp-section-sub">SparK works for students, teachers, and the parents who trust them both.</p>
+                <div class="lp-audience-grid">
+                    <div class="lp-audience-card">
+                        <div class="lp-audience-avatar">🧑‍🎓</div>
+                        <h3>Students</h3>
+                        <p>A structured, encouraging space to ask questions, share ideas, and learn alongside classmates
+                            — without the risks of open social media.</p>
+                        <ul class="lp-perks">
+                            <li>Post and reply in topic channels</li>
+                            <li>Submit assignments and track grades</li>
+                            <li>Follow classmates and personalize your feed</li>
+                            <li>Easy QR code login — no forgotten passwords</li>
+                        </ul>
+                    </div>
+                    <div class="lp-audience-card">
+                        <div class="lp-audience-avatar">🧑‍🏫</div>
+                        <h3>Teachers</h3>
+                        <p>Visibility, control, and tools to run your classroom — from onboarding students in minutes to
+                            grading in seconds.</p>
+                        <ul class="lp-perks">
+                            <li>Provision students via CSV — no parent emails needed</li>
+                            <li>Assignments, grading, and feedback in one place</li>
+                            <li>Moderation queue and custom content filters</li>
+                            <li>COPPA compliance handled automatically</li>
+                        </ul>
+                    </div>
+                    <div class="lp-audience-card">
+                        <div class="lp-audience-avatar">👪</div>
+                        <h3>Parents</h3>
+                        <p>SparK was designed with your child's safety as the first priority — not engagement metrics,
+                            not ad revenue.</p>
+                        <ul class="lp-perks">
+                            <li>Teacher-moderated content at all times</li>
+                            <li>No advertising, ever</li>
+                            <li>COPPA compliant — under-13 protections built in</li>
+                            <li>Closed platform — no strangers, no open internet</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lp-cta-section" id="waitlist">
+            <div class="lp-section-label" style="text-align:center">Early access</div>
+            <h2 class="lp-section-heading" style="margin:0 auto 12px;text-align:center">Ready to bring SparK to your
+                classroom?</h2>
+            <p class="lp-section-sub" style="margin:0 auto 36px;text-align:center">We're opening access classroom by
+                classroom — starting with educators ready to shape what SparK becomes.</p>
+            <form class="lp-form" method="POST" action="{{ url_for('landing.waitlist') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                <input class="lp-input" type="email" name="email" placeholder="your@school.edu" required />
+                <button type="submit" class="lp-btn-cta">Join the waitlist</button>
+            </form>
+            <p class="lp-note">Teachers and administrators only. We'll be in touch soon.</p>
+        </div>
+
+        <footer class="lp-footer">
+            <div class="lp-footer-inner">
+                <a href="{{ url_for('landing.index') }}" class="lp-logo" style="font-size:1.1rem">
+                    <div class="lp-hex" style="width:28px;height:28px;font-size:.8rem">⚡</div>
+                    SparK
+                </a>
+                <div class="lp-footer-links">
+                    <a href="{{ url_for('auth.terms') }}">Terms of Service</a>
+                    <a href="{{ url_for('auth.privacy') }}">Privacy Policy</a>
+                    <a href="{{ url_for('auth.login') }}">Log in</a>
+                </div>
+            </div>
+            <div class="lp-footer-copy">Built for the classroom. Designed for kids. Trusted by educators.</div>
+        </footer>
+
+    </div>
+</body>
+
+</html>
