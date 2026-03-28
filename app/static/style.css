@@ -1912,3 +1912,35 @@ Modal
   border-top-left-radius: 0;
   border-top-right-radius: 0;
 }
+
+/***********************/
+/*    Post Reactions   */
+/***********************/
+
+.reaction-strip {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.reaction-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 50px;
+    padding: 5px 12px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: var(--text);
+}
+
+.reaction-btn:hover {
+    border-color: var(--blue);
+    background: var(--sky);
+    transform: scale(1.1);
+}
+
+.reaction-btn.active {
+    border-color: var(--blue);
+    background: rgba(91, 163, 217, 0.15);
+}

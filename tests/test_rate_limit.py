@@ -21,16 +21,15 @@ def test_post_rate_limit(auth_client):
     assert response.status_code == 429
 
 
-def test_vote_rate_limit(auth_client):
-    """Exceeding voting limit returns 429 Too Many Requests"""
-    rate_limit._request_counts.clear()
+def test_react_rate_limit(auth_client, teacher_client, app):
+    """Exceeding reaction limit returns 429 Too Many Requests"""
+    from app.utils.rate_limit import _request_counts
 
-    # create a post to vote on
-    response = auth_client.post(
+    response = teacher_client.post(
         "/posts/new",
         data={
-            "title": "Vote Limit Test",
-            "body": "Testing vote limits",
+            "title": "Rate Limit Post",
+            "body": "Testing reaction limits",
             "topic_id": "",
         },
     )
@@ -38,8 +37,9 @@ def test_vote_rate_limit(auth_client):
     post_id = response.headers["Location"].split("/")[-1]
 
     for _ in range(30):
-        auth_client.post(f"/posts/{post_id}/vote", data={"value": "1"})
-    response = auth_client.post(f"/posts/{post_id}/vote", data={"value": "1"})
+        auth_client.post(f"/posts/{post_id}/react", data={"reaction": "lit"})
+
+    response = auth_client.post(f"/posts/{post_id}/react", data={"reaction": "lit"})
 
     assert response.status_code == 429
 

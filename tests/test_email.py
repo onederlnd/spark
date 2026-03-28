@@ -1,4 +1,4 @@
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from flask_mail import Message
 
 
@@ -17,7 +17,7 @@ def test_mail_extension_is_configured(app):
 
 
 def test_waitlist_signup_attempts_confirmation_email(client, app):
-    app.config["ADMIN_EMAIL"] = "rchristenhusz@gmail.com"
+    app.config["ADMIN_EMAIL"] = "admin_email@example.com"
     with patch("app.routes.landing.mail.send") as mock_send:
         client.post("/waitlist", data={"email": "emailtest@example.com"})
         assert mock_send.called

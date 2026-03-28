@@ -120,19 +120,6 @@
   <div class="post-list">
     {% for post in posts %}
     <div class="post-card">
-      <div class="vote-col">
-        <form method="POST" action="/posts/{{ post.id }}/vote">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="value" value="1">
-          <button class="vote-btn up" title="Upvote">▲</button>
-        </form>
-        <span class="vote-count">{{ post.votes }}</span>
-        <form method="POST" action="/posts/{{ post.id }}/vote">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="value" value="-1">
-          <button class="vote-btn down" title="Downvote">▼</button>
-        </form>
-      </div>
       <div class="post-body">
         <div class="post-meta">
           {% if post.topic_name %}

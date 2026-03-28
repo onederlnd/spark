@@ -23,8 +23,7 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 WHERE posts.parent_id IS NULL
                 AND posts.is_hidden = 0
                 AND posts.user_id NOT IN ({placeholders})
-                ORDER BY posts.votes DESC, posts.created_at DESC
-                LIMIT ? OFFSET ?
+                ORDER BY posts.reply_count DESC                LIMIT ? OFFSET ?
         """,
                 (*blocked_ids, PER_PAGE + 1, offset),
             ).fetchall()
@@ -38,7 +37,7 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 WHERE posts.parent_id IS NULL
                 AND posts.is_hidden = 0
                 AND posts.topic_id = ?
-                ORDER BY posts.votes DESC, posts.created_at DESC
+                ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
             """,
                 (topic_id, PER_PAGE + 1, offset),
@@ -55,7 +54,7 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 WHERE posts.parent_id IS NULL
                   AND posts.is_hidden = 0
                   AND posts.user_id NOT IN ({placeholder})
-                ORDER BY posts.votes DESC, posts.created_at DESC
+                ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
                 """,
                 (*blocked_ids, PER_PAGE + 1, offset),
@@ -69,7 +68,7 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 LEFT JOIN topics ON posts.topic_id = topics.id
                 WHERE posts.parent_id IS NULL
                   AND posts.is_hidden = 0
-                ORDER BY posts.votes DESC, posts.created_at DESC
+                ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
                 """,
                 (PER_PAGE + 1, offset),
@@ -152,8 +151,7 @@ def update_post(post_id, title, body):
 
 def delete_post(post_id):
     db = get_db()
-    # delete voters and bookmarks (key cleanup), then post
-    db.execute("DELETE FROM votes WHERE post_id=?", (post_id,))
+    db.execute("DELETE FROM reactions WHERE post_id=?", (post_id,))
     db.execute("DELETE FROM bookmarks WHERE post_id=?", (post_id,))
     db.execute("DELETE FROM posts WHERE id=?", (post_id,))
     db.commit()
@@ -217,46 +215,10 @@ def get_replies(post_id):
                       FROM posts
                       JOIN users ON posts.user_id = users.id
                       WHERE posts.parent_id = ?
-                      ORDER BY posts.votes DESC, posts.created_at ASC
+                      ORDER BY posts.reply_count DESC
     """,
         (post_id,),
     ).fetchall()
-
-
-# --- voting
-def vote_post(user_id, post_id, value):
-    """value: 1 for upvote, -1 for downvote"""
-    db = get_db()
-    existing = db.execute(
-        "SELECT value FROM votes WHERE user_id=? AND post_id=?", (user_id, post_id)
-    ).fetchone()
-
-    if existing:
-        if existing["value"] == value:
-            # clicking vote again undoes it
-            db.execute(
-                "DELETE FROM votes WHERE user_id = ? AND post_id = ?",
-                (user_id, post_id),
-            )
-            db.execute(
-                "UPDATE posts SET votes = votes - ? WHERE id = ?", (value, post_id)
-            )
-        else:
-            # Switching vote directoin
-            db.execute(
-                "UPDATE votes SET value=? WHERE user_id=? AND post_id=?",
-                (value, user_id, post_id),
-            )
-            db.execute(
-                "UPDATE posts SET votes = votes + ? WHERE id = ?", (value * 2, post_id)
-            )
-    else:
-        db.execute(
-            "INSERT INTO votes (user_id, post_id, value) VALUES (?, ?, ?)",
-            (user_id, post_id, value),
-        )
-        db.execute("UPDATE posts SET votes = votes + ? WHERE id = ?", (value, post_id))
-    db.commit()
 
 
 # --- bookmarks
@@ -359,8 +321,6 @@ def get_following_feed(user_id, page=1, blocked_ids=None):
 def get_trending(limit=5):
     """
     TODO: Implement trending algorithm.
-    Currently returns most voted posts from last 7 days.
-    Future: weight by recency + votes + reply_count + time decay.
     """
     db = get_db()
     return db.execute(
@@ -371,7 +331,7 @@ def get_trending(limit=5):
         LEFT JOIN topics ON posts.topic_id = topics.id
         WHERE posts.parent_id IS NULL
         AND posts.created_at >= datetime('now', '-7 days')
-        ORDER BY posts.votes DESC, posts.reply_count DESC
+        ORDER BY posts.reply_count DESC
         LIMIT ?
         """,
         (limit,),

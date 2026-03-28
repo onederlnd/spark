@@ -36,15 +36,6 @@ def test_create_post_missing_fields(auth_client):
     assert b"required" in response.data
 
 
-def test_upvote_post(auth_client):
-    auth_client.post(
-        "/posts/new",
-        data={"title": "Vote Test", "body": "Voting on this post", "topic_id": ""},
-    )
-    response = auth_client.post("/posts/1/vote", data={"value": "1"})
-    assert response.status_code == 302
-
-
 def test_reply_to_post(auth_client):
     response = auth_client.post(
         "/posts/new",
@@ -163,13 +154,6 @@ def test_unauthenticated_cannot_create_post(client):
 
 def test_unauthenticated_cannot_reply(client):
     response = client.post("/posts/1/reply", data={"body": "Sneaky reply"})
-    assert response.status_code in (302, 403)
-    if response.status_code == 302:
-        assert "/auth/login" in response.headers["Location"]
-
-
-def test_unauthenticated_cannot_vote(client):
-    response = client.post("/posts/1/vote", data={"value": "1"})
     assert response.status_code in (302, 403)
     if response.status_code == 302:
         assert "/auth/login" in response.headers["Location"]

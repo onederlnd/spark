@@ -145,7 +145,7 @@
 > **Status: Planned**
 > Open the doors beyond the alpha classroom.
 
-- [ ] Landing page — public marketing site
+- [x] Landing page — public marketing site
 - [ ] Onboarding flow — guide new users on first login
 - [ ] User mentions — `@username` triggers notification
 - [ ] Direct messages — teacher ↔ student only initially

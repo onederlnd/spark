@@ -44,7 +44,8 @@ The core social platform and classroom system are complete. SparK is preparing f
 ## What's Built
 
 ### Social Platform
-- Post, reply, vote, and bookmark in topic channels
+- Post, reply, react, and bookmark in topic channels
+- Four emoji reactions per post (🔥 💡 🤔 ❤️) — low-lift engagement designed for kids
 - Follow other users and get a personalized feed
 - Full-text search across posts and topics
 - Real-time notifications via WebSockets
@@ -267,6 +268,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [ ] Trending algorithm
 
 ### v1.3 — Growth & Engagement
+- [x] Spark reactions (replaces votes)
 - [ ] Achievement badges
 - [ ] Rubric grading
 - [ ] Multiple choice assignment types
@@ -284,3 +286,11 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 
 *Last updated: March 2026*
 *Current focus: v0.3 Alpha Classroom Ready → v1.0 Closed Beta*
+
+
+In **Roadmap → v1.3 Growth & Engagement**, change:
+```
+- [ ] Achievement badges
+```
+to:
+```

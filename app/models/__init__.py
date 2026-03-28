@@ -96,7 +96,6 @@ def init_db(app):
                 name TEXT UNIQUE NOT NULL,
                 description TEXT DEFAULT ''
             );
-
             CREATE TABLE IF NOT EXISTS posts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -104,7 +103,6 @@ def init_db(app):
                 title TEXT NOT NULL,
                 body TEXT NOT NULL,
                 reply_count INTEGER DEFAULT 0,
-                votes INTEGER DEFAULT 0,
                 parent_id INTEGER DEFAULT NULL,
                 classroom_id INTEGER,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -124,11 +122,13 @@ def init_db(app):
                 reviewed_by INTEGER,
                 reviewed_at TIMESTAMP
             );
-            CREATE TABLE IF NOT EXISTS votes (
-                user_id INTEGER NOT NULL,
-                post_id INTEGER NOT NULL,
-                value INTEGER NOT NULL,
-                PRIMARY KEY(user_id, post_id)
+            CREATE TABLE IF NOT EXISTS reactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                reaction TEXT NOT NULL CHECK(reaction IN ('lit', 'thinking', 'question', 'like')),
+                created_at TEXT NOT NULL,
+                UNIQUE(post_id, user_id)
             );
             CREATE TABLE IF NOT EXISTS blocks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,

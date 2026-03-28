@@ -69,9 +69,6 @@ endblock %} {% block content %}
     <div class="post-list">
       {% for post in posts %}
       <div class="post-card">
-        <div class="vote-col">
-          <span class="vote-count">{{ post.votes }}</span>
-        </div>
         <div class="post-body">
           <div class="post-meta">
             {% if post.topic_name %}
@@ -131,9 +128,6 @@ endblock %} {% block content %}
     <div class="post-list">
       {% for post in bookmarks %}
       <div class="post-card">
-        <div class="vote-col">
-          <span class="vote-count">{{ post.votes }}</span>
-        </div>
         <div class="post-body">
           <div class="post-meta">
             {% if post.topic_name %}

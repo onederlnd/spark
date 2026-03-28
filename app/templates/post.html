@@ -14,19 +14,18 @@
 </div>
 
 <div class="post-full">
-  <div class="vote-col">
-    <form method="POST" action="/posts/{{ post.id }}/vote">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <input type="hidden" name="value" value="1">
-      <button class="vote-btn up" title="Upvote">▲</button>
-    </form>
-    <span class="vote-count">{{ post.votes }}</span>
-    <form method="POST" action="/posts/{{ post.id }}/vote">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <input type="hidden" name="value" value="-1">
-      <button class="vote-btn down" title="Downvote">▼</button>
-    </form>
-  </div>
+  {% if session.user_id != post.user_id %}
+<div class="reaction-strip">
+  {% for key, emoji in reaction_emoji.items() %}
+  <form method="POST" action="/posts/{{ post.id }}/react">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="reaction" value="{{ key }}">
+    <button class="reaction-btn {% if user_reaction == key %}active{% endif %}"
+            title="{{ key }}">{{ emoji }}</button>
+  </form>
+  {% endfor %}
+</div>
+{% endif %}
 
   <div class="post-content">
     <div class="post-meta">
@@ -114,19 +113,6 @@
   {% if replies %}
     {% for reply in replies %}
     <div class="reply-card">
-      <div class="vote-col">
-        <form method="POST" action="/posts/{{ reply.id }}/vote">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="value" value="1">
-          <button class="vote-btn up">▲</button>
-        </form>
-        <span class="vote-count">{{ reply.votes }}</span>
-        <form method="POST" action="/posts/{{ reply.id }}/vote">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="value" value="-1">
-          <button class="vote-btn down">▼</button>
-        </form>
-      </div>
       <div style="flex:1;min-width:0">
         <div class="post-meta" style="margin-bottom:10px">
           <div class="nav-avatar" style="width:28px;height:28px;font-size:0.7rem;display:inline-flex;flex-shrink:0">

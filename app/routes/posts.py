@@ -13,7 +13,6 @@ from app.models.post import (
     create_post,
     get_post,
     get_replies,
-    vote_post,
     is_bookmarked,
     update_post,
     delete_post,
@@ -21,6 +20,7 @@ from app.models.post import (
 from app.models.user import coppa_required
 from app.models.topic import get_all_topics
 from app.models.notifications import create_notification
+from app.models.reactions import add_or_update_reaction, get_reaction, REACTION_EMOJI
 from app.utils.auth import login_required
 from app.utils.rate_limit import rate_limit
 from app.utils.sanitize import sanitize_plain, sanitize_bbcode
@@ -89,8 +89,15 @@ def view_post(post_id):
     replies = get_replies(post_id)
     topics = get_all_topics()
     bookmarked = is_bookmarked(session["user_id"], post_id)
+    user_reaction = get_reaction(post_id, session["user_id"])
     return render_template(
-        "post.html", post=post, replies=replies, topics=topics, bookmarked=bookmarked
+        "post.html",
+        post=post,
+        replies=replies,
+        topics=topics,
+        bookmarked=bookmarked,
+        user_reaction=user_reaction,
+        reaction_emoji=REACTION_EMOJI,
     )
 
 
@@ -174,11 +181,16 @@ def reply(post_id):
     return redirect(url_for("posts.view_post", post_id=post_id))
 
 
-@posts_bp.route("/<int:post_id>/vote", methods=["POST"])
+@posts_bp.route("/<int:post_id>/react", methods=["POST"])
 @login_required
 @rate_limit(max_requests=30, window_seconds=60)
 @coppa_required
-def vote(post_id):
-    value = int(request.form.get("value", 1))
-    vote_post(session["user_id"], post_id, value)
+def react(post_id):
+    post = get_post(post_id)
+    if not post:
+        return "Post not found", 404
+    if post["user_id"] == session["user_id"]:
+        return "Forbidden", 403
+    reaction = request.form.get("reaction", "").strip()
+    add_or_update_reaction(post_id, session["user_id"], reaction)
     return redirect(request.referrer or url_for("feed.index"))
