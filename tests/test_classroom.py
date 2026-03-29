@@ -318,7 +318,7 @@ def test_submission_confirmation_no_error_flash(
     )
 
     assert b"has been saved" in response.data
-    assert b"Something went wrong" not in response.data
+    assert b"flash-error" not in response.data
 
 
 # --- redirect behaviour ---

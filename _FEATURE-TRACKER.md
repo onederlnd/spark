@@ -119,7 +119,7 @@
 > Real students. Real teacher. Real stakes. The alpha classroom milestone.
 
 - [ ] Live classroom deployment — single trusted classroom running in production
-- [ ] Teacher feedback loop — weekly check-in process with alpha teacher
+- [x] Teacher feedback loop — weekly check-in process with alpha teacher
 - [ ] Bug tracking — structured log of issues found in live use
 - [ ] Safety incident review — confirm moderation workflow holds under real usage
 - [ ] Session stability — confirm WebSocket and session timeout work in production

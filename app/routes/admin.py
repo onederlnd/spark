@@ -39,6 +39,16 @@ from app.models.analytics import (
     get_top_rate_limited_routes,
     get_ungraded_submissions_by_teacher,
 )
+from app.models.feedback import (
+    get_all_feedback,
+    get_feedback_summary,
+    get_feedback_daily,
+)
+from app.models.waitlist import (
+    get_waitlist_summary,
+    get_waitlist_all,
+    get_waitlist_daily,
+)
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -150,6 +160,14 @@ def dashboard():
         top_rate_limited_routes=safe_list(get_top_rate_limited_routes),
         daily_session_events=rows_to_dicts(safe_list(get_daily_session_events)),
         session_event_counts=safe_list(get_session_event_counts),
+        # feedback
+        feedback_summary=safe(get_feedback_summary),
+        feedback_all=safe_list(get_all_feedback),
+        feedback_daily=rows_to_dicts(safe_list(get_feedback_daily)),
+        # waitlist
+        waitlist_summary=safe(get_waitlist_summary),
+        waitlist_all=safe_list(get_waitlist_all),
+        waitlist_daily=rows_to_dicts(safe_list(get_waitlist_daily)),
         chart_data=json.dumps(
             {
                 "dailyUsers": rows_to_dicts(safe_list(get_daily_new_users)),
@@ -160,6 +178,8 @@ def dashboard():
                 "dailyFilterHits": rows_to_dicts(safe_list(get_daily_filter_hits)),
                 "dailyRateLimit": rows_to_dicts(safe_list(get_daily_rate_limit_hits)),
                 "dailySession": rows_to_dicts(safe_list(get_daily_session_events)),
+                "dailyFeedback": rows_to_dicts(safe_list(get_feedback_daily)),
+                "dailyWaitlist": rows_to_dicts(safe_list(get_waitlist_daily)),
             }
         ),
     )

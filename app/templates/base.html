@@ -2,6 +2,7 @@
 <html lang="en" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}SparK - {% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -125,7 +126,7 @@
         <a href="{{ logo_href }}" class="nav-logo" onclick="closeDrawer()">
             <div class="nav-hex">⚡</div>
             SparK
-</a>
+        </a>
 
       <div class="nav-search">
         <form method="GET" action="/search">
@@ -158,34 +159,34 @@
           <span class="nav-badge">{{ unread_count }}</span>
           {% endif %}
         </a>
-<div class="nav-avatar-wrap" style="position:relative;">
-  <button class="nav-avatar" onclick="toggleAvatarMenu()" title="{{ session.username }}" style="cursor:pointer; border:none; background:var(--teal);">
-    {{ session.get("username", "")[:2].upper() }}
-  </button>
-  <div id="avatar-menu" style="
-    display:none;
-    position:absolute;
-    right:0;
-    top:calc(100% + 8px);
-    background:var(--color-background-primary, var(--card));
-    border:1px solid var(--border);
-    border-radius:var(--radius-sm);
-    min-width:160px;
-    z-index:1000;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  ">
-    <a href="/profile/{{ session.username }}" style="display:block; padding:10px 16px; font-size:0.88rem; color:var(--text); text-decoration:none;">
-      👤 My Profile
-    </a>
-    <a href="/profile/settings" style="display:block; padding:10px 16px; font-size:0.88rem; color:var(--text); text-decoration:none;">
-      ⚙️ Settings
-    </a>
-    <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
-    <a href="/auth/logout" style="display:block; padding:10px 16px; font-size:0.88rem; color:var(--rose, #e24b4a); text-decoration:none;">
-      🚪 Logout
-    </a>
-  </div>
-</div>
+        <div class="nav-avatar-wrap" style="position:relative;">
+          <button class="nav-avatar" onclick="toggleAvatarMenu()" title="{{ session.username }}" style="cursor:pointer; border:none; background:var(--teal);">
+            {{ session.get("username", "")[:2].upper() }}
+          </button>
+          <div id="avatar-menu" style="
+            display:none;
+            position:absolute;
+            right:0;
+            top:calc(100% + 8px);
+            background:var(--color-background-primary, var(--card));
+            border:1px solid var(--border);
+            border-radius:var(--radius-sm);
+            min-width:160px;
+            z-index:1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+          ">
+            <a href="/profile/{{ session.username }}" style="display:block; padding:10px 16px; font-size:0.88rem; color:var(--text); text-decoration:none;">
+              👤 My Profile
+            </a>
+            <a href="/profile/settings" style="display:block; padding:10px 16px; font-size:0.88rem; color:var(--text); text-decoration:none;">
+              ⚙️ Settings
+            </a>
+            <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
+            <a href="/auth/logout" style="display:block; padding:10px 16px; font-size:0.88rem; color:var(--rose, #e24b4a); text-decoration:none;">
+              🚪 Logout
+            </a>
+          </div>
+        </div>
         {% else %}
         <a href="/auth/login" class="btn btn-ghost {% if request.path == '/auth/login' %}active{% endif %}">Sign In</a>
         <a href="/auth/register" class="btn btn-primary">Join Free ✦</a>
@@ -230,6 +231,55 @@
         <div class="toast-title">New notification</div>
         <div class="toast-message" id="toast-message"></div>
       </div>
+    </div>
+
+    {% if session.get("role") == "teacher" %}
+    <button class="feedback-trigger" onclick="openFeedback()" title="Give feedback">
+      <span class="feedback-trigger-icon">💬</span>
+      <span class="feedback-trigger-label">Feedback</span>
+    </button>
+    {% endif %}
+    <!-- ② OVERLAY -->
+    <div class="feedback-overlay" id="feedbackOverlay" onclick="closeFeedback()"></div>
+
+    <!-- ③ PANEL -->
+    <div class="feedback-panel" id="feedbackPanel" role="dialog" aria-modal="true" aria-label="Feedback">
+    
+      <div class="fp-header">
+        <span class="fp-title">Share feedback</span>
+        <button class="fp-close" onclick="closeFeedback()" aria-label="Close">✕</button>
+      </div>
+    
+      <div class="fp-body" id="fp-body">
+      
+        <p class="fp-sub">Rate your experience — takes about a minute.</p>
+      
+        <!-- Rating rows -->
+        <div class="fp-ratings" id="fp-ratings"></div>
+      
+        <!-- Open text -->
+        <div class="fp-field">
+          <label class="fp-label" for="fp-suggestions">Suggestions or anything else?</label>
+          <textarea id="fp-suggestions" class="fp-textarea" placeholder="Optional — share anything on your mind…"></textarea>
+        </div>
+      
+        <p class="fp-error" id="fp-error">Please rate all categories before submitting.</p>
+      
+        <div class="fp-actions">
+          <button type="button" class="fp-btn-cancel" onclick="closeFeedback()">Cancel</button>
+          <button type="button" class="fp-btn-submit" id="fp-submit-btn" onclick="submitFeedback()">Submit feedback</button>
+        </div>
+      
+      </div>
+    
+      <!-- Success state -->
+      <div class="fp-success" id="fp-success" style="display:none;">
+        <div class="fp-success-icon">✓</div>
+        <p class="fp-success-title">Thanks!</p>
+        <p class="fp-success-sub">Your feedback has been submitted.</p>
+        <button class="fp-btn-cancel" onclick="closeFeedback()" style="margin-top:1rem;">Close</button>
+      </div>
+    
     </div>
 
     <footer style="text-align: center; padding: 24px; margin-top: 48px; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--muted); font-weight: 600;">
@@ -294,7 +344,7 @@
         }, 250);
       }
 
-      document.addEventListener("keydown", (e) => {
+      document.addEventListener("keydown", e => {
         if (e.key === "Escape") closeDrawer();
       });
     </script>
@@ -344,6 +394,7 @@ document.addEventListener("click", function(e) {
   if (!btn) return;
 
   const toolbar = btn.closest(".bbcode-toolbar");
+  if (!toolbar) return;
   const targetId = toolbar.dataset.target;
   const textarea = document.getElementById(targetId);
   if (!textarea) return;
@@ -377,6 +428,128 @@ document.addEventListener("click", function(e) {
   // trigger counter/preview update if bound
   textarea.dispatchEvent(new Event("input"));
 });
+
+(function () {
+  const FIELDS = [
+    { key: "classroom_experience", name: "Classroom experience" },
+    { key: "student_engagement",   name: "Student engagement" },
+    { key: "ease_of_use",          name: "Ease of use" },
+    { key: "assignment_workflow",  name: "Assignment workflow" },
+    { key: "safety_moderation",    name: "Safety & moderation" },
+  ];
+
+  const ratings = {};
+
+  function starSVG(filled) {
+    const fill   = filled ? "var(--teal, #1d9e75)" : "none";
+    const stroke = filled ? "var(--teal, #1d9e75)" : "var(--muted)";
+    return `<svg viewBox="0 0 22 22" fill="${fill}" stroke="${stroke}" style="pointer-events:none;" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="11,2 13.9,8.1 20.5,8.7 15.5,13.4 17.1,19.8 11,16.3 4.9,19.8 6.5,13.4 1.5,8.7 8.1,8.1"/>
+    </svg>`;
+  }
+
+  function renderStars(key) {
+    const container = document.getElementById("fps-" + key);
+    if (!container) return;
+    const current = ratings[key] || 0;
+    container.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "fp-star";
+      btn.setAttribute("aria-label", `${i} star`);
+      btn.innerHTML = starSVG(i <= current);
+      btn.onclick = function() {
+        ratings[key] = i;
+        renderStars(key);
+      };
+      container.appendChild(btn);
+    }
+  }
+
+  function buildPanel() {
+    const list = document.getElementById("fp-ratings");
+    list.innerHTML = "";
+    FIELDS.forEach(f => {
+      const row = document.createElement("div");
+      row.className = "fp-row";
+      row.innerHTML = `
+        <div class="fp-row-labels">
+          <div class="fp-row-name">${f.name}</div>
+        </div>
+        <div class="fp-stars" id="fps-${f.key}"></div>`;
+      list.appendChild(row);
+      renderStars(f.key);
+    });
+  }
+
+  window.openFeedback = function () {
+    Object.keys(ratings).forEach(k => delete ratings[k]);
+    buildPanel();
+    document.getElementById("feedbackOverlay").style.display = "block";
+    requestAnimationFrame(() => {
+      document.getElementById("feedbackPanel").classList.add("open");
+    });
+  };
+
+  window.closeFeedback = function () {
+    document.getElementById("feedbackPanel").classList.remove("open");
+    setTimeout(() => { document.getElementById("feedbackOverlay").style.display = "none"; }, 280);
+    document.getElementById("fp-error").style.display = "none";
+    document.getElementById("fp-body").style.display = "";
+    document.getElementById("fp-success").style.display = "none";
+    const btn = document.getElementById("fp-submit-btn");
+    if (btn) { btn.disabled = false; btn.textContent = "Submit feedback"; }
+  };
+
+  document.addEventListener("keydown", e => { if (e.key === "Escape") window.closeFeedback(); });
+
+  window.submitFeedback = async function () {
+    console.log("RATINGS:", JSON.stringify(ratings));
+    const missing = FIELDS.some(f => !ratings[f.key]);
+    const errEl = document.getElementById("fp-error");
+    if (missing) { errEl.style.display = "block"; return; }
+    errEl.style.display = "none";
+
+    const btn = document.getElementById("fp-submit-btn");
+    btn.disabled = true;
+    btn.textContent = "Submitting…";
+
+    const payload = { ...ratings };
+    console.log("PAYLOAD:", JSON.stringify(payload));
+    payload.open_suggestions = document.getElementById("fp-suggestions").value.trim();
+    payload.page_url = window.location.href;
+    payload.page_context = document.title;
+
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+          
+      const res = await fetch("/feedback/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        document.getElementById("fp-body").style.display = "none";
+        document.getElementById("fp-success").style.display = "flex";
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Submit feedback";
+        errEl.textContent = "Something went wrong — please try again.";
+        errEl.style.display = "block";
+      }
+    } catch {
+      btn.disabled = false;
+      btn.textContent = "Submit feedback";
+      errEl.textContent = "Network error — please check your connection.";
+      errEl.style.display = "block";
+    }
+  };
+})();
+
     </script>
     {% endif %}
   </body>

@@ -281,6 +281,19 @@ def init_db(app):
                 resource_id INTEGER NOT NULL REFERENCES resources(id) ON DELETE CASCADE,
                 PRIMARY KEY (assignment_id, resource_id)
             );
+            CREATE TABLE IF NOT EXISTS feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                page_url TEXT NOT NULL,
+                page_context TEXT,
+                classroom_experience INTEGER,
+                student_engagement INTEGER,
+                ease_of_use INTEGER,
+                assignment_workflow INTEGER,
+                safety_moderation INTEGER,
+                open_suggestions TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
             CREATE TABLE IF NOT EXISTS waitlist (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT NOT NULL UNIQUE,

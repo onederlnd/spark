@@ -95,6 +95,7 @@ def create_app(config=None):
     from app.routes.admin import admin_bp
     from app.routes.health import health_bp
     from app.routes.landing import marketing_bp
+    from app.routes.feedback import feedback_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -111,6 +112,7 @@ def create_app(config=None):
     app.register_blueprint(admin_bp)
     app.register_blueprint(health_bp)
     app.register_blueprint(marketing_bp)
+    app.register_blueprint(feedback_bp)
 
     app.jinja_env.filters["time_ago"] = time_ago
 
