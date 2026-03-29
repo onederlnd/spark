@@ -3,13 +3,24 @@
 from app.models import get_db
 from datetime import datetime, timezone
 
-VALID_REACTIONS = {"lit", "thinking", "question", "like"}
+VALID_REACTIONS = {
+    "love",
+    "idea",
+    "thinking",
+    "nailed_it",
+    "lit",
+    "star",
+    "fire",
+}
 
 REACTION_EMOJI = {
-    "lit": "🔥",
-    "thinking": "💡",
-    "question": "🤔",
-    "like": "❤️",
+    "love": "❤️",
+    "idea": "💡",
+    "thinking": "🤔",
+    "nailed_it": "🎯",
+    "lit": "⚡",
+    "star": "🌟",
+    "fire": "🔥",
 }
 
 
@@ -68,3 +79,50 @@ def get_reaction_counts(post_id):
     for row in rows:
         counts[row["reaction"]] = row["count"]
     return counts
+
+
+def get_reaction_users(post_id):
+    db = get_db()
+    rows = db.execute(
+        """
+        SELECT reactions.reaction, users.username
+        FROM reactions
+        JOIN users ON reactions.user_id = users.id
+        WHERE reactions.post_id = ?
+        ORDER BY reactions.created_at ASC
+        """,
+        (post_id,),
+    ).fetchall()
+
+    result = {}
+    for row in rows:
+        result.setdefault(row["reaction"], []).append(row["username"])
+    return result
+
+
+def format_reactor_names(usernames):
+    """
+    Return display names - first name only unless there's a duplicate, then first name + last initial.
+    username format: firstname.lastname or demo.firstname.lastname
+    """
+
+    def parse(username):
+        parts = username.split(".")
+
+        if len(parts) >= 3 and parts[0] == "demo":
+            return parts[1].capitalize(), parts[2][0].upper() if parts[2] else ""
+        elif len(parts) >= 2:
+            return parts[0].capitalize(), parts[1][0].upper() if parts[1] else ""
+        return username.capitalize(), ""
+
+    parsed = [parse(u) for u in usernames]
+
+    first_names = [p[0] for p in parsed]
+    result = []
+    for first, last_initial in parsed:
+        if first_names.count(first) > 1 and last_initial:
+            result.append(f"{first} {last_initial}.")
+        else:
+            result.append(first)
+
+    return result

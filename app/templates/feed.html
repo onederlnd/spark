@@ -134,6 +134,9 @@
           <a href="/posts/{{ post.id }}" class="reply-count">
             💬 {{ post.reply_count }} {{ 'reply' if post.reply_count == 1 else 'replies' }}
           </a>
+          {% if post.reaction_count > 0 %}
+            <span class="post-reaction-total">⚡ {{ post.reaction_count }}</span>
+          {% endif %}
         </div>
       </div>
     </div>

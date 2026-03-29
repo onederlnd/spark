@@ -20,7 +20,14 @@ from app.models.post import (
 from app.models.user import coppa_required
 from app.models.topic import get_all_topics
 from app.models.notifications import create_notification
-from app.models.reactions import add_or_update_reaction, get_reaction, REACTION_EMOJI
+from app.models.reactions import (
+    add_or_update_reaction,
+    get_reaction,
+    get_reaction_counts,
+    get_reaction_users,
+    format_reactor_names,
+    REACTION_EMOJI,
+)
 from app.utils.auth import login_required
 from app.utils.rate_limit import rate_limit
 from app.utils.sanitize import sanitize_plain, sanitize_bbcode
@@ -90,6 +97,12 @@ def view_post(post_id):
     topics = get_all_topics()
     bookmarked = is_bookmarked(session["user_id"], post_id)
     user_reaction = get_reaction(post_id, session["user_id"])
+    reaction_counts = get_reaction_counts(post_id)
+    reaction_user_raw = get_reaction_users(post_id)
+    reaction_tooltips = {
+        key: ", ".join(format_reactor_names(usernames))
+        for key, usernames in reaction_user_raw.items()
+    }
     return render_template(
         "post.html",
         post=post,
@@ -98,6 +111,8 @@ def view_post(post_id):
         bookmarked=bookmarked,
         user_reaction=user_reaction,
         reaction_emoji=REACTION_EMOJI,
+        reaction_counts=reaction_counts,
+        reaction_tooltips=reaction_tooltips,
     )
 
 
@@ -189,8 +204,6 @@ def react(post_id):
     post = get_post(post_id)
     if not post:
         return "Post not found", 404
-    if post["user_id"] == session["user_id"]:
-        return "Forbidden", 403
     reaction = request.form.get("reaction", "").strip()
     add_or_update_reaction(post_id, session["user_id"], reaction)
     return redirect(request.referrer or url_for("feed.index"))

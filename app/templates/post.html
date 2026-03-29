@@ -15,16 +15,7 @@
 
 <div class="post-full">
   {% if session.user_id != post.user_id %}
-<div class="reaction-strip">
-  {% for key, emoji in reaction_emoji.items() %}
-  <form method="POST" action="/posts/{{ post.id }}/react">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden" name="reaction" value="{{ key }}">
-    <button class="reaction-btn {% if user_reaction == key %}active{% endif %}"
-            title="{{ key }}">{{ emoji }}</button>
-  </form>
-  {% endfor %}
-</div>
+
 {% endif %}
 
   <div class="post-content">
@@ -42,28 +33,84 @@
     <h1 class="post-title-full">{{ post.title }}</h1>
     <div class="post-body-full">{{ post.body | bbcode }}</div>
 
-    <div class="post-actions">
-      <form method="POST" action="/posts/{{ post.id }}/bookmark">
+
+<div class="post-actions">
+  <div class="post-actions-left">
+    <form method="POST" action="/posts/{{ post.id }}/bookmark">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn-bookmark {% if bookmarked %}bookmarked{% endif %}">
+        {% if bookmarked %}🔖 Saved{% else %}🔖 Save{% endif %}
+      </button>
+    </form>
+
+    {% if session.user_id != post.user_id %}
+      <button type="button" class="btn btn-ghost" onclick="openReportModal()">🚩 Report</button>
+    {% endif %}
+
+    {% if session.user_id == post.user_id %}
+      <a href="/posts/{{ post.id }}/edit" class="btn-edit">Edit</a>
+      <form method="POST" action="/posts/{{ post.id }}/delete"
+        onsubmit="return confirm('Delete this post?')">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button class="btn-bookmark {% if bookmarked %}bookmarked{% endif %}">
-          {% if bookmarked %}🔖 Saved{% else %}🔖 Save{% endif %}
-        </button>
+        <button class="btn-delete">Delete</button>
       </form>
+    {% endif %}
+  </div>
 
-      {% if session.user_id != post.user_id %}
-        <!-- Report Button -->
-        <button type="button" class="btn btn-ghost" onclick="openReportModal()">🚩 Report</button>
-      {% endif %}
-
-      {% if session.user_id == post.user_id %}
-        <a href="/posts/{{ post.id }}/edit" class="btn-edit">Edit</a>
-        <form method="POST" action="/posts/{{ post.id }}/delete"
-          onsubmit="return confirm('Delete this post?')">
+  <div class="post-actions-right">
+    <div class="reaction-popover-wrap" id="reaction-wrap-{{ post.id }}">
+    
+      {% set total_reactions = reaction_counts.values() | sum %}
+      {% set reaction_type_count = reaction_counts.values() | select('greaterthan', 0) | list | length %}
+    
+      <div class="reaction-summary">
+        {% if total_reactions == 0 %}
+          <!-- no reactions: dim flame -->
+          <button class="reaction-flame-btn" onclick="toggleReactions('{{ post.id }}')" title="React">🔥</button>
+      
+        {% elif reaction_type_count == 1 and user_reaction and reaction_counts[user_reaction] == 1 %}
+          <!-- only one reaction and it's the current user's -->
+          <button class="reaction-sole-btn" onclick="toggleReactions('{{ post.id }}')" title="React">
+            {{ reaction_emoji[user_reaction] }}
+          </button>
+        
+        
+        {% else %}
+  <!-- multiple reactions or user hasn't reacted -->
+      {% for key, emoji in reaction_emoji.items() %}
+        {% if reaction_counts[key] > 0 %}
+        <form method="POST" action="/posts/{{ post.id }}/react">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button class="btn-delete">Delete</button>
+          <input type="hidden" name="reaction" value="{{ key }}">
+          <button class="reaction-count-pill {% if user_reaction == key %}active{% endif %} has-tooltip"
+                  data-tooltip="{{ reaction_tooltips.get(key, '') }}">
+            {{ emoji }} {{ reaction_counts[key] }}
+          </button>
         </form>
-      {% endif %}
+        {% endif %}
+      {% endfor %}
+      <button class="reaction-add-btn" onclick="toggleReactions('{{ post.id }}')" title="React">
+        ＋
+      </button>
+    {% endif %}
+      </div>
+    
+      <div class="reaction-popover" id="reaction-options-{{ post.id }}">
+        {% for key, emoji in reaction_emoji.items() %}
+        <form method="POST" action="/posts/{{ post.id }}/react">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="reaction" value="{{ key }}">
+          <button class="reaction-btn {% if user_reaction == key %}active{% endif %}"
+                  title="{{ key }}">{{ emoji }}</button>
+        </form>
+        {% endfor %}
+      </div>
     </div>
+  </div>
+</div>
+
+    
+    
   </div>
 </div>
 
@@ -243,6 +290,32 @@ function updateCounter(input, counterId, max) {
   else if (len / max >= 0.8) counter.classList.add('warn');
 }
 
+function toggleReactions(postId) {
+    const popover = document.getElementById('reaction-options-' + postId);
+    const isOpen = popover.classList.contains('open');
+    // close all open popovers first
+    document.querySelectorAll('.reaction-popover.open').forEach(el => {
+        el.classList.remove('open');
+    });
+    if (!isOpen) {
+        popover.classList.add('open');
+    }
+}
+
+document.addEventListener('click', function(e) {
+    document.querySelectorAll('.reaction-popover.open').forEach(el => {
+        const wrap = el.closest('.reaction-popover-wrap');
+        if (wrap && !wrap.contains(e.target)) {
+            el.classList.remove('open');
+        }
+    });
+});
+
+// initialize has-reaction on load
+document.querySelectorAll('.reaction-popover-wrap').forEach(wrap => {
+    const hasActive = wrap.querySelector('.reaction-btn.active') !== null;
+    if (hasActive) wrap.classList.add('has-reaction');
+});
 </script>
 
 {% endblock %}

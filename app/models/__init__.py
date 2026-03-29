@@ -126,7 +126,7 @@ def init_db(app):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 post_id INTEGER NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
                 user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                reaction TEXT NOT NULL CHECK(reaction IN ('lit', 'thinking', 'question', 'like')),
+                reaction TEXT NOT NULL,
                 created_at TEXT NOT NULL,
                 UNIQUE(post_id, user_id)
             );

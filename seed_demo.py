@@ -13,7 +13,7 @@ Includes:
   - submissions with grades and feedback
   - 2 flagged posts in the moderation queue (one auto-hidden)
   - 3 custom filtered words
-  - votes, bookmarks, follows, notifications
+  - reactions, bookmarks, follows, notifications
 
 Usage:
     python seed_demo.py
@@ -36,6 +36,8 @@ if DB_PATH.startswith("sqlite:///"):
     DB_PATH = DB_PATH[len("sqlite:///") :]
 
 NOW = datetime.now(timezone.utc)
+
+REACTION_KEYS = ["love", "idea", "thinking", "nailed_it", "lit", "star", "fire"]
 
 
 def ts(offset_hours=0, offset_days=0):
@@ -106,7 +108,6 @@ CLASSROOM = {
 }
 
 # ── Posts ─────────────────────────────────────────────────────────────────────
-# (topic, title, body, author_index 0-24 or "teacher", hours_ago)
 POSTS = [
     # ── Science ──────────────────────────────────────────────────────────────
     (
@@ -533,8 +534,7 @@ ASSIGNMENTS = [
     },
 ]
 
-# ── Submissions — Water Cycle (past due, mix of graded + ungraded + missing) ──
-# (student_index, body, grade, feedback)
+# ── Submissions — Water Cycle ─────────────────────────────────────────────────
 SUBMISSIONS_WATER_CYCLE = [
     (
         0,
@@ -626,10 +626,9 @@ SUBMISSIONS_WATER_CYCLE = [
         "B+",
         "Nice work Marcus! Good explanation of the continuous nature of the cycle. Try to include more detail on the collection stage.",
     ),
-    # Students 6,8,9,14,18,20,21,22,23,24 did not submit — shows as missing in dashboard
 ]
 
-# ── Submissions — Hatchet (active, early submissions) ────────────────────────
+# ── Submissions — Hatchet ─────────────────────────────────────────────────────
 SUBMISSIONS_HATCHET = [
     (
         0,
@@ -678,7 +677,7 @@ def clean(db):
 
     up = ",".join("?" * len(user_ids))
 
-    db.execute(f"DELETE FROM votes WHERE user_id IN ({up})", user_ids)
+    db.execute(f"DELETE FROM reactions WHERE user_id IN ({up})", user_ids)
     db.execute(f"DELETE FROM bookmarks WHERE user_id IN ({up})", user_ids)
     db.execute(
         f"DELETE FROM follows WHERE follower_id IN ({up}) OR followed_id IN ({up})",
@@ -720,7 +719,7 @@ def clean(db):
         pids = [r[0] for r in post_rows]
         pp = ",".join("?" * len(pids))
         db.execute(f"DELETE FROM reports WHERE post_id IN ({pp})", pids)
-        db.execute(f"DELETE FROM votes WHERE post_id IN ({pp})", pids)
+        db.execute(f"DELETE FROM reactions WHERE post_id IN ({pp})", pids)
         db.execute(f"DELETE FROM bookmarks WHERE post_id IN ({pp})", pids)
         db.execute(f"DELETE FROM posts WHERE id IN ({pp})", pids)
 
@@ -827,7 +826,7 @@ def seed(db):
                 (parent_id,),
             )
 
-    # Votes
+    # Reactions
     popular = [
         "Why is the sky blue?",
         "Cool experiment — growing crystals",
@@ -847,17 +846,15 @@ def seed(db):
         shuffled = list(student_ids)
         random.shuffle(shuffled)
         count = random.randint(6, 16)
-        actual = 0
-        for voter in shuffled[:count]:
+        for reactor in shuffled[:count]:
+            reaction = random.choice(REACTION_KEYS)
             try:
                 db.execute(
-                    "INSERT INTO votes (user_id, post_id, value) VALUES (?, ?, 1)",
-                    (voter, pid),
+                    "INSERT INTO reactions (post_id, user_id, reaction, created_at) VALUES (?, ?, ?, ?)",
+                    (pid, reactor, reaction, ts(random.randint(1, 48))),
                 )
-                actual += 1
             except sqlite3.IntegrityError:
                 pass
-        db.execute("UPDATE posts SET votes = ? WHERE id = ?", (actual, pid))
 
     # Bookmarks
     for title in [
@@ -874,7 +871,7 @@ def seed(db):
             except sqlite3.IntegrityError:
                 pass
 
-    # Follows — realistic mesh across 25 students
+    # Follows
     pairs = [
         (0, 1),
         (0, 2),
@@ -921,7 +918,7 @@ def seed(db):
         except sqlite3.IntegrityError:
             pass
 
-    # Moderation — flagged post (3 reports = auto-hidden)
+    # Moderation
     flagged_pid = post_id_map.get("This app is so dumb")
     if flagged_pid:
         for reporter in [student_ids[2], student_ids[7], student_ids[9]]:

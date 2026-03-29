@@ -16,21 +16,24 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
             placeholders = ",".join("?" * len(blocked_ids))
             rows = db.execute(
                 f"""
-                SELECT posts.*, users.username, topics.name as topic_name
+                SELECT posts.*, users.username, topics.name as topic_name,
+                    (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
                 FROM posts
                 JOIN users ON posts.user_id = users.id
                 LEFT JOIN topics ON posts.topic_id = topics.id
                 WHERE posts.parent_id IS NULL
                 AND posts.is_hidden = 0
                 AND posts.user_id NOT IN ({placeholders})
-                ORDER BY posts.reply_count DESC                LIMIT ? OFFSET ?
+                ORDER BY posts.reply_count DESC
+                LIMIT ? OFFSET ?
         """,
                 (*blocked_ids, PER_PAGE + 1, offset),
             ).fetchall()
         else:
             rows = db.execute(
                 """
-                SELECT posts.*, users.username, topics.name as topic_name
+                SELECT posts.*, users.username, topics.name as topic_name,
+                    (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
                 FROM posts
                 JOIN users ON posts.user_id = users.id
                 LEFT JOIN topics on posts.topic_id = topics.id
@@ -47,7 +50,8 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
             placeholder = ",".join("?" * len(blocked_ids))
             rows = db.execute(
                 f"""
-                SELECT posts.*, users.username, topics.name as topic_name
+                SELECT posts.*, users.username, topics.name as topic_name,
+                    (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
                 FROM posts
                 JOIN users ON posts.user_id = users.id
                 LEFT JOIN topics ON posts.topic_id = topics.id
@@ -62,7 +66,8 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
         else:
             rows = db.execute(
                 """
-                SELECT posts.*, users.username, topics.name as topic_name
+                SELECT posts.*, users.username, topics.name as topic_name,
+                    (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
                 FROM posts
                 JOIN users ON posts.user_id = users.id
                 LEFT JOIN topics ON posts.topic_id = topics.id
@@ -131,13 +136,14 @@ def get_posts_by_user(user_id):
     db = get_db()
     return db.execute(
         """
-        SELECT posts.*, users.username, topics.name as topic_name
-                      FROM posts
-                      JOIN users ON posts.user_id = users.id
-                      LEFT JOIN topics ON posts.topic_id = topics.id
-                      WHERE posts.user_id = ?
-                      AND posts.parent_id IS NULL
-                      ORDER BY posts.created_at DESC
+        SELECT posts.*, users.username, topics.name as topic_name,
+            (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
+        FROM posts
+        JOIN users ON posts.user_id = users.id
+        LEFT JOIN topics ON posts.topic_id = topics.id
+        WHERE posts.user_id = ?
+        AND posts.parent_id IS NULL
+        ORDER BY posts.created_at DESC
     """,
         (user_id,),
     ).fetchall()
@@ -190,15 +196,16 @@ def search_posts(query, page=1):
 
     rows = db.execute(
         """
-        SELECT posts.*, users.username, topics.name as topic_name
-                      FROM posts_fts
-                      JOIN posts ON posts_fts.rowid = posts.id
-                      JOIN users ON posts.user_id = users.id
-                      LEFT JOIN topics on posts.topic_id = topics.id
-                      WHERE posts_fts MATCH ?
-                      AND posts.parent_id IS NULL
-                      ORDER BY rank
-                      LIMIT ? OFFSET ?
+        SELECT posts.*, users.username, topics.name as topic_name,
+            (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
+        FROM posts_fts
+        JOIN posts ON posts_fts.rowid = posts.id
+        JOIN users ON posts.user_id = users.id
+        LEFT JOIN topics on posts.topic_id = topics.id
+        WHERE posts_fts MATCH ?
+        AND posts.parent_id IS NULL
+        ORDER BY rank
+        LIMIT ? OFFSET ?
         """,
         (query, PER_PAGE + 1, offset),
     ).fetchall()
@@ -212,10 +219,10 @@ def get_replies(post_id):
     return db.execute(
         """
         SELECT posts.*, users.username
-                      FROM posts
-                      JOIN users ON posts.user_id = users.id
-                      WHERE posts.parent_id = ?
-                      ORDER BY posts.reply_count DESC
+            FROM posts
+            JOIN users ON posts.user_id = users.id
+            WHERE posts.parent_id = ?
+            ORDER BY posts.reply_count DESC
     """,
         (post_id,),
     ).fetchall()
@@ -248,12 +255,12 @@ def get_bookmarks(user_id):
     return db.execute(
         """
         SELECT posts.*, users.username, topics.name as topic_name
-        FROM bookmarks
-        JOIN posts ON bookmarks.post_id = posts.id
-        JOIN users ON posts.user_id = users.id
-        LEFT JOIN topics ON posts.topic_id = topics.id
-        WHERE bookmarks.user_id = ?
-        ORDER BY bookmarks.created_at DESC
+            FROM bookmarks
+            JOIN posts ON bookmarks.post_id = posts.id
+            JOIN users ON posts.user_id = users.id
+            LEFT JOIN topics ON posts.topic_id = topics.id
+            WHERE bookmarks.user_id = ?
+            ORDER BY bookmarks.created_at DESC
     """,
         (user_id,),
     ).fetchall()
@@ -279,7 +286,8 @@ def get_following_feed(user_id, page=1, blocked_ids=None):
         placeholders = ",".join("?" * len(blocked_ids))
         rows = db.execute(
             f"""
-            SELECT posts.*, users.username, topics.name as topic_name
+            SELECT posts.*, users.username, topics.name as topic_name,
+                (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
             FROM posts
             JOIN users ON posts.user_id = user.id
             LEFT JOIN topics ON posts.topic_id = topics.id
@@ -299,12 +307,13 @@ def get_following_feed(user_id, page=1, blocked_ids=None):
 
     rows = db.execute(
         """
-        SELECT posts.*, users.username, topics.name as topic_name
+        SELECT posts.*, users.username, topics.name as topic_name,
+            (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
         FROM posts
         JOIN users ON posts.user_id = users.id
         LEFT JOIN topics ON posts.topic_id = topics.id
         WHERE posts.user_id IN (
-        SELECT followed_id FROM follows WHERE follower_id = ?
+            SELECT followed_id FROM follows WHERE follower_id = ?
         )
         AND posts.parent_id IS NULL
         AND posts.is_hidden = 0
@@ -326,13 +335,13 @@ def get_trending(limit=5):
     return db.execute(
         """
         SELECT posts.*, users.username, topics.name as topic_name
-        FROM posts
-        JOIN users ON posts.user_id = users.id
-        LEFT JOIN topics ON posts.topic_id = topics.id
-        WHERE posts.parent_id IS NULL
-        AND posts.created_at >= datetime('now', '-7 days')
-        ORDER BY posts.reply_count DESC
-        LIMIT ?
+            FROM posts
+            JOIN users ON posts.user_id = users.id
+            LEFT JOIN topics ON posts.topic_id = topics.id
+            WHERE posts.parent_id IS NULL
+            AND posts.created_at >= datetime('now', '-7 days')
+            ORDER BY posts.reply_count DESC
+            LIMIT ?
         """,
         (limit,),
     ).fetchall()

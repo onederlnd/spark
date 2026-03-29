@@ -55,7 +55,7 @@ def test_react_stores_reaction(auth_client, app):
 
     auth_client.post(
         f"/posts/{post_id}/react",
-        data={"reaction": "like"},
+        data={"reaction": "love"},
     )
 
     with app.app_context():
@@ -65,7 +65,7 @@ def test_react_stores_reaction(auth_client, app):
             .fetchone()["id"]
         )
         result = get_reaction(post_id, user_id)
-    assert result == "like"
+    assert result == "love"
 
 
 def test_react_toggle_off(auth_client, app):
@@ -136,31 +136,6 @@ def test_react_swap_reaction(auth_client, app):
     assert result == "thinking"
 
 
-def test_cannot_react_to_own_post(auth_client, app):
-    """User cannot react to their own post."""
-    with app.app_context():
-        db = get_db()
-        user_id = db.execute(
-            "SELECT id FROM users WHERE username = ?", ("testuser",)
-        ).fetchone()["id"]
-        db.execute(
-            "INSERT INTO posts (user_id, title, body, classroom_id) VALUES (?,?,?,?)",
-            (user_id, "My Own Post", "body", None),
-        )
-        db.commit()
-        post_id = db.execute(
-            "SELECT id FROM posts WHERE user_id = ? AND title = ?",
-            (user_id, "My Own Post"),
-        ).fetchone()["id"]
-
-    response = auth_client.post(
-        f"/posts/{post_id}/react",
-        data={"reaction": "lit"},
-        follow_redirects=False,
-    )
-    assert response.status_code == 403
-
-
 def test_invalid_reaction_rejected(auth_client, app):
     """Invalid reaction string is ignored."""
     with app.app_context():
@@ -217,14 +192,17 @@ def test_reaction_counts_correct(auth_client, app):
             "SELECT id FROM posts WHERE user_id = ?", (other_id,)
         ).fetchone()["id"]
 
-    auth_client.post(f"/posts/{post_id}/react", data={"reaction": "like"})
+    auth_client.post(f"/posts/{post_id}/react", data={"reaction": "love"})
 
     with app.app_context():
         counts = get_reaction_counts(post_id)
-    assert counts["like"] == 1
-    assert counts["lit"] == 0
+    assert counts["love"] == 1
+    assert counts["idea"] == 0
     assert counts["thinking"] == 0
-    assert counts["question"] == 0
+    assert counts["nailed_it"] == 0
+    assert counts["lit"] == 0
+    assert counts["star"] == 0
+    assert counts["fire"] == 0
 
 
 def test_reaction_counts_empty_post(app):
