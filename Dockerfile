@@ -6,4 +6,4 @@ COPY . .
 EXPOSE 5000
 ENV FLASK_ENV=production
 ENV PYTHONUNBUFFERED=1
-CMD ["python", "run.py"]
+CMD ["gunicorn", "--worker-class", "eventlet", "-w", "1", "--bind", "0.0.0.0:5000", "run:app"]

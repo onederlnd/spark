@@ -125,8 +125,6 @@
 - [ ] Session stability — confirm WebSocket and session timeout work in production
 - [ ] Database backups — scheduled backup with rotation before go-live
 
----
-
 ## 🔐 v1.1 — Trust & Verification
 > **Status: Planned**
 > Expands safety and visibility ahead of multi-classroom rollout.

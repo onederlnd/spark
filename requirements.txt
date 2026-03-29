@@ -11,3 +11,5 @@ CairoSVG==2.8.2
 pillow==12.1.1
 better-profanity==0.7.0
 Flask-Mail==0.10.0
+gunicorn==25.3.0
+eventlet==0.40.4
