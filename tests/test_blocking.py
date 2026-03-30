@@ -146,24 +146,28 @@ def test_block_requires_login(client):
     assert "/auth/login" in response.headers["Location"]
 
 
-def test_blocked_user_hidden_from_feed(app, client):
-    """Posts from blocked users do not appear in the feed"""
-    create_user("viewer", "pass123", dob="2000-01-01")
-    create_user("blocked_author", "pass123", dob="2000-01-01")
+def test_blocked_user_hidden_from_feed(auth_client, app):
+    """Posts from blocked users do not appear in the all feed."""
+    other = app.test_client(use_cookies=True)
+    other.post(
+        "/auth/register",
+        data={
+            "username": "blockeduser",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2000-01-01",
+        },
+    )
+    other.post("/auth/login", data={"username": "blockeduser", "password": "pass123"})
+    other.post(
+        "/posts/new",
+        data={"title": "Blocked Post", "body": "Should be hidden", "topic_id": ""},
+    )
 
-    viewer = get_user_by_username("viewer")
-    blocked_author = get_user_by_username("blocked_author")
+    auth_client.post("/blockeduser/block")
 
-    create_post(blocked_author["id"], "Hidden Post", "You should not see this", None)
-    block_user(viewer["id"], blocked_author["id"])
-
-    with client.session_transaction() as sess:
-        sess["user_id"] = viewer["id"]
-        sess["coppa_status"] = "approved"
-        sess["role"] = "student"
-
-    response = client.get("/", follow_redirects=True)
-    assert b"Hidden Post" not in response.data
+    response = auth_client.get("/feed/")
+    assert b"Blocked Post" not in response.data
 
 
 def test_unblocked_user_appears_in_feed(app, client):
@@ -186,25 +190,64 @@ def test_unblocked_user_appears_in_feed(app, client):
     assert b"Visible Post" in response.data
 
 
-def test_non_blocked_posts_still_visible(app, client):
-    """Posts from non-blocked users are unaffected by blocking someone else"""
-    create_user("viewer", "pass123", dob="2000-01-01")
-    create_user("blocked_author", "pass123", dob="2000-01-01")
-    create_user("normal_author", "pass123", dob="2000-01-01")
+def test_non_blocked_posts_still_visible(auth_client, app):
+    """Non-blocked users' posts still appear after blocking someone else."""
+    # block someone
+    blocked = app.test_client(use_cookies=True)
+    blocked.post(
+        "/auth/register",
+        data={
+            "username": "blocked2",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2000-01-01",
+        },
+    )
+    auth_client.post("/blocked2/block")
 
-    viewer = get_user_by_username("viewer")
-    blocked_author = get_user_by_username("blocked_author")
-    normal_author = get_user_by_username("normal_author")
+    # a different user posts
+    other = app.test_client(use_cookies=True)
+    other.post(
+        "/auth/register",
+        data={
+            "username": "visible",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2000-01-01",
+        },
+    )
+    other.post("/auth/login", data={"username": "visible", "password": "pass123"})
+    other.post(
+        "/posts/new",
+        data={"title": "Visible Post", "body": "Should appear", "topic_id": ""},
+    )
 
-    create_post(blocked_author["id"], "Hidden Post", "Should not appear", None)
-    create_post(normal_author["id"], "Normal Post", "Should appear", None)
-    block_user(viewer["id"], blocked_author["id"])
+    response = auth_client.get("/feed/")
+    assert b"Visible Post" in response.data
 
-    with client.session_transaction() as sess:
-        sess["user_id"] = viewer["id"]
-        sess["coppa_status"] = "approved"
-        sess["role"] = "student"
 
-    response = client.get("/", follow_redirects=True)
-    assert b"Hidden Post" not in response.data
-    assert b"Normal Post" in response.data
+def test_blocked_user_hidden_from_following_feed(auth_client, app):
+    """Posts from blocked users do not appear in the following feed even if followed."""
+    other = app.test_client(use_cookies=True)
+    other.post(
+        "/auth/register",
+        data={
+            "username": "blockedfollowed",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2000-01-01",
+        },
+    )
+    other.post(
+        "/auth/login", data={"username": "blockedfollowed", "password": "pass123"}
+    )
+    other.post(
+        "/posts/new",
+        data={"title": "Followed But Blocked", "body": "Hidden post", "topic_id": ""},
+    )
+
+    auth_client.post("/profile/blockedfollowed/follow")
+    auth_client.post("/blockedfollowed/block")
+
+    response = auth_client.get("/feed/following")
+    assert b"Followed But Blocked" not in response.data

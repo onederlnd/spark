@@ -47,12 +47,74 @@ def test_follow_nonexistent_user(auth_client):
 
 
 def test_following_feed(auth_client):
-    """Following feed loads successfully."""
-    response = auth_client.get("/feed/?feed=following", follow_redirects=True)
+    response = auth_client.get("/feed/following")
     assert response.status_code == 200
 
 
 def test_following_feed_empty_state(auth_client):
-    """Following feed shows empty state when not following anyone."""
-    response = auth_client.get("/feed/?feed=following", follow_redirects=True)
+    response = auth_client.get("/feed/following")
     assert b"Your following feed is empty" in response.data
+
+
+def test_following_feed_new_url(auth_client):
+    """Following feed loads at canonical /feed/following URL."""
+    response = auth_client.get("/feed/following")
+    assert response.status_code == 200
+
+
+def test_following_feed_shows_posts_from_followed_users(auth_client, app):
+    """Posts from followed users appear in the following feed."""
+    # register a second user and have auth_client follow them
+    other = app.test_client(use_cookies=True)
+    other.post(
+        "/auth/register",
+        data={
+            "username": "otheruser",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2000-01-01",
+        },
+    )
+    other.post("/auth/login", data={"username": "otheruser", "password": "pass123"})
+    other.post(
+        "/posts/new",
+        data={"title": "Other User Post", "body": "Post body", "topic_id": ""},
+    )
+
+    auth_client.post("/profile/otheruser/follow")
+
+    response = auth_client.get("/feed/following")
+    assert response.status_code == 200
+    assert b"Other User Post" in response.data
+
+
+def test_following_feed_excludes_unfollowed_users(auth_client, app):
+    """Posts from users not followed do not appear in the following feed."""
+    other = app.test_client(use_cookies=True)
+    other.post(
+        "/auth/register",
+        data={
+            "username": "stranger",
+            "password": "pass123",
+            "bio": "",
+            "dob": "2000-01-01",
+        },
+    )
+    other.post("/auth/login", data={"username": "stranger", "password": "pass123"})
+    other.post(
+        "/posts/new",
+        data={
+            "title": "Stranger Post",
+            "body": "You should not see this",
+            "topic_id": "",
+        },
+    )
+
+    response = auth_client.get("/feed/following")
+    assert b"Stranger Post" not in response.data
+
+
+def test_following_feed_requires_login(client):
+    response = client.get("/feed/following", follow_redirects=False)
+    assert response.status_code == 302
+    assert "/auth/login" in response.headers["Location"]

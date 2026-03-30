@@ -289,13 +289,13 @@ def get_following_feed(user_id, page=1, blocked_ids=None):
             SELECT posts.*, users.username, topics.name as topic_name,
                 (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
             FROM posts
-            JOIN users ON posts.user_id = user.id
+            JOIN users ON posts.user_id = users.id
             LEFT JOIN topics ON posts.topic_id = topics.id
             WHERE posts.user_id IN (
                 SELECT followed_id FROM follows WHERE follower_id = ?
             )
             AND posts.parent_id IS NULL
-            ANd posts.is_hidden = 0
+            AND posts.is_hidden = 0
             AND posts.user_id NOT IN ({placeholders})
             ORDER BY posts.created_at DESC
             LIMIT ? OFFSET ?
@@ -303,45 +303,23 @@ def get_following_feed(user_id, page=1, blocked_ids=None):
             (user_id, *blocked_ids, PER_PAGE + 1, offset),
         ).fetchall()
     else:
-        blocked_ids = []
-
-    rows = db.execute(
-        """
-        SELECT posts.*, users.username, topics.name as topic_name,
-            (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
-        FROM posts
-        JOIN users ON posts.user_id = users.id
-        LEFT JOIN topics ON posts.topic_id = topics.id
-        WHERE posts.user_id IN (
-            SELECT followed_id FROM follows WHERE follower_id = ?
-        )
-        AND posts.parent_id IS NULL
-        AND posts.is_hidden = 0
-        ORDER BY posts.created_at DESC
-        LIMIT ? OFFSET ?
-    """,
-        (user_id, *blocked_ids, PER_PAGE + 1, offset),
-    ).fetchall()
-
-    has_next = len(rows) > PER_PAGE
-    return rows[:PER_PAGE], has_next
-
-
-def get_trending(limit=5):
-    """
-    TODO: Implement trending algorithm.
-    """
-    db = get_db()
-    return db.execute(
-        """
-        SELECT posts.*, users.username, topics.name as topic_name
+        rows = db.execute(
+            """
+            SELECT posts.*, users.username, topics.name as topic_name,
+                (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
             FROM posts
             JOIN users ON posts.user_id = users.id
             LEFT JOIN topics ON posts.topic_id = topics.id
-            WHERE posts.parent_id IS NULL
-            AND posts.created_at >= datetime('now', '-7 days')
-            ORDER BY posts.reply_count DESC
-            LIMIT ?
-        """,
-        (limit,),
-    ).fetchall()
+            WHERE posts.user_id IN (
+                SELECT followed_id FROM follows WHERE follower_id = ?
+            )
+            AND posts.parent_id IS NULL
+            AND posts.is_hidden = 0
+            ORDER BY posts.created_at DESC
+            LIMIT ? OFFSET ?
+            """,
+            (user_id, PER_PAGE + 1, offset),
+        ).fetchall()
+
+    has_next = len(rows) > PER_PAGE
+    return rows[:PER_PAGE], has_next

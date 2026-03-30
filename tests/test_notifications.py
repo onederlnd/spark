@@ -312,3 +312,14 @@ def test_grade_notification_marked_read(
         from app.models.notifications import get_unread_count
 
         assert get_unread_count(student_id) == 0
+
+
+def test_mark_all_as_read(auth_client):
+    response = auth_client.post("/notifications/read", follow_redirects=True)
+    assert response.status_code == 200
+
+
+def test_mark_all_as_read_requires_login(client):
+    response = client.post("/notifications/read", follow_redirects=False)
+    assert response.status_code == 302
+    assert "/auth/login" in response.headers["Location"]
