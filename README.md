@@ -254,7 +254,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [ ] Database backups
 
 ### v1.1 — Trust & Verification
-- [ ] Email verification
+- [x] Email verification
 - [x] Admin dashboard
 - [ ] Parent dashboard
 - [ ] Topic moderators

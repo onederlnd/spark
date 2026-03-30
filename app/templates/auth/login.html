@@ -41,9 +41,12 @@
     playsinline autoplay></video>
 
   <canvas id="qr-canvas" style="display:none;"></canvas>
-
-  <a href="/auth/register" style="display:block; margin-top:1rem;">Don't have an account? Join free →</a>
-</div>
+  {% if registration_open %}
+    <a href="/auth/register" style="display:block; margin-top:1rem;">Don't have an account? Join free →</a>
+  {% else %}
+    <p style="margin-top:1rem; color:var(--muted);">Registration is currently closed.</p>
+  {% endif %}
+  </div>
 
 <script src="{{ url_for('static', filename='jsQR.js') }}"></script>
 <script>

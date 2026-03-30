@@ -1,6 +1,5 @@
 # run.py
 
-import os
 from app import create_app
 from app.sockets import socketio
 from app.utils.logger import init_logging, get_logger
