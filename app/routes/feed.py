@@ -57,3 +57,23 @@ def topic(topic_name):
         active_topic=t,
         feed_type="all",
     )
+
+
+@feed_bp.route("/feed/following")
+@login_required
+@coppa_required
+def following_feed():
+    page = request.args.get("page", 1, type=int)
+    topics = get_all_topics()
+    blocked = get_blocked_ids(session["user_id"])
+    posts, has_next = get_following_feed(
+        session["user_id"], page=page, blocked_ids=blocked
+    )
+    return render_template(
+        "feed.html",
+        posts=posts,
+        topics=topics,
+        page=page,
+        has_next=has_next,
+        feed_type="following",
+    )

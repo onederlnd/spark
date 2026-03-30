@@ -16,9 +16,9 @@
   <li><a href="/classrooms">
     <span class=""icon">🏫</span> Classrooms
   </a></li>
-  <li><a href="/?feed=following" class="{% if feed_type == 'following' %}active{% endif %}">
+  <li><a href="/feed/following" class="{% if feed_type == 'following' %}active{% endif %}">
     <span class="icon">👥</span> Following
-  </a></li>
+</a></li>
   <li><a href="/notifications/">
     <span class="icon">🔔</span> Notifications
     {% if session.username and unread_count > 0 %}
@@ -111,8 +111,8 @@
 
 {% if not active_topic %}
 <div class="feed-tabs">
-  <a href="/?feed=all" class="feed-tab {% if feed_type == 'all' %}active{% endif %}">For You</a>
-  <a href="/?feed=following" class="feed-tab {% if feed_type == 'following' %}active{% endif %}">Following</a>
+  <a href="/feed/" class="feed-tab {% if feed_type == 'all' %}active{% endif %}">For You</a>
+  <a href="/feed/following" class="feed-tab {% if feed_type == 'following' %}active{% endif %}">Following</a>
 </div>
 {% endif %}
 
@@ -148,16 +148,15 @@
       {% if active_topic %}
         <a href="/t/{{ active_topic.name }}?page={{ page - 1 }}" class="page-btn">← Prev</a>
       {% else %}
-        <a href="/?feed={{ feed_type }}&page={{ page - 1 }}" class="page-btn">← Prev</a>
-      {% endif %}
+      {% if feed_type == 'following' %}<a href="/feed/following?page={{ page - 1 }}" class="page-btn">← Prev</a>{% else %}<a href="/feed/?page={{ page - 1 }}" class="page-btn">← Prev</a>{% endif %}      {% endif %}
     {% endif %}
     <span class="page-num">Page {{ page }}</span>
     {% if has_next %}
       {% if active_topic %}
         <a href="/t/{{ active_topic.name }}?page={{ page + 1 }}" class="page-btn">Next →</a>
       {% else %}
-        <a href="/?feed={{ feed_type }}&page={{ page + 1 }}" class="page-btn">Next →</a>
-      {% endif %}
+      {% if feed_type == 'following' %}
+        <a href="/feed/following?page={{ page + 1 }}" class="page-btn">Next →</a>{% else %}<a href="/feed/?page={{ page + 1 }}" class="page-btn">Next →</a>{% endif %}      {% endif %}
     {% endif %}
   </div>
 
