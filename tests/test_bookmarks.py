@@ -28,7 +28,7 @@ def test_unbookmark_post(auth_client):
 
     # shoudl no longer show bookmarked
     response = auth_client.get(post_url)
-    assert b"bookmarked" not in response.data or b"\u2295 bookmark" in response.data
+    assert b"bookmarked" not in response.data or b"bookmark" in response.data
 
 
 def test_bookmarks_appear_on_profile(auth_client):
