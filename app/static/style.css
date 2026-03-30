@@ -1102,6 +1102,36 @@ a:hover { text-decoration: underline; }
   background: var(--soft);
 }
 
+.auth-form select {
+  display: block;
+  width: 100%;
+  margin-bottom: 12px;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 12px 16px;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%237a92aa' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  cursor: pointer;
+}
+
+.auth-form select:focus {
+  border-color: var(--blue);
+  background-color: var(--soft);
+}
+
+.auth-form select option {
+  background: var(--card);
+  color: var(--text);
+}
 .auth-form .btn-submit {
   width: 100%;
   text-align: center;

@@ -50,6 +50,8 @@ from app.models.waitlist import (
     get_waitlist_daily,
 )
 
+from app.utils.email import send_acceptance_email
+
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
 
@@ -264,3 +266,21 @@ def export():
             "Content-Disposition": f"attachment; filename=spark_alpha_{timestamp}.zip"
         },
     )
+
+
+@admin_bp.route("/alpha/waitlist/invite/<int:waitlist_id>", methods=["POST"])
+def invite_from_waitlist(waitlist_id):
+    guard = _require_auth()
+    if guard is not None:
+        return guard
+
+    db_waitlist = get_waitlist_all()
+    entry = next((r for r in db_waitlist if r["id"] == waitlist_id), None)
+
+    if not entry:
+        flash("Waitlist entry not found.", "error")
+        return redirect(url_for("admin.dashboard"))
+
+    send_acceptance_email(entry["email"])
+    flash(f"Invite sent to {entry['email']}", "success")
+    return redirect(url_for("admin.dashboard") + "#waitlist")

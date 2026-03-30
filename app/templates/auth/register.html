@@ -15,6 +15,7 @@
   <form method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input name="username" placeholder="Choose a username" required autocomplete="username">
+    <input type="email" name="email" placeholder="Email address (optional)" autocomplete="email">
     <input name="password" type="password" placeholder="Create a password" required autocomplete="new-password">
     <input type="date" name="dob" id="dob" required>
     <select name="role">

@@ -10,7 +10,7 @@ from flask import (
 from flask_mail import Message
 from app.extensions import mail
 from app.models.waitlist import add_to_waitlist
-
+from datetime import datetime, timezone
 
 marketing_bp = Blueprint("landing", __name__)
 
@@ -37,9 +37,9 @@ def waitlist():
         # Confirmation to user
         try:
             msg = Message(
-                subject="You're on the SparK waitlist!",
+                subject="You're on the SparK waitlist! ⚡",
                 recipients=[email],  # ✅ signup email, not sender
-                body="Thanks for signing up! We'll be in touch soon.",
+                html=render_template("email/waitlist_confirmation.html"),
             )
             mail.send(msg)
         except Exception as e:
@@ -52,9 +52,15 @@ def waitlist():
                 msg = Message(
                     subject="New SparK waitlist signup",
                     recipients=[admin_email],
-                    body=f"New signup: {email}",
+                    html=render_template(
+                        "email/admin_notification.html",
+                        email=email,
+                        timestamp=datetime.now(timezone.utc).strftime(
+                            "%B %d, %Y at %I:%M %p UTC"
+                        ),
+                    ),
                 )
-                mail.send(msg)  # ✅ inside the if admin_email block
+                mail.send(msg)
         except Exception as e:
             current_app.logger.error(f"Admin notify email failed: {e}")
 

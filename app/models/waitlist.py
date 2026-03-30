@@ -41,6 +41,7 @@ def get_waitlist_all():
     return db.execute(
         """
         SELECT
+            waitlist.id,
             waitlist.email,
             waitlist.joined_at,
             CASE WHEN users.id IS NOT NULL THEN 1 ELSE 0 END as converted

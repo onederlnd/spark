@@ -1,5 +1,6 @@
 # app/routes/auth.py
 
+import os
 from flask import Blueprint, request, session, redirect, url_for, render_template, flash
 from datetime import datetime, timezone
 from app.models.user import create_user, check_password, get_user_by_id
@@ -8,7 +9,7 @@ from app.models.notifications import create_notification
 from app.utils.brute_force import is_locked_out, record_failure, record_success
 from app.utils.rate_limit import rate_limit
 from app.utils.auth import current_user, login_required, teacher_required
-
+from app.utils.email import send_welcome_email
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -16,6 +17,9 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 @auth_bp.route("/register", methods=["GET", "POST"])
 @rate_limit(max_requests=35, window_seconds=60)
 def register():
+    if os.environ.get("REGISTERATON_OPEN", "true").lower() == "false":
+        return redirect(url_for("landing.index"))
+
     from app.utils.sanitize import sanitize_username, sanitize_plain
 
     if request.method == "POST":
@@ -23,6 +27,7 @@ def register():
         password = request.form["password"]
         bio = sanitize_plain(request.form.get("bio", ""), max_length=300)
         dob = request.form.get("dob")
+        email = request.form.get("email", "").strip() or None  # ← add this
 
         if not dob:
             flash("Date of Birth is required.")
@@ -35,14 +40,14 @@ def register():
             flash("Username and password are required", "error")
             return render_template("auth/register.html")
 
-        success, error = create_user(username, password, bio, role=role, dob=dob)
+        success, error = create_user(
+            username, password, bio, role=role, dob=dob, email=email
+        )  # ← add email
         if success:
             db = get_db()
-
             teachers = db.execute(
                 "SELECT id FROM users WHERE role='teacher'"
             ).fetchall()
-
             for teacher in teachers:
                 create_notification(
                     user_id=teacher["id"],
@@ -50,6 +55,10 @@ def register():
                     type="coppa",
                     link="/auth/coppa/pending",
                 )
+
+            # Send welcome email if provided
+            if email:
+                send_welcome_email(email, username)
 
             flash("Account created! Please log in.", "success")
             return redirect(url_for("auth.login"))

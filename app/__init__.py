@@ -48,9 +48,7 @@ def create_app(config=None):
     init_socketio(app)
 
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "2ejfof2jf2ojwfxasf")
-    app.config["DATABASE_URL"] = os.environ.get(
-        "DATABASE_URL", "spark-alpha-demo-seed-full-school.db"
-    )
+    app.config["DATABASE_URL"] = os.environ.get("DATABASE_URL", "spark-database.db")
     app.config["TESTING"] = False
     app.config["SEND_FILE_MAX_AGE_DEFAULT"] = 0
     app.config["WTF_CSRF_SECRET_KEY"] = os.environ.get(
@@ -160,8 +158,15 @@ def create_app(config=None):
         from app.models.notifications import get_unread_count
 
         if "user_id" in session:
-            return {"unread_count": get_unread_count(session["user_id"])}
-        return {"unread_count": 0}
+            unread_count = get_unread_count(session["user_id"])
+        else:
+            unread_count = 0
+
+        return {
+            "unread_count": unread_count,
+            "registration_open": os.environ.get("REGISTERATION_OPEN", "true").lower()
+            == "true",
+        }
 
     @app.errorhandler(400)
     def bad_request(e):

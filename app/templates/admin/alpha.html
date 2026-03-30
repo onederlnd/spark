@@ -632,6 +632,7 @@
                 <th>Email</th>
                 <th>Signed Up</th>
                 <th>Status</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -648,9 +649,21 @@
                   <span class="badge badge-muted">Waiting</span>
                   {% endif %}
                 </td>
+                <td>
+                  {% if not row.converted %}
+                  <form method="POST" action="/admin/alpha/waitlist/invite/{{ row.id }}" style="display:inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="badge badge-teal" style="cursor:pointer; border:none;">
+                      Send Invite
+                    </button>
+                  </form>
+                  {% else %}
+                  <span style="color:var(--muted); font-size:0.75rem;">—</span>
+                  {% endif %}
+                </td>
               </tr>
               {% else %}
-              <tr><td colspan="3" class="empty-row">No waitlist signups yet</td></tr>
+              <tr><td colspan="4" class="empty-row">No waitlist signups yet</td></tr>
               {% endfor %}
             </tbody>
           </table>

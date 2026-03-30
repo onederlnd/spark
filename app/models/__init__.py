@@ -76,6 +76,7 @@ def init_db(app):
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE,
                 display_name TEXT,
                 password_hash TEXT NOT NULL,
                 dob TEXT,

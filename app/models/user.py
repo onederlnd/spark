@@ -50,8 +50,7 @@ def coppa_required(f):
     return decorated_function
 
 
-def create_user(username, password, bio="", role="student", dob=None):
-
+def create_user(username, password, bio="", role="student", dob=None, email=None):
     if dob is None:
         return False, "Date of birth required"
 
@@ -74,8 +73,8 @@ def create_user(username, password, bio="", role="student", dob=None):
     ).decode()
     try:
         db.execute(
-            "INSERT INTO users (username, password_hash, dob, bio, role, coppa_status, onboarded) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            (username, password_hash, dob_str, bio, role, coppa_status, 0),
+            "INSERT INTO users (username, email, password_hash, dob, bio, role, coppa_status, onboarded) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            (username, email, password_hash, dob_str, bio, role, coppa_status, 0),
         )
         db.commit()
         if role == "student" and coppa_status == "pending":

@@ -99,6 +99,7 @@
         </li>
       </ul>
       {% else %}
+      {% if registrations_open %}
       <ul class="sidebar-nav">
         <li>
           <a href="/auth/login" onclick="closeDrawer()"><span class="icon">🔑</span> Sign In</a>
@@ -107,8 +108,14 @@
           <a href="/auth/register" onclick="closeDrawer()"><span class="icon">✦</span> Join Free</a>
         </li>
       </ul>
+      {% else %}
+      <ul class="sidebar-nav">
+        <li>
+          <a href="/auth/login" onclick="closeDrawer()"><span class="icon">🔑</span> Sign In</a>
+        </li>
+      </ul>
       {% endif %}
-
+      {% endif %}
       <div class="sidebar-divider"></div>
       <div style="padding: 4px 12px">
         <button class="theme-toggle" onclick="toggleTheme()" style="width: 100%; justify-content: center">
@@ -188,10 +195,14 @@
           </div>
         </div>
         {% else %}
+        {% if registrations_open %}
         <a href="/auth/login" class="btn btn-ghost {% if request.path == '/auth/login' %}active{% endif %}">Sign In</a>
         <a href="/auth/register" class="btn btn-primary">Join Free ✦</a>
+        {% else %}
+        <a href="/auth/login" class="btn btn-primary">Sign In</a>
         {% endif %}
-      </div>
+        {% endif %}
+        </div>
     </nav>
 
     <!-- ============ LAYOUT ============ -->
