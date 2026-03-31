@@ -1,5 +1,6 @@
 import re
 import unicodedata
+import secrets
 import random
 import string
 from app.models import get_db
@@ -478,6 +479,60 @@ def get_provisioned_students_for_teacher(teacher_id):
     return rows
 
 
+def invite_coteacher(classroom_id, inviter_id, username):
+    from app.models.user import get_user_by_username
+
+    classroom = get_classroom(classroom_id)
+    if not classroom:
+        return False, "Classroom not found.", None
+    if classroom["teacher_id"] != inviter_id:
+        return False, "Only the classroom owner can invite co-teachers.", None
+
+    invitee = get_user_by_username(username)
+    if not invitee:
+        return False, f'No user found with username "{username}".', None
+    if invitee["role"] != "teacher":
+        return False, "Only teachers can be invited as co-teachers.", None
+    if invitee["id"] == inviter_id:
+        return False, "You're already the owner of this classroom.", None
+
+    existing = get_member_role(classroom_id, invitee["id"])
+    if existing:
+        return False, f'"{username}" is already in this classroom.', None
+
+    join_classroom(classroom_id, invitee["id"], "teacher")
+    return True, None, invitee["email"]
+
+
+def remove_coteacher(classroom_id, owner_id, target_user_id):
+    """
+    Remove a co-teacher from a classroom. Only the owner can do this.
+    Owner cannot remove themselves.
+    """
+    db = get_db()
+
+    classroom = get_classroom(classroom_id)
+    if not classroom:
+        return False, "Classroom not found."
+    if classroom["teacher_id"] != owner_id:
+        return False, "Only the classroom owner can remove co-teachers."
+    if target_user_id == owner_id:
+        return False, "You cannot remove yourself as the owner."
+
+    db.execute(
+        "DELETE FROM classroom_members WHERE classroom_id = ? AND user_id = ?",
+        (classroom_id, target_user_id),
+    )
+    db.commit()
+    return True, None
+
+
+def is_classroom_owner(classroom_id, user_id):
+    """Return true if user_id is original owner of the classroom"""
+    classroom = get_classroom(classroom_id)
+    return classroom and classroom["teacher_id"] == user_id
+
+
 def enroll_student_by_codes(student_id, join_codes):
     """
     Enroll an existing provisional student in classrooms by join code.
@@ -496,3 +551,52 @@ def enroll_student_by_codes(student_id, join_codes):
         join_classroom(classroom["id"], student_id, "student")
         enrolled.append(classroom["name"])
     return enrolled, invalid_codes
+
+
+def create_classroom_invite(classroom_id, invited_by, email, role="teacher"):
+    """Create a pending invite and return the token."""
+    db = get_db()
+
+    db.execute(
+        "DELETE FROM classroom_invites WHERE classroom_id = ? AND email = ? AND accepted = 0",
+        (classroom_id, email.lower()),
+    )
+    token = secrets.token_urlsafe(32)
+    db.execute(
+        """
+        INSERT INTO classroom_invites (classroom_id, invited_by, email, token, role)
+        VALUES (?,?,?,?,?)
+        """,
+        (classroom_id, invited_by, email.lower(), token, role),
+    )
+    db.commit()
+    return token
+
+
+def get_invite_by_token(token):
+    db = get_db()
+    return db.execute(
+        """
+        SELECT classroom_invites.*, classrooms.name as classroom_name,
+            users.username as inviter_username
+        FROM classroom_invites
+        JOIN classrooms ON classroom_invites.classroom_id = classrooms.id
+        JOIN users ON classroom_invites.invited_by = users.id
+        WHERE classroom_invites.token = ?
+        AND classroom_invites.accepted = 0
+        """,
+        (token,),
+    ).fetchone()
+
+
+def accept_classroom_invite(token, user_id):
+    """Mark invite accepted and enroll the user. Returns (success, error)"""
+    db = get_db()
+    invite = get_invite_by_token(token)
+    if not invite:
+        return False, "Invite not found or already used."
+
+    join_classroom(invite["classroom_id"], user_id, invite["role"])
+    db.execute("UPDATE classroom_invites SET accepted = 1 WHERE token = ?", (token,))
+    db.commit()
+    return True, None

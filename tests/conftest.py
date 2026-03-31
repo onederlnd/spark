@@ -152,3 +152,25 @@ def student_client(app, teacher_client):
     )
     client.post("/auth/login", data={"username": "student1", "password": "pass123"})
     return client
+
+
+@pytest.fixture(autouse=True)
+def mock_emails(monkeypatch):
+    import app.utils.email as email_module
+    import app.routes.auth as auth_module
+    import app.routes.admin as admin_module
+
+    monkeypatch.setattr(auth_module, "send_welcome_email", lambda *a, **kw: None)
+    monkeypatch.setattr(
+        email_module, "send_coteacher_invite_email_by_email", lambda *a, **kw: None
+    )
+    monkeypatch.setattr(
+        email_module, "send_coteacher_invite_email", lambda *a, **kw: None
+    )
+    monkeypatch.setattr(admin_module, "send_acceptance_email", lambda *a, **kw: None)
+    monkeypatch.setattr(
+        email_module, "send_waitlist_admin_notification", lambda *a, **kw: None
+    )
+    monkeypatch.setattr(
+        email_module, "send_waitlist_confirmation", lambda *a, **kw: None
+    )

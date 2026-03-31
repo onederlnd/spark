@@ -64,3 +64,40 @@ def send_waitlist_admin_notification(email):
         mail.send(msg)
     except Exception as e:
         current_app.logger.error(f"Admin notify email failed: {e}")
+
+
+def send_coteacher_invite_email(to_email, inviter_username, classroom_name, login_url):
+    try:
+        msg = Message(
+            subject=f"{inviter_username} invited you to co-teach on SparK",
+            recipients=[to_email],
+            html=render_template(
+                "email/coteacher_invite.html",
+                inviter_username=inviter_username,
+                classroom_name=classroom_name,
+                login_url=login_url,
+            ),
+        )
+        mail.send(msg)
+    except Exception as e:
+        current_app.logger.error(f"Co-teacher invite email failed: {e}")
+
+
+def send_coteacher_invite_email_by_email(
+    to_email, inviter_username, classroom_name, invite_url, login_url=None
+):
+    try:
+        msg = Message(
+            subject=f"{inviter_username} invited you to co-teach on SparK",
+            recipients=[to_email],
+            html=render_template(
+                "email/coteacher_invite.html",
+                inviter_username=inviter_username,
+                classroom_name=classroom_name,
+                invite_url=invite_url,
+                login_url=login_url,
+            ),
+        )
+        mail.send(msg)
+    except Exception as e:
+        current_app.logger.error(f"Co-teacher invite email failed: {e}")

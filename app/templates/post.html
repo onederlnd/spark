@@ -94,7 +94,7 @@
       </button>
     {% endif %}
       </div>
-    
+
       <div class="reaction-popover" id="reaction-options-{{ post.id }}">
         {% for key, emoji in reaction_emoji.items() %}
         <form method="POST" action="/posts/{{ post.id }}/react">

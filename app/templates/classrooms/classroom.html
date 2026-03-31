@@ -193,6 +193,53 @@
       {% endif %}
     </div>
   </div>
+{% if is_owner %}
+<div class="card" style="margin-top:1.5rem;">
+  <div class="card-body">
+    <h2 style="font-size:1rem; font-weight:800; margin:0 0 1rem 0;">
+      Co-Teachers ({{ members | selectattr('role', 'equalto', 'teacher') | rejectattr('id', 'equalto', classroom.teacher_id) | list | length }})
+    </h2>
+
+    {% set coteachers = members | selectattr('role', 'equalto', 'teacher') | rejectattr('id', 'equalto', classroom.teacher_id) | list %}
+    {% if coteachers %}
+    <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem;">
+      {% for member in coteachers %}
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
+        <a href="/profile/{{ member.username }}"
+           style="font-weight:700; color:var(--text); text-decoration:none; font-size:0.9rem;">
+          {{ member.username | display_name }}
+        </a>
+        <form method="POST"
+              action="{{ url_for('classrooms.remove_coteacher_route', classroom_id=classroom.id, target_user_id=member.id) }}"
+              onsubmit="return confirm('Remove {{ member.username }} as co-teacher?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-ghost" style="font-size:0.78rem; color:var(--rose);">Remove</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p style="color:var(--muted); font-size:0.88rem; margin-bottom:1rem;">No co-teachers yet.</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('classrooms.invite_coteacher_route', classroom_id=classroom.id) }}"
+          style="display:flex; flex-direction:column; gap:0.5rem;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div style="display:flex; gap:0.5rem; align-items:center;">
+        <input name="username" placeholder="Username"
+               style="flex:1; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--soft); color:var(--text); font-size:0.88rem;">
+        <span style="color:var(--muted); font-size:0.85rem;">or</span>
+        <input name="email" type="email" placeholder="Email address"
+               style="flex:1; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--soft); color:var(--text); font-size:0.88rem;">
+        <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">Invite</button>
+      </div>
+      <p style="font-size:0.78rem; color:var(--muted); margin:0;">
+        Enter a username to add an existing teacher, or an email to send an invite to someone new.
+      </p>
+    </form>
+  </div>
+</div>
+{% endif %}
 </div>
 
 <script>

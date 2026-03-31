@@ -299,7 +299,17 @@ def init_db(app):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT NOT NULL UNIQUE,
                 joined_at TEXT NOT NULL
-            )
+            );
+            CREATE TABLE IF NOT EXISTS classroom_invites (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                classroom_id INTEGER NOT NULL REFERENCES classrooms(id) ON DELETE CASCADE,
+                invited_by INTEGER NOT NULL REFERENCES users(id),
+                email TEXT NOT NULL,
+                token TEXT NOT NULL UNIQUE,
+                role TEXT NOT NULL DEFAULT 'teacher',
+                accepted INTEGER NOT NULL DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
         """),
         )
         db.commit()

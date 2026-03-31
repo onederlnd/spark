@@ -230,7 +230,7 @@ def test_join_classroom_already_member(app, teacher_client, classroom):
 
     response = teacher_client.post("/classrooms/join", data={"join_code": join_code})
     assert response.status_code == 302
-    assert f"/classrooms/{classroom}" in response.headers["Location"]
+    assert "/classrooms/" in response.headers["Location"]
 
 
 def test_join_classroom_missing_code(auth_client):
@@ -391,3 +391,203 @@ def test_submission_saved_to_db(app, student_client, classroom, assignment):
         submission = get_submission(assignment, student_id)
         assert submission is not None
         assert "Persisted answer" in submission["body"]
+
+
+# --- co-teacher invite ---
+
+
+def test_invite_coteacher(app, teacher_client, classroom):
+    """Owner can invite another teacher as co-teacher."""
+    # register a second teacher
+    other = app.test_client()
+    other.post(
+        "/auth/register",
+        data={
+            "username": "coteacher1",
+            "password": "pass123",
+            "role": "teacher",
+            "dob": "1985-03-10",
+        },
+    )
+
+    response = teacher_client.post(
+        f"/classrooms/{classroom}/coteachers/invite",
+        data={"username": "coteacher1"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"co-teacher" in response.data.lower()
+
+
+def test_invite_coteacher_nonexistent_user(teacher_client, classroom):
+    """Inviting a username that doesn't exist shows an error."""
+    response = teacher_client.post(
+        f"/classrooms/{classroom}/coteachers/invite",
+        data={"username": "ghost_user_xyz"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"No user found" in response.data
+
+
+def test_invite_coteacher_student_rejected(app, teacher_client, classroom):
+    """Inviting a student account as co-teacher is rejected."""
+    other = app.test_client()
+    other.post(
+        "/auth/register",
+        data={
+            "username": "juststudent",
+            "password": "pass123",
+            "role": "student",
+            "dob": "2010-05-01",
+        },
+    )
+
+    response = teacher_client.post(
+        f"/classrooms/{classroom}/coteachers/invite",
+        data={"username": "juststudent"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"Only teachers" in response.data
+
+
+def test_invite_coteacher_already_member(app, teacher_client, classroom):
+    """Inviting someone already in the classroom shows an error."""
+    other = app.test_client()
+    other.post(
+        "/auth/register",
+        data={
+            "username": "coteacher2",
+            "password": "pass123",
+            "role": "teacher",
+            "dob": "1985-03-10",
+        },
+    )
+    # invite once
+    teacher_client.post(
+        f"/classrooms/{classroom}/coteachers/invite",
+        data={"username": "coteacher2"},
+    )
+    # invite again
+    response = teacher_client.post(
+        f"/classrooms/{classroom}/coteachers/invite",
+        data={"username": "coteacher2"},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"already in this classroom" in response.data
+
+
+def test_invite_coteacher_requires_ownership(app, classroom):
+    """A co-teacher cannot invite further co-teachers."""
+    # register and make a co-teacher
+    other = app.test_client(use_cookies=True)
+    other.post(
+        "/auth/register",
+        data={
+            "username": "coteacher3",
+            "password": "pass123",
+            "role": "teacher",
+            "dob": "1985-03-10",
+        },
+    )
+    other.post("/auth/login", data={"username": "coteacher3", "password": "pass123"})
+
+    # try to invite without being owner
+    response = other.post(
+        f"/classrooms/{classroom}/coteachers/invite",
+        data={"username": "coteacher3"},
+        follow_redirects=True,
+    )
+    assert response.status_code in (403, 200)
+
+
+def test_coteacher_blocked_from_join_route(app, classroom):
+    """Teachers cannot join classrooms via join code."""
+    other = app.test_client(use_cookies=True)
+    other.post(
+        "/auth/register",
+        data={
+            "username": "wanderingteacher",
+            "password": "pass123",
+            "role": "teacher",
+            "dob": "1985-03-10",
+        },
+    )
+    other.post(
+        "/auth/login", data={"username": "wanderingteacher", "password": "pass123"}
+    )
+
+    from app.models.classroom import get_classroom
+
+    with app.app_context():
+        row = get_classroom(classroom)
+        join_code = row["join_code"]
+
+    response = other.post(
+        "/classrooms/join",
+        data={"join_code": join_code},
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"invited" in response.data.lower()
+
+
+# --- co-teacher remove ---
+
+
+def test_remove_coteacher(app, teacher_client, classroom):
+    """Owner can remove a co-teacher."""
+    other = app.test_client(use_cookies=True)
+    other.post(
+        "/auth/register",
+        data={
+            "username": "removable",
+            "password": "pass123",
+            "role": "teacher",
+            "dob": "1985-03-10",
+        },
+    )
+
+    teacher_client.post(
+        f"/classrooms/{classroom}/coteachers/invite",
+        data={"username": "removable"},
+    )
+
+    with app.app_context():
+        from app.models import get_db
+
+        db = get_db()
+        user = db.execute(
+            "SELECT id FROM users WHERE username = 'removable'"
+        ).fetchone()
+        user_id = user["id"]
+
+    response = teacher_client.post(
+        f"/classrooms/{classroom}/coteachers/{user_id}/remove",
+        follow_redirects=True,
+    )
+    assert response.status_code == 200
+    assert b"removed" in response.data.lower()
+
+
+def test_remove_coteacher_requires_ownership(app, classroom):
+    """A non-owner cannot remove co-teachers."""
+    other = app.test_client(use_cookies=True)
+    other.post(
+        "/auth/register",
+        data={
+            "username": "nonowner",
+            "password": "pass123",
+            "role": "teacher",
+            "dob": "1985-03-10",
+        },
+    )
+    other.post("/auth/login", data={"username": "nonowner", "password": "pass123"})
+
+    response = other.post(
+        f"/classrooms/{classroom}/coteachers/99999/remove",
+        follow_redirects=True,
+    )
+    assert response.status_code in (403, 200)

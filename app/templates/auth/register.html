@@ -13,23 +13,41 @@
   {% endwith %}
 
   <form method="POST">
+    <!-- In auth/register.html, inside the form: -->
+    {% if request.args.get('invite') %}
+    <input type="hidden" name="invite" value="{{ request.args.get('invite') }}">
+    {% endif %}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input name="username" placeholder="Choose a username" required autocomplete="username">
     <input type="email" name="email" placeholder="Email address (optional)" autocomplete="email">
-    <input name="password" type="password" placeholder="Create a password" required autocomplete="new-password">
-    <input type="date" name="dob" id="dob" required>
-    <select name="role">
-      <option value="student">Student</option>
-      <option value="parent">Parent</option>
-      <option value="teacher">Teacher</option>
-    </select>
-    <div class="form-actions">
-      <button type="submit" class="btn-submit">Create Account</button>
-    </div>
-    <p style="font-size:0.78rem; color:var(--muted); margin-top:0.75rem; text-align:center;">
-      By creating an account you agree to our <a href="{{ url_for('auth.terms') }}">Terms of Service</a>
-      and <a href="{{ url_for('auth.privacy') }}">Privacy Policy</a>.
-    </p>
+<input name="password" type="password" placeholder="Create a password" required autocomplete="new-password">
+
+<div style="position:relative; display:flex; flex-direction:column;">
+<input 
+  type="text"
+  name="dob"
+  id="dob"
+  required
+  placeholder="Date of Birth"
+  onfocus="this.type='date'; this.placeholder=''"
+  onblur="if(!this.value){ this.type='text'; this.placeholder='Date of Birth'; }"
+  autocomplete="bday"
+>
+
+</div>
+
+<select name="role">
+  <option value="student">Student</option>
+  <option value="parent">Parent</option>
+  <option value="teacher">Teacher</option>
+</select>
+<div class="form-actions">
+  <button type="submit" class="btn-submit">Create Account</button>
+</div>
+
+<p style="font-size:0.78rem; color:var(--muted); margin-top:0.75rem; text-align:center;">
+  By joining you agree to our <a href="{{ url_for('auth.terms') }}">Terms of Service</a> and <a href="{{ url_for('auth.privacy') }}">Privacy Policy</a>.
+</p>
   </form>
   <a href="/auth/login">Already have an account? Sign in →</a>
 </div>

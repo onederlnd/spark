@@ -39,6 +39,9 @@ from app.models.classroom import (
     provision_students_bulk,
     get_provisioned_students_for_teacher,
     enroll_student_by_codes,
+    invite_coteacher,
+    remove_coteacher,
+    is_classroom_owner,
 )
 from app.models.user import (
     get_user_by_id,
@@ -128,6 +131,7 @@ def dashboard():
 def new_classroom():
     if not _is_teacher(session["user_id"]):
         return "Forbidden", 403
+
     if request.method == "POST":
         name = sanitize_plain(request.form.get("name", ""), max_length=NAME_MAX)
         description = sanitize_plain(
@@ -152,6 +156,10 @@ def new_classroom():
 @rate_limit(max_requests=10, window_seconds=60)
 @coppa_required
 def join():
+
+    if _is_teacher(session["user_id"]):
+        flash("Teachers must be invited by a classroom owner.", "error")
+        return redirect(url_for("classrooms.dashboard"))
     join_code = request.form.get("join_code", "").strip().upper()
 
     if not join_code:
@@ -170,8 +178,7 @@ def join():
             url_for("classrooms.classroom_home", classroom_id=classroom["id"])
         )
 
-    role = "teacher" if _is_teacher(session["user_id"]) else "student"
-    join_classroom(classroom["id"], session["user_id"], role)
+    join_classroom(classroom["id"], session["user_id"], "student")
 
     flash(f"Joined {classroom['name']}!", "success")
     return redirect(url_for("classrooms.classroom_home", classroom_id=classroom["id"]))
@@ -209,6 +216,7 @@ def classroom_home(classroom_id):
         assignments=assignments,
         members=members,
         pending_reports=pending_reports,
+        is_owner=is_classroom_owner(classroom_id, session["user_id"]),
     )
 
 
@@ -1289,4 +1297,91 @@ def unlock_student(classroom_id, student_id):
         return "Not found", 404
     unlock_user(student["username"])
     flash(f"{student['username']} has been unlocked.success")
+    return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
+
+
+@classrooms_bp.route("/<int:classroom_id>/coteachers/invite", methods=["POST"])
+@login_required
+@teacher_required
+def invite_coteacher_route(classroom_id):
+    from app.utils.email import (
+        send_coteacher_invite_email,
+        send_coteacher_invite_email_by_email,
+    )
+    from app.models.classroom import create_classroom_invite
+
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if not is_classroom_owner(classroom_id, session["user_id"]):
+        return "Forbidden", 403
+
+    username = sanitize_plain(request.form.get("username", "").strip(), max_length=50)
+    email = sanitize_plain(request.form.get("email", "").strip(), max_length=200)
+    inviter = get_user_by_id(session["user_id"])
+
+    if not username and not email:
+        flash("Please enter a username or email address.", "error")
+        return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
+
+    if username:
+        success, error, invitee_email = invite_coteacher(
+            classroom_id, session["user_id"], username
+        )
+        if success:
+            flash(f'"{username}" has been added as a co-teacher.', "success")
+            if invitee_email:
+                send_coteacher_invite_email(
+                    to_email=invitee_email,
+                    inviter_username=inviter["username"],
+                    classroom_name=classroom["name"],
+                    login_url=request.host_url.rstrip("/") + "/auth/login",
+                )
+        else:
+            flash(error, "error")
+
+    elif email:
+        if "@" not in email:
+            flash("Please enter a valid email address.", "error")
+            return redirect(
+                url_for("classrooms.classroom_home", classroom_id=classroom_id)
+            )
+
+        token = create_classroom_invite(classroom_id, session["user_id"], email)
+        invite_url = request.host_url.rstrip("/") + f"/auth/register?invite={token}"
+        login_url = request.host_url.rstrip("/") + f"/auth/login?invite={token}"
+        send_coteacher_invite_email_by_email(
+            to_email=email,
+            inviter_username=inviter["username"],
+            classroom_name=classroom["name"],
+            invite_url=invite_url,
+            login_url=login_url,
+        )
+        flash(f"Invite sent to {email}.", "success")
+
+    return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/coteachers/<int:target_user_id>/remove", methods=["POST"]
+)
+@login_required
+@teacher_required
+def remove_coteacher_route(classroom_id, target_user_id):
+    if not is_classroom_owner(classroom_id, session["user_id"]):
+        return "Forbidden", 403
+
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found.", 404
+
+    if not is_classroom_owner(classroom_id, session["user_id"]):
+        return "Forbidden", 403
+
+    success, error = remove_coteacher(classroom_id, session["user_id"], target_user_id)
+    if success:
+        flash("Co-teacher removed.", "success")
+    else:
+        flash(error, "error")
+
     return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))

@@ -56,6 +56,22 @@ def register():
                     link="/auth/coppa/pending",
                 )
 
+            invite_token = request.args.get("invite") or request.form.get("invite")
+            if invite_token and email:
+                from app.models.classroom import (
+                    get_invite_by_token,
+                    accept_classroom_invite,
+                )
+
+                invite = get_invite_by_token(invite_token)
+                if invite and invite["email"].lower() == email.lower():
+                    db = get_db()
+                    user = db.execute(
+                        "SELECT id FROM users WHERE username = ?", (username,)
+                    ).fetchone()
+                    if user:
+                        accept_classroom_invite(invite_token, user["id"])
+
             # Send welcome email if provided
             if email:
                 send_welcome_email(email, username)
@@ -70,6 +86,9 @@ def register():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    from app.models.classroom import get_invite_by_token, accept_classroom_invite
+    from app.models import get_db
+
     if request.method == "POST":
         username = request.form["username"].strip()
         password = request.form["password"]
@@ -100,6 +119,19 @@ def login():
                 (user["id"], "password"),
             )
             db.commit()
+
+            invite_token = request.args.get("invite")
+            if invite_token:
+                invite = get_invite_by_token(invite_token)
+                if (
+                    invite
+                    and user["email"]
+                    and invite["email"].lower() == user["email"].lower()
+                ):
+                    accept_classroom_invite(invite_token, user["id"])
+                    flash(
+                        f"You've been added to {invite['classroom_name']}!", "success"
+                    )
 
             return redirect(url_for("feed.index"))
         else:
