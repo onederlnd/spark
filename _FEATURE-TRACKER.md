@@ -121,7 +121,7 @@
 - [ ] Live classroom deployment — single trusted classroom running in production
 - [x] Teacher feedback loop — weekly check-in process with alpha teacher
 - [x] Bug tracking — structured log of issues found in live use
-- [ ] Safety incident review — confirm moderation workflow holds under real usage
+- [x] Safety incident review — confirm moderation workflow holds under real usage
 - [ ] Session stability — confirm WebSocket and session timeout work in production
 - [ ] Database backups — scheduled backup with rotation before go-live
 
