@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Report a Bug — {% endblock %}
+
+{% block content %}
+<div style="max-width:600px; margin:2rem auto; padding:0 1rem;">
+  <h1 style="font-size:1.4rem; font-weight:900; margin-bottom:0.25rem;">🐛 Report a Bug</h1>
+  <p style="color:var(--muted); font-size:0.88rem; margin-bottom:1.5rem;">
+    Found something broken? Let us know and we'll get it fixed.
+    <a href="{{ url_for('bug_reports.my_reports') }}" style="color:var(--teal); margin-left:0.5rem;">View my reports →</a>
+  </p>
+
+  <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:1.5rem; display:flex; flex-direction:column; gap:1rem;">
+
+    <div>
+      <label style="font-size:0.82rem; font-weight:800; color:var(--muted); display:block; margin-bottom:4px;">TITLE</label>
+      <input type="text" name="title" form="bug-form" id="bug-title"
+             placeholder="Short description of the issue"
+             style="width:100%; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--soft); color:var(--text); font-family:inherit; font-size:0.9rem;">
+    </div>
+
+    <div>
+      <label style="font-size:0.82rem; font-weight:800; color:var(--muted); display:block; margin-bottom:4px;">DESCRIPTION</label>
+      <textarea name="description" form="bug-form" id="bug-description" rows="5"
+                placeholder="What happened? What did you expect to happen? Steps to reproduce…"
+                style="width:100%; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--soft); color:var(--text); font-family:inherit; font-size:0.9rem; resize:vertical;"></textarea>
+    </div>
+
+    <div>
+      <label style="font-size:0.82rem; font-weight:800; color:var(--muted); display:block; margin-bottom:4px;">SEVERITY</label>
+      <div style="display:flex; gap:0.5rem;">
+        {% for level, label, color in [('low', '🟢 Low', 'var(--teal)'), ('medium', '🟡 Medium', '#fbbf24'), ('high', '🔴 High', 'var(--rose)')] %}
+        <label style="flex:1; cursor:pointer;">
+          <input type="radio" name="severity" form="bug-form" value="{{ level }}" {{ 'checked' if loop.first }}
+                 style="display:none;" class="severity-radio">
+          <div class="severity-option" data-level="{{ level }}"
+               style="text-align:center; padding:8px; border-radius:var(--radius-sm); border:2px solid var(--border); font-size:0.82rem; font-weight:800; transition:border-color 0.15s;">
+            {{ label }}
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <form id="bug-form" method="POST" action="{{ url_for('bug_reports.submit') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="title" id="bug-title-hidden">
+      <input type="hidden" name="description" id="bug-description-hidden">
+      <input type="hidden" name="severity" id="bug-severity-hidden" value="low">
+    </form>
+
+    <button onclick="submitBugForm()" class="btn btn-primary" style="align-self:flex-end;">Submit Report</button>
+  </div>
+</div>
+
+<script>
+  // highlight selected severity
+  document.querySelectorAll('.severity-radio').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll('.severity-option').forEach(opt => {
+        opt.style.borderColor = 'var(--border)';
+      });
+      radio.closest('label').querySelector('.severity-option').style.borderColor = 'var(--teal)';
+      document.getElementById('bug-severity-hidden').value = radio.value;
+    });
+  });
+  // init first
+  document.querySelector('.severity-option[data-level="low"]').style.borderColor = 'var(--teal)';
+
+  function submitBugForm() {
+    document.getElementById('bug-title-hidden').value = document.getElementById('bug-title').value;
+    document.getElementById('bug-description-hidden').value = document.getElementById('bug-description').value;
+    document.getElementById('bug-form').submit();
+  }
+</script>
+{% endblock %}

@@ -7,6 +7,8 @@ from app.sockets import init_socketio
 from app.extensions import mail
 from app.utils.bbcode import render_bbcode
 from markupsafe import Markup
+from app.cli import register_commands
+
 
 load_dotenv()
 csrf = CSRFProtect()
@@ -46,6 +48,7 @@ def create_app(config=None):
     app = Flask(__name__)
 
     init_socketio(app)
+    register_commands(app)
 
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "2ejfof2jf2ojwfxasf")
     app.config["DATABASE_URL"] = os.environ.get("DATABASE_URL", "spark-database.db")
@@ -94,6 +97,7 @@ def create_app(config=None):
     from app.routes.health import health_bp
     from app.routes.landing import marketing_bp
     from app.routes.feedback import feedback_bp
+    from app.routes.bug_reports import bug_reports_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -111,10 +115,12 @@ def create_app(config=None):
     app.register_blueprint(health_bp)
     app.register_blueprint(marketing_bp)
     app.register_blueprint(feedback_bp)
+    app.register_blueprint(bug_reports_bp)
 
     app.jinja_env.filters["time_ago"] = time_ago
 
     csrf.exempt(api_bp)
+    csrf.exempt(admin_bp)
 
     # ---- Session timeout ----
     @app.before_request

@@ -120,7 +120,7 @@
 
 - [ ] Live classroom deployment — single trusted classroom running in production
 - [x] Teacher feedback loop — weekly check-in process with alpha teacher
-- [ ] Bug tracking — structured log of issues found in live use
+- [x] Bug tracking — structured log of issues found in live use
 - [ ] Safety incident review — confirm moderation workflow holds under real usage
 - [ ] Session stability — confirm WebSocket and session timeout work in production
 - [ ] Database backups — scheduled backup with rotation before go-live
@@ -129,8 +129,8 @@
 > **Status: Planned**
 > Expands safety and visibility ahead of multi-classroom rollout.
 
-- [ ] Email verification on register
-- [ ] Admin dashboard — full moderation UI for platform-level oversight
+- [x] Email verification on register
+- [x] Admin dashboard — full moderation UI for platform-level oversight
 - [ ] Parent dashboard — visibility into student activity via follow system
 - [ ] Topic moderators — role-based permissions per topic
 - [ ] Safety visibility modes — teacher toggles full view vs flagged-only

@@ -49,8 +49,14 @@ from app.models.waitlist import (
     get_waitlist_all,
     get_waitlist_daily,
 )
+from app.models.bug_reports import (
+    get_all_bug_reports,
+    get_bug_report_counts,
+    update_bug_report,
+)
 
 from app.utils.email import send_acceptance_email
+
 
 admin_bp = Blueprint("admin", __name__, url_prefix="/admin")
 
@@ -170,6 +176,9 @@ def dashboard():
         waitlist_summary=safe(get_waitlist_summary),
         waitlist_all=safe_list(get_waitlist_all),
         waitlist_daily=rows_to_dicts(safe_list(get_waitlist_daily)),
+        # bug reports
+        bug_reports=[dict(r) for r in (get_all_bug_reports() or [])],
+        bug_report_counts=get_bug_report_counts(),
         chart_data=json.dumps(
             {
                 "dailyUsers": rows_to_dicts(safe_list(get_daily_new_users)),
@@ -284,3 +293,20 @@ def invite_from_waitlist(waitlist_id):
     send_acceptance_email(entry["email"])
     flash(f"Invite sent to {entry['email']}", "success")
     return redirect(url_for("admin.dashboard") + "#waitlist")
+
+
+@admin_bp.route("/alpha/bugs/<int:report_id>/update", methods=["POST"])
+def update_bug(report_id):
+    guard = _require_auth()
+    if guard is not None:
+        return guard
+
+    status = request.form.get("status")
+    severity = request.form.get("severity")
+    admin_notes = request.form.get("admin_notes", "")
+
+    if status in ("open", "in_progress", "resolved"):
+        update_bug_report(report_id, status, admin_notes, severity)
+        flash("Report updated.", "success")
+
+    return redirect(url_for("admin.dashboard") + "#bugs")

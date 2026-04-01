@@ -31,7 +31,7 @@ from datetime import datetime, timedelta, timezone
 from bcrypt import hashpw, gensalt
 
 # ── Config ────────────────────────────────────────────────────────────────────
-DB_PATH = os.environ.get("DATABASE_URL", "spark_database.db")
+DB_PATH = os.environ.get("DATABASE_URL", "instance/spark_database.db")
 if DB_PATH.startswith("sqlite:///"):
     DB_PATH = DB_PATH[len("sqlite:///") :]
 

@@ -245,6 +245,14 @@
     </div>
 
     {% if session.get("role") == "teacher" %}
+    <a href="{{ url_for('bug_reports.submit') }}"
+      style="position:fixed; bottom:4.5rem; right:1.25rem; z-index:900; background:var(--card); border:1px solid var(--border); border-radius:999px; padding:6px 14px; font-size:0.78rem; font-weight:800; color:var(--text); text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+      🐛 Report Bug
+    </a>
+    {% endif %}
+
+    <!-- ========== FEEDBACK ===========-->
+    {% if session.get("role") == "teacher" %}
     <button class="feedback-trigger" onclick="openFeedback()" title="Give feedback">
       <span class="feedback-trigger-icon">💬</span>
       <span class="feedback-trigger-label">Feedback</span>

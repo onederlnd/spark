@@ -41,9 +41,7 @@ def time_ago(dt_str):
 
 def get_db():
     if "db" not in g:
-        db_path = current_app.config.get(
-            "DATABASE_URL", "spark-alpha-demo-seed-full-school.db"
-        )
+        db_path = current_app.config.get("DATABASE_URL", "spark_database.db")
         # fmt: off
         if db_path.startswith("sqlite:///"):
             db_path = db_path[len("sqlite:///"):]
@@ -309,6 +307,17 @@ def init_db(app):
                 role TEXT NOT NULL DEFAULT 'teacher',
                 accepted INTEGER NOT NULL DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS bug_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reported_by INTEGER NOT NULL REFERENCES users(id),
+                title TEXT NOT NULL,
+                description TEXT NOT NULL,
+                severity TEXT NOT NULL CHECK(severity IN ('low', 'medium', 'high')),
+                status TEXT NOT NULL DEFAULT 'open' CHECK(status IN ('open', 'in_progress', 'resolved')),
+                admin_notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """),
         )

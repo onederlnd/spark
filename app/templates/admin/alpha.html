@@ -34,13 +34,18 @@
       align-items: center;
       gap: 1.5rem;
       flex-shrink: 0;
+      position: relative;
+      z-index: 10;
     }
     .dash-header-brand { display: flex; align-items: center; gap: 0.6rem; flex-shrink: 0; }
     .dash-header-brand-title { font-weight: 900; font-size: 0.95rem; }
     .dash-header-brand-sub { font-size: 0.68rem; color: var(--muted); }
 
-    /* nav pills — centre of header */
-    .slide-nav { display: flex; gap: 5px; align-items: center; flex: 1; justify-content: center; }
+    /* Desktop pill nav */
+    .slide-nav {
+      display: flex; gap: 5px; align-items: center;
+      flex: 1; justify-content: center;
+    }
     .slide-nav-btn {
       background: none;
       border: 1px solid var(--border);
@@ -126,7 +131,6 @@
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 0.6rem;
-      /* tables are the flex item that should fill remaining space */
       flex: 1;
       min-height: 0;
     }
@@ -160,6 +164,81 @@
     .badge-teal { background: var(--teal); color: #fff; }
     .badge-muted { background: var(--soft); color: var(--muted); }
     .empty-row { color: var(--muted); font-size: 0.78rem; font-style: italic; }
+
+    /* ══ BOTTOM TAB BAR (mobile only) ══ */
+    .bottom-tab-bar {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 60px;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      z-index: 100;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .bottom-tab-bar::-webkit-scrollbar { display: none; }
+    .bottom-tab-bar-inner {
+      display: flex;
+      align-items: stretch;
+      height: 100%;
+      min-width: max-content;
+      padding: 0 4px;
+    }
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 0 16px;
+      min-width: 64px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+      color: var(--muted);
+      transition: color 0.15s;
+      position: relative;
+    }
+    .tab-btn.active { color: var(--teal); }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 24px; height: 3px;
+      background: var(--teal);
+      border-radius: 3px 3px 0 0;
+    }
+    .tab-btn-icon { font-size: 1.1rem; line-height: 1; }
+    .tab-btn-label { font-size: 0.62rem; font-weight: 800; white-space: nowrap; }
+
+    /* ── Mobile adjustments ── */
+    @media (max-width: 768px) {
+      .slide-nav { display: none; }
+      .dash-header-brand-sub { display: none; }
+      .dash-header-actions .btn-ghost:first-child { display: none; } /* hide export on mobile */
+      .bottom-tab-bar { display: block; }
+      .dash-slides {
+        height: calc(100vh - 52px - 60px); /* account for tab bar */
+      }
+      .dash-slide {
+        padding: 1rem;
+        gap: 0.6rem;
+      }
+      .stat-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      }
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+      .table-grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 <body>
@@ -175,16 +254,17 @@
   </div>
 
   <nav class="slide-nav">
-    <button class="slide-nav-btn active" onclick="goToSlide('slide-usage')">📊 Usage</button>
-    <button class="slide-nav-btn" onclick="goToSlide('slide-safety')">🚩 Safety</button>
-    <button class="slide-nav-btn" onclick="goToSlide('slide-classroom')">🏫 Classroom</button>
-    <button class="slide-nav-btn" onclick="goToSlide('slide-technical')">⚙️ Technical</button>
-    <button class="slide-nav-btn" onclick="goToSlide('slide-feedback')">💬 Feedback</button>
-    <button class="slide-nav-btn" onclick="goToSlide('slide-waitlist')">📋 Waitlist</button>
+    <button class="slide-nav-btn active" onclick="goToSlide(0)">📊 Usage</button>
+    <button class="slide-nav-btn" onclick="goToSlide(1)">🚩 Safety</button>
+    <button class="slide-nav-btn" onclick="goToSlide(2)">🏫 Classroom</button>
+    <button class="slide-nav-btn" onclick="goToSlide(3)">⚙️ Technical</button>
+    <button class="slide-nav-btn" onclick="goToSlide(4)">💬 Feedback</button>
+    <button class="slide-nav-btn" onclick="goToSlide(5)">📋 Waitlist</button>
+    <button class="slide-nav-btn" onclick="goToSlide(6)">🐛 Bugs</button>
   </nav>
 
   <div class="dash-header-actions">
-    <a href="/admin/alpha/export" class="btn btn-ghost" style="font-size:0.78rem;">↓ Export CSV</a>
+    <a href="/admin/alpha/export" class="btn btn-ghost" style="font-size:0.78rem;">↓ Export</a>
     <a href="/admin/alpha/logout" class="btn btn-ghost" style="font-size:0.78rem;">Sign Out</a>
   </div>
 </div>
@@ -193,9 +273,8 @@
 <div class="dash-slides" id="dashSlides">
 
   <!-- ── USAGE ── -->
-  <div class="dash-slide" id="slide-usage">
+  <div class="dash-slide" id="slide-0">
     <div class="section-title">📊 Usage &amp; Activity</div>
-
     <div class="stat-grid">
       <div class="stat-card">
         <div class="stat-value">{{ user_counts.total or 0 }}</div>
@@ -222,7 +301,6 @@
         <div class="stat-label">Submissions</div>
       </div>
     </div>
-
     <div class="chart-grid">
       <div class="chart-card">
         <div class="chart-title">New Users (14d)</div>
@@ -241,7 +319,6 @@
         <canvas id="submissionsChart" height="60"></canvas>
       </div>
     </div>
-
     <div class="table-grid">
       <div class="table-card">
         <div class="table-card-header">Top Students by Posts</div>
@@ -274,7 +351,7 @@
         </div>
       </div>
       <div class="table-card">
-        <div class="table-card-header">Login Method Breakdown</div>
+        <div class="table-card-header">Login Methods</div>
         <div class="table-scroll">
           <table class="data-table">
             <thead><tr><th>Method</th><th>Count</th></tr></thead>
@@ -295,9 +372,8 @@
   </div>
 
   <!-- ── SAFETY ── -->
-  <div class="dash-slide" id="slide-safety">
+  <div class="dash-slide" id="slide-1">
     <div class="section-title">🚩 Safety &amp; Moderation</div>
-
     <div class="stat-grid">
       <div class="stat-card">
         <div class="stat-value">{{ report_counts.total or 0 }}</div>
@@ -305,7 +381,7 @@
       </div>
       <div class="stat-card">
         <div class="stat-value" style="color:var(--rose);">{{ report_counts.open or 0 }}</div>
-        <div class="stat-label">Open Reports</div>
+        <div class="stat-label">Open</div>
       </div>
       <div class="stat-card">
         <div class="stat-value">{{ report_counts.resolved or 0 }}</div>
@@ -316,7 +392,6 @@
         <div class="stat-label">Avg Resolution (h)</div>
       </div>
     </div>
-
     <div class="chart-grid">
       <div class="chart-card">
         <div class="chart-title">Reports Filed (14d)</div>
@@ -327,10 +402,9 @@
         <canvas id="filterChart" height="60"></canvas>
       </div>
     </div>
-
     <div class="table-grid">
       <div class="table-card">
-        <div class="table-card-header">Top Triggered Filter Words</div>
+        <div class="table-card-header">Top Filter Words</div>
         <div class="table-scroll">
           <table class="data-table">
             <thead><tr><th>Word</th><th>Hits</th></tr></thead>
@@ -369,9 +443,8 @@
   </div>
 
   <!-- ── CLASSROOM ── -->
-  <div class="dash-slide" id="slide-classroom">
+  <div class="dash-slide" id="slide-2">
     <div class="section-title">🏫 Classroom Health</div>
-
     <div class="table-grid table-grid-full" style="flex:0 0 auto; max-height:35%;">
       <div class="table-card">
         <div class="table-card-header">Assignment Completion by Classroom</div>
@@ -395,10 +468,9 @@
         </div>
       </div>
     </div>
-
     <div class="table-grid">
       <div class="table-card">
-        <div class="table-card-header">Ungraded Submissions by Teacher</div>
+        <div class="table-card-header">Ungraded by Teacher</div>
         <div class="table-scroll">
           <table class="data-table">
             <thead><tr><th>Teacher</th><th>Ungraded</th></tr></thead>
@@ -417,7 +489,7 @@
       </div>
       <div class="table-card">
         <div class="table-card-header">
-          Students with Zero Submissions
+          Zero Submissions
           {% if students_zero_submissions %}<span class="badge badge-rose">{{ students_zero_submissions|length }}</span>{% endif %}
         </div>
         <div class="table-scroll">
@@ -435,12 +507,12 @@
       </div>
       <div class="table-card">
         <div class="table-card-header">
-          Inactive Students (7+ days)
+          Inactive (7+ days)
           {% if inactive_students %}<span class="badge badge-rose">{{ inactive_students|length }}</span>{% endif %}
         </div>
         <div class="table-scroll">
           <table class="data-table">
-            <thead><tr><th>Username</th><th>Last Login</th><th>Inactive For</th></tr></thead>
+            <thead><tr><th>Username</th><th>Last Login</th><th>Inactive</th></tr></thead>
             <tbody>
               {% for row in inactive_students %}
               <tr>
@@ -459,9 +531,8 @@
   </div>
 
   <!-- ── TECHNICAL ── -->
-  <div class="dash-slide" id="slide-technical">
+  <div class="dash-slide" id="slide-3">
     <div class="section-title">⚙️ Technical Health</div>
-
     <div class="stat-grid">
       {% for row in session_event_counts %}
       <div class="stat-card">
@@ -470,7 +541,6 @@
       </div>
       {% endfor %}
     </div>
-
     <div class="chart-grid">
       <div class="chart-card">
         <div class="chart-title">Rate Limit Hits (14d)</div>
@@ -481,7 +551,6 @@
         <canvas id="sessionChart" height="60"></canvas>
       </div>
     </div>
-
     <div class="table-grid">
       <div class="table-card">
         <div class="table-card-header">Top Rate Limited Routes</div>
@@ -499,7 +568,7 @@
         </div>
       </div>
       <div class="table-card">
-        <div class="table-card-header">Session Event Breakdown</div>
+        <div class="table-card-header">Session Breakdown</div>
         <div class="table-scroll">
           <table class="data-table">
             <thead><tr><th>Event</th><th>Count</th></tr></thead>
@@ -520,17 +589,16 @@
   </div>
 
   <!-- ── FEEDBACK ── -->
-  <div class="dash-slide" id="slide-feedback">
+  <div class="dash-slide" id="slide-4">
     <div class="section-title">💬 Teacher Feedback</div>
-
     <div class="stat-grid">
       <div class="stat-card">
         <div class="stat-value">{{ feedback_summary.total or 0 }}</div>
-        <div class="stat-label">Total Responses</div>
+        <div class="stat-label">Responses</div>
       </div>
       <div class="stat-card">
         <div class="stat-value" style="color:var(--teal);">{{ feedback_summary.avg_classroom or '—' }}</div>
-        <div class="stat-label">Classroom Exp.</div>
+        <div class="stat-label">Classroom</div>
       </div>
       <div class="stat-card">
         <div class="stat-value" style="color:var(--teal);">{{ feedback_summary.avg_engagement or '—' }}</div>
@@ -549,12 +617,10 @@
         <div class="stat-label">Safety</div>
       </div>
     </div>
-
     <div class="chart-card" style="flex-shrink:0;">
       <div class="chart-title">Average Ratings Over Time (30d)</div>
       <canvas id="feedbackTrendChart" height="60"></canvas>
     </div>
-
     <div class="table-grid table-grid-full">
       <div class="table-card">
         <div class="table-card-header">
@@ -592,33 +658,30 @@
   </div>
 
   <!-- ── WAITLIST ── -->
-<div class="dash-slide" id="slide-waitlist">
-  <div class="section-title">📋 Waitlist</div>
-
-  <div class="stat-grid">
-    <div class="stat-card">
-      <div class="stat-value">{{ waitlist_summary.total or 0 }}</div>
-      <div class="stat-label">Total Signups</div>
+  <div class="dash-slide" id="slide-5">
+    <div class="section-title">📋 Waitlist</div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ waitlist_summary.total or 0 }}</div>
+        <div class="stat-label">Total Signups</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--teal);">{{ waitlist_summary.converted or 0 }}</div>
+        <div class="stat-label">Converted</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--teal);">{{ waitlist_summary.conversion_rate or 0 }}%</div>
+        <div class="stat-label">Conversion Rate</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ (waitlist_summary.total or 0) - (waitlist_summary.converted or 0) }}</div>
+        <div class="stat-label">Still Waiting</div>
+      </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-value" style="color:var(--teal);">{{ waitlist_summary.converted or 0 }}</div>
-      <div class="stat-label">Converted</div>
+    <div class="chart-card" style="flex-shrink:0;">
+      <div class="chart-title">New Signups (14d)</div>
+      <canvas id="waitlistChart" height="60"></canvas>
     </div>
-    <div class="stat-card">
-      <div class="stat-value" style="color:var(--teal);">{{ waitlist_summary.conversion_rate or 0 }}%</div>
-      <div class="stat-label">Conversion Rate</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-value">{{ (waitlist_summary.total or 0) - (waitlist_summary.converted or 0) }}</div>
-      <div class="stat-label">Still Waiting</div>
-    </div>
-  </div>
-
-  <div class="chart-card" style="flex-shrink:0;">
-    <div class="chart-title">New Signups (14d)</div>
-    <canvas id="waitlistChart" height="60"></canvas>
-    </div>
-
     <div class="table-grid table-grid-full">
       <div class="table-card">
         <div class="table-card-header">
@@ -628,20 +691,13 @@
         <div class="table-scroll">
           <table class="data-table">
             <thead>
-              <tr>
-                <th>Email</th>
-                <th>Signed Up</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
+              <tr><th>Email</th><th>Signed Up</th><th>Status</th><th>Action</th></tr>
             </thead>
             <tbody>
               {% for row in waitlist_all %}
               <tr>
                 <td style="font-weight:600;">{{ row.email }}</td>
-                <td style="color:var(--muted); font-size:0.75rem; white-space:nowrap;">
-                  {{ row.joined_at[:10] }}
-                </td>
+                <td style="color:var(--muted); font-size:0.75rem; white-space:nowrap;">{{ row.joined_at[:10] }}</td>
                 <td>
                   {% if row.converted %}
                   <span class="badge badge-teal">Registered</span>
@@ -653,9 +709,7 @@
                   {% if not row.converted %}
                   <form method="POST" action="/admin/alpha/waitlist/invite/{{ row.id }}" style="display:inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="badge badge-teal" style="cursor:pointer; border:none;">
-                      Send Invite
-                    </button>
+                    <button type="submit" class="badge badge-teal" style="cursor:pointer; border:none;">Send Invite</button>
                   </form>
                   {% else %}
                   <span style="color:var(--muted); font-size:0.75rem;">—</span>
@@ -671,7 +725,132 @@
       </div>
     </div>
   </div>
+
+  <!-- ── BUGS ── -->
+  <div class="dash-slide" id="slide-6">
+    <div class="section-title">🐛 Bug Reports</div>
+    <div class="stat-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ bug_report_counts.total or 0 }}</div>
+        <div class="stat-label">Total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--rose);">{{ bug_report_counts.open or 0 }}</div>
+        <div class="stat-label">Open</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--teal);">{{ bug_report_counts.in_progress or 0 }}</div>
+        <div class="stat-label">In Progress</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ bug_report_counts.resolved or 0 }}</div>
+        <div class="stat-label">Resolved</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" style="color:var(--rose);">{{ bug_report_counts.open_high or 0 }}</div>
+        <div class="stat-label">High Severity</div>
+      </div>
+    </div>
+    <div class="table-grid table-grid-full">
+      <div class="table-card">
+        <div class="table-card-header">
+          All Reports
+          {% if bug_reports %}<span class="badge badge-muted">{{ bug_reports|length }}</span>{% endif %}
+        </div>
+        <div class="table-scroll" style="overflow-x:auto;">
+          <table class="data-table" style="min-width:750px;">
+            <thead>
+              <tr>
+                <th>Reporter</th><th>Title</th><th>Severity</th><th>Status</th>
+                <th>Submitted</th><th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+{% for row in bug_reports %}
+<tr>
+  <td style="font-weight:700;">{{ row.username }}</td>
+<td style="max-width:200px; cursor:pointer;" onclick="toggleDesc('{{ row.id }}')">
+  {{ row.title }}
+  <span style="font-size:0.65rem; color:var(--muted); margin-left:4px;">▼</span>
+</td>  <td>
+    <select name="severity" data-id="{{ row.id }}" onchange="updateBug('{{ row.id }}', this)"
+            style="font-size:0.72rem; padding:2px 4px; border-radius:4px; border:1px solid var(--border); background:var(--soft); color:var(--text);">
+      <option value="low"    {{ 'selected' if row.severity == 'low' }}>🟢 Low</option>
+      <option value="medium" {{ 'selected' if row.severity == 'medium' }}>🟡 Medium</option>
+      <option value="high"   {{ 'selected' if row.severity == 'high' }}>🔴 High</option>
+    </select>
+  </td>
+  <td>
+    <select name="status" data-id="{{ row.id }}" class="bug-status-select" onchange="updateBug('{{ row.id }}', this)"
+            style="font-size:0.72rem; padding:2px 4px; border-radius:4px; border:1px solid var(--border); background:var(--soft); color:var(--text);">
+      <option value="open"        {{ 'selected' if row.status == 'open' }}>Open</option>
+      <option value="in_progress" {{ 'selected' if row.status == 'in_progress' }}>In Progress</option>
+      <option value="resolved"    {{ 'selected' if row.status == 'resolved' }}>Resolved</option>
+    </select>
+  </td>
+  <td style="color:var(--muted); font-size:0.75rem; white-space:nowrap;">{{ row.created_at[:10] }}</td>
+  <td>
+ <input type="text" name="admin_notes"
+       data-id="{{ row.id }}"
+       value="{{ row.admin_notes if row.admin_notes else '' }}"
+       placeholder="Notes…"
+       class="admin-note-input"
+       style="font-size:0.72rem; padding:2px 6px; border-radius:4px; border:1px solid var(--border); background:var(--soft); color:var(--text); width:140px;">
+
+  </td>
+  <td>
+    <span id="bug-saved-{{ row.id }}" style="font-size:0.7rem; color:var(--teal); opacity:0; transition:opacity 0.3s;">✓ Saved</span>
+  </td>
+</tr>
+<tr id="desc-{{ row.id }}" style="display:none;">
+  <td colspan="7" style="padding:6px 10px 10px 10px; color:var(--muted); font-size:0.78rem; font-style:italic; background:var(--soft);">
+    <strong>Description: </strong>{{ row.description or '—' }}
+  </td>
+</tr>
+{% else %}
+<tr><td colspan="7" class="empty-row">No bug reports yet</td></tr>
+{% endfor %}            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div><!-- end dash-slides -->
+
+<!-- ══ BOTTOM TAB BAR (mobile) ══════════════════════════════════════════════ -->
+<div class="bottom-tab-bar" id="bottomTabBar">
+  <div class="bottom-tab-bar-inner">
+    <button class="tab-btn active" onclick="goToSlide(0)">
+      <span class="tab-btn-icon">📊</span>
+      <span class="tab-btn-label">Usage</span>
+    </button>
+    <button class="tab-btn" onclick="goToSlide(1)">
+      <span class="tab-btn-icon">🚩</span>
+      <span class="tab-btn-label">Safety</span>
+    </button>
+    <button class="tab-btn" onclick="goToSlide(2)">
+      <span class="tab-btn-icon">🏫</span>
+      <span class="tab-btn-label">Classroom</span>
+    </button>
+    <button class="tab-btn" onclick="goToSlide(3)">
+      <span class="tab-btn-icon">⚙️</span>
+      <span class="tab-btn-label">Technical</span>
+    </button>
+    <button class="tab-btn" onclick="goToSlide(4)">
+      <span class="tab-btn-icon">💬</span>
+      <span class="tab-btn-label">Feedback</span>
+    </button>
+    <button class="tab-btn" onclick="goToSlide(5)">
+      <span class="tab-btn-icon">📋</span>
+      <span class="tab-btn-label">Waitlist</span>
+    </button>
+    <button class="tab-btn" onclick="goToSlide(6)">
+      <span class="tab-btn-icon">🐛</span>
+      <span class="tab-btn-label">Bugs</span>
+    </button>
+  </div>
+</div>
 
 <script id="chart-data" type="application/json">{{ chart_data | safe }}</script>
 <script>
@@ -738,7 +917,6 @@
     { label: "Logout",  data: toCountsByDay(logoutDays,  allDays), backgroundColor: teal + "cc" },
   ]);
 
-  // feedback trend
   const feedbackDaily = _d.dailyFeedback || [];
   if (feedbackDaily.length) {
     const ctx = document.getElementById("feedbackTrendChart");
@@ -748,10 +926,10 @@
         data: {
           labels: feedbackDaily.map(r => r.day),
           datasets: [
-            { label: "Classroom",   data: feedbackDaily.map(r => r.avg_classroom),   borderColor: teal,    backgroundColor: "transparent", borderWidth: 2, pointRadius: 3, tension: 0.3 },
-            { label: "Engagement",  data: feedbackDaily.map(r => r.avg_engagement),  borderColor: blue,    backgroundColor: "transparent", borderWidth: 2, pointRadius: 3, tension: 0.3 },
-            { label: "Ease of Use", data: feedbackDaily.map(r => r.avg_ease),        borderColor: amber,   backgroundColor: "transparent", borderWidth: 2, pointRadius: 3, tension: 0.3 },
-            { label: "Assignments", data: feedbackDaily.map(r => r.avg_assignments), borderColor: rose,    backgroundColor: "transparent", borderWidth: 2, pointRadius: 3, tension: 0.3 },
+            { label: "Classroom",   data: feedbackDaily.map(r => r.avg_classroom),   borderColor: teal,      backgroundColor: "transparent", borderWidth: 2, pointRadius: 3, tension: 0.3 },
+            { label: "Engagement",  data: feedbackDaily.map(r => r.avg_engagement),  borderColor: blue,      backgroundColor: "transparent", borderWidth: 2, pointRadius: 3, tension: 0.3 },
+            { label: "Ease of Use", data: feedbackDaily.map(r => r.avg_ease),        borderColor: amber,     backgroundColor: "transparent", borderWidth: 2, pointRadius: 3, tension: 0.3 },
+            { label: "Assignments", data: feedbackDaily.map(r => r.avg_assignments), borderColor: rose,      backgroundColor: "transparent", borderWidth: 2, pointRadius: 3, tension: 0.3 },
             { label: "Safety",      data: feedbackDaily.map(r => r.avg_safety),      borderColor: "#a78bfa", backgroundColor: "transparent", borderWidth: 2, pointRadius: 3, tension: 0.3 },
           ]
         },
@@ -760,31 +938,83 @@
     }
   }
 
-  // waitlist chart
   const waitlistDaily = _d.dailyWaitlist || [];
-  makeLineChart(
-    "waitlistChart",
-    waitlistDaily.map(r => r.day),
-    waitlistDaily.map(r => r.count),
-    teal,
-    "Signups"
-  );
-  
-  // nav
-  function goToSlide(id) {
-    document.getElementById(id).scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-  }
+  makeLineChart("waitlistChart", waitlistDaily.map(r => r.day), waitlistDaily.map(r => r.count), teal, "Signups");
+
+  // ── Navigation ──
+  // Slides are now identified by index (slide-0, slide-1, etc.)
   const slides  = document.querySelectorAll('.dash-slide');
   const navBtns = document.querySelectorAll('.slide-nav-btn');
+  const tabBtns = document.querySelectorAll('.tab-btn');
+
+  function goToSlide(idx) {
+    const slide = document.getElementById('slide-' + idx);
+    if (slide) slide.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+  }
+
+  function setActive(idx) {
+    navBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
+    tabBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
+    // scroll tab bar so active tab is visible
+    const activeTab = tabBtns[idx];
+    if (activeTab) {
+      activeTab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }
+
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const idx = [...slides].indexOf(entry.target);
-        navBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
+        if (idx !== -1) setActive(idx);
       }
     });
   }, { root: document.getElementById('dashSlides'), threshold: 0.5 });
+
   slides.forEach(s => observer.observe(s));
+
+
+async function updateBug(id, el) {
+  const severity   = document.querySelector(`[name="severity"][data-id="${id}"]`).value;
+  const status     = document.querySelector(`[name="status"][data-id="${id}"]`).value;
+  const adminNotes = document.querySelector(`[name="admin_notes"][data-id="${id}"]`).value;
+  const csrf       = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+  try {
+    const res = await fetch(`/admin/alpha/bugs/${id}/update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': csrf
+      },
+      body: new URLSearchParams({ severity, status, admin_notes: adminNotes, csrf_token: csrf }),
+    });
+    if (res.ok || res.redirected) {
+      const indicator = document.getElementById('bug-saved-' + id);
+      if (indicator) {
+        indicator.style.opacity = '1';
+        setTimeout(() => indicator.style.opacity = '0', 2000);
+      }
+    }
+  } catch(e) {
+    console.error('Save failed', e);
+  }
+}
+
+document.querySelectorAll('.admin-note-input').forEach(el => {
+  el.addEventListener('blur', function() {
+    updateBug(this.dataset.id, this);
+  });
+});
+
+document.querySelectorAll('.bug-status-select').forEach(el => {
+  el.addEventListener('change', () => updateBug(el.dataset.id, el));
+});
+
+function toggleDesc(id) {
+  const row = document.getElementById('desc-' + id);
+  if (row) row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+}
 </script>
 
 </body>
