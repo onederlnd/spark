@@ -568,7 +568,9 @@ document.addEventListener("click", function(e) {
     }
   };
 })();
-
+document.querySelectorAll('.child-avatar').forEach(el => {
+  el.style.background = el.dataset.bg;
+});
     </script>
     {% endif %}
   </body>

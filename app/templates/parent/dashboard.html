@@ -1,0 +1,77 @@
+{# app/templates/parent/dashboard.html #}
+{% extends "base.html" %}
+{% block title %}Parent Dashboard — SparK{% endblock %}
+
+{% block content %}
+<div style="max-width:720px; margin:2rem auto; padding:0 1rem;">
+
+  <div style="margin-bottom:1.5rem;">
+    <h1 style="font-size:1.4rem; font-weight:900; margin:0 0 0.25rem;">👨‍👩‍👧 Family Dashboard</h1>
+    <p style="color:var(--muted); font-size:0.88rem;">Welcome, {{ session.get('username') }}.</p>
+  </div>
+
+  {% if not children %}
+  <div class="card" style="padding:2rem; text-align:center; color:var(--muted);">
+    <div style="font-size:2rem; margin-bottom:0.5rem;">🔗</div>
+    <p>No children linked yet. Ask your child's teacher for an invite code.</p>
+  </div>
+  {% endif %}
+
+  {% for child in children %}
+  <div class="card" style="margin-bottom:1.5rem; padding:1.5rem;">
+
+    {# --- child header --- #}
+    <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem;">
+<div style="width:42px; height:42px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.3rem;"
+     data-bg="{{ child.student.avatar_bg }}"
+     class="child-avatar">
+  {{ child.student.avatar_emoji }}
+</div>
+      <div>
+        <div style="font-weight:900; font-size:1rem;">{{ child.student.username }}</div>
+        <div style="font-size:0.78rem; color:var(--muted);">Student</div>
+      </div>
+    </div>
+
+    {# --- announcements --- #}
+    <div style="margin-bottom:1.25rem;">
+      <div style="font-size:0.72rem; font-weight:900; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.6rem;">
+        📢 Teacher Announcements
+      </div>
+      {% if child.announcements %}
+        {% for post in child.announcements %}
+        <div style="padding:0.75rem; border-radius:var(--radius); background:var(--soft); border:1px solid var(--border); margin-bottom:0.5rem;">
+          <div style="font-weight:800; font-size:0.88rem; margin-bottom:2px;">{{ post.title }}</div>
+          <div style="font-size:0.82rem; color:var(--muted); margin-bottom:6px;">
+            {{ post.classroom_name }} · {{ post.teacher_username }} · {{ post.created_at[:10] }}
+          </div>
+          <div style="font-size:0.85rem; color:var(--text);">{{ post.body | truncate(200) }}</div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="color:var(--muted); font-size:0.85rem; font-style:italic;">No announcements yet.</p>
+      {% endif %}
+    </div>
+
+    {# --- recent activity --- #}
+    <div>
+      <div style="font-size:0.72rem; font-weight:900; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.6rem;">
+        📝 Recent Posts
+      </div>
+      {% if child.activity %}
+        {% for post in child.activity %}
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border);">
+          <span style="font-size:0.85rem; font-weight:600;">{{ post.title }}</span>
+          <span style="font-size:0.75rem; color:var(--muted); white-space:nowrap; margin-left:1rem;">{{ post.created_at[:10] }}</span>
+        </div>
+        {% endfor %}
+      {% else %}
+        <p style="color:var(--muted); font-size:0.85rem; font-style:italic;">No posts yet.</p>
+      {% endif %}
+    </div>
+
+  </div>
+  {% endfor %}
+
+</div>
+{% endblock %}

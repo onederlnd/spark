@@ -102,6 +102,12 @@ def _is_teacher(user_id):
     return user and user["role"] == "teacher"
 
 
+@classrooms_bp.before_request
+def block_parents():
+    if session.get("role") == "parent":
+        return redirect(url_for("parent.dashboard"))
+
+
 @classrooms_bp.route("/")
 @login_required
 @coppa_required

@@ -12,44 +12,110 @@
     {% endfor %}
   {% endwith %}
 
+  {# --- role selector --- #}
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:1.5rem;">
+    <button type="button" id="btn-student" onclick="selectRole('student')"
+            style="padding:1rem; border-radius:var(--radius); border:2px solid var(--border);
+                   background:transparent; color:var(--muted); font-family:'Nunito',sans-serif;
+                   font-size:0.95rem; font-weight:800; cursor:pointer; transition:all 0.15s;">
+      🎒 Student
+    </button>
+    <button type="button" id="btn-teacher" onclick="selectRole('teacher')"
+            style="padding:1rem; border-radius:var(--radius); border:2px solid var(--border);
+                   background:transparent; color:var(--muted); font-family:'Nunito',sans-serif;
+                   font-size:0.95rem; font-weight:800; cursor:pointer; transition:all 0.15s;">
+      👩‍🏫 Teacher
+    </button>
+  </div>
+
   <form method="POST">
-    <!-- In auth/register.html, inside the form: -->
     {% if request.args.get('invite') %}
     <input type="hidden" name="invite" value="{{ request.args.get('invite') }}">
     {% endif %}
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="role" id="role-input" value="">
+
     <input name="username" placeholder="Choose a username" required autocomplete="username">
     <input type="email" name="email" placeholder="Email address (optional)" autocomplete="email">
-<input name="password" type="password" placeholder="Create a password" required autocomplete="new-password">
+    <input name="password" type="password" placeholder="Create a password" required autocomplete="new-password">
 
-<div style="position:relative; display:flex; flex-direction:column;">
-<input 
-  type="text"
-  name="dob"
-  id="dob"
-  required
-  placeholder="Date of Birth"
-  onfocus="this.type='date'; this.placeholder=''"
-  onblur="if(!this.value){ this.type='text'; this.placeholder='Date of Birth'; }"
-  autocomplete="bday"
->
+    <div style="position:relative; display:flex; flex-direction:column;">
+      <input
+        type="text"
+        name="dob"
+        id="dob"
+        required
+        placeholder="Date of Birth"
+        onfocus="this.type='date'; this.placeholder=''"
+        onblur="if(!this.value){ this.type='text'; this.placeholder='Date of Birth'; }"
+        autocomplete="bday"
+      >
+    </div>
 
-</div>
+    {# --- teacher-only: bio --- #}
+    <div id="field-bio" style="display:none;">
+      <input name="bio" placeholder="Short bio (optional)" autocomplete="off">
+    </div>
 
-<select name="role">
-  <option value="student">Student</option>
-  <option value="parent">Parent</option>
-  <option value="teacher">Teacher</option>
-</select>
-<div class="form-actions">
-  <button type="submit" class="btn-submit">Create Account</button>
-</div>
+    <div class="form-actions" style="margin-top:1.25rem;">
+      <button type="submit" id="submit-btn" class="btn-submit" disabled
+              style="opacity:0.5; cursor:not-allowed;">
+        Create Account
+      </button>
+    </div>
 
-<p style="font-size:0.78rem; color:var(--muted); margin-top:0.75rem; text-align:center;">
-  By joining you agree to our <a href="{{ url_for('auth.terms') }}">Terms of Service</a> and <a href="{{ url_for('auth.privacy') }}">Privacy Policy</a>.
-</p>
+    <p id="role-hint" style="font-size:0.82rem; color:var(--muted); text-align:center; margin-top:0.5rem;">
+      Select Student or Teacher above to continue.
+    </p>
+
+    <p style="font-size:0.78rem; color:var(--muted); margin-top:0.75rem; text-align:center;">
+      By joining you agree to our <a href="{{ url_for('auth.terms') }}">Terms of Service</a>
+      and <a href="{{ url_for('auth.privacy') }}">Privacy Policy</a>.
+    </p>
   </form>
+
   <a href="/auth/login">Already have an account? Sign in →</a>
 </div>
+
+<script>
+  function selectRole(role) {
+    const isTeacher = role === 'teacher';
+
+    // update hidden input
+    document.getElementById('role-input').value = role;
+
+    // toggle bio field
+    document.getElementById('field-bio').style.display = isTeacher ? 'block' : 'none';
+
+    // enable submit
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+
+    // hide hint
+    document.getElementById('role-hint').style.display = 'none';
+
+    // update button styles
+    const btnStudent = document.getElementById('btn-student');
+    const btnTeacher = document.getElementById('btn-teacher');
+
+    if (isTeacher) {
+      btnTeacher.style.background  = 'var(--teal)';
+      btnTeacher.style.borderColor = 'var(--teal)';
+      btnTeacher.style.color       = '#fff';
+      btnStudent.style.background  = 'transparent';
+      btnStudent.style.borderColor = 'var(--border)';
+      btnStudent.style.color       = 'var(--muted)';
+    } else {
+      btnStudent.style.background  = 'var(--teal)';
+      btnStudent.style.borderColor = 'var(--teal)';
+      btnStudent.style.color       = '#fff';
+      btnTeacher.style.background  = 'transparent';
+      btnTeacher.style.borderColor = 'var(--border)';
+      btnTeacher.style.color       = 'var(--muted)';
+    }
+  }
+</script>
 
 {% endblock %}

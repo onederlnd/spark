@@ -319,6 +319,21 @@ def init_db(app):
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+            CREATE TABLE IF NOT EXISTS parent_invite_codes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id INTEGER NOT NULL REFERENCES users(id),
+                code TEXT NOT NULL UNIQUE,
+                created_by INTEGER NOT NULL REFERENCES users(id),
+                claimed_at TIMESTAMP DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS parent_student (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                parent_id INTEGER NOT NULL REFERENCES users(id),
+                student_id INTEGER NOT NULL REFERENCES users(id),
+                linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(parent_id, student_id)
+            );
         """),
         )
         db.commit()

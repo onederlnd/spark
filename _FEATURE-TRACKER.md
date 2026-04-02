@@ -109,7 +109,7 @@
 - [x] Structured logging — replace all `print()` statements with proper log levels
 - [x] Health check endpoint — `/health` returns app and DB status
 - [x] Rate limit / lockout recovery UX 
-- [ ] Smoke Test/Manual QA pass — full walkthrough as teacher, student, and parent
+- [x] Smoke Test/Manual QA pass — full walkthrough as teacher, student, and parent
 
 
 ---
@@ -122,7 +122,7 @@
 - [x] Teacher feedback loop — weekly check-in process with alpha teacher
 - [x] Bug tracking — structured log of issues found in live use
 - [x] Safety incident review — confirm moderation workflow holds under real usage
-- [ ] Session stability — confirm WebSocket and session timeout work in production
+- [x] Session stability — confirm WebSocket and session timeout work in production
 - [ ] Database backups — scheduled backup with rotation before go-live
 
 ## 🔐 v1.1 — Trust & Verification
@@ -144,6 +144,7 @@
 > Open the doors beyond the alpha classroom.
 
 - [x] Landing page — public marketing site
+- [ ] Student Signup with join code - students can enter a join code to their signup. 
 - [ ] Onboarding flow — guide new users on first login
 - [ ] User mentions — `@username` triggers notification
 - [ ] Direct messages — teacher ↔ student only initially

@@ -42,6 +42,12 @@ TITLE_MAX = 200
 BODY_MAX = 10000
 
 
+@posts_bp.before_request
+def block_parents():
+    if session.get("role") == "parent":
+        return redirect(url_for("parent.dashboard"))
+
+
 def _contains_blocked_word(text):
     words = [row["word"].lower() for row in get_all_words()]
     text_lower = text.lower()

@@ -1,6 +1,6 @@
 # app/routes/feed.py
 
-from flask import Blueprint, request, render_template, session
+from flask import Blueprint, request, render_template, session, redirect, url_for
 from app.models.post import get_feed, get_following_feed
 from app.models.topic import get_all_topics, get_topic_by_name
 from app.models.user import coppa_required
@@ -9,6 +9,12 @@ from app.utils.auth import login_required
 
 
 feed_bp = Blueprint("feed", __name__, url_prefix="")
+
+
+@feed_bp.before_request
+def block_parents():
+    if session.get("role") == "parent":
+        return redirect(url_for("parent.dashboard"))
 
 
 # --- auth decorator

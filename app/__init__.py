@@ -98,6 +98,7 @@ def create_app(config=None):
     from app.routes.landing import marketing_bp
     from app.routes.feedback import feedback_bp
     from app.routes.bug_reports import bug_reports_bp
+    from app.routes.parent import parent_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -116,11 +117,13 @@ def create_app(config=None):
     app.register_blueprint(marketing_bp)
     app.register_blueprint(feedback_bp)
     app.register_blueprint(bug_reports_bp)
+    app.register_blueprint(parent_bp)
 
     app.jinja_env.filters["time_ago"] = time_ago
 
     csrf.exempt(api_bp)
     csrf.exempt(admin_bp)
+    csrf.exempt(parent_bp)
 
     # ---- Session timeout ----
     @app.before_request

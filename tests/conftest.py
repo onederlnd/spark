@@ -174,3 +174,11 @@ def mock_emails(monkeypatch):
     monkeypatch.setattr(
         email_module, "send_waitlist_confirmation", lambda *a, **kw: None
     )
+
+
+@pytest.fixture(scope="function")
+def db(app):
+    with app.app_context():
+        from app.models import get_db
+
+        yield get_db()
