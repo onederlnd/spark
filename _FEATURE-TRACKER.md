@@ -124,7 +124,7 @@
 - [x] Safety incident review — confirm moderation workflow holds under real usage
 - [x] Session stability — confirm WebSocket and session timeout work in production
 - [ ] Database backups — scheduled backup with rotation before go-live
-- [ ] Announcements tab - Feed tab that shows new all class announcement
+- [i] Announcements tab - Feed tab that shows new all class announcement
 - [ ] Assignments tab - feed assignments tab that shows all assignments, if it was graded and turned in, and your grade.
 
 ## 🔐 v1.1 — Trust & Verification
