@@ -124,6 +124,8 @@
 - [x] Safety incident review — confirm moderation workflow holds under real usage
 - [x] Session stability — confirm WebSocket and session timeout work in production
 - [ ] Database backups — scheduled backup with rotation before go-live
+- [ ] Announcements tab - Feed tab that shows new all class announcement
+- [ ] Assignments tab - feed assignments tab that shows all assignments, if it was graded and turned in, and your grade.
 
 ## 🔐 v1.1 — Trust & Verification
 > **Status: Planned**
@@ -151,7 +153,7 @@
 - [ ] Trending algorithm — weight by votes, replies, and time decay
 - [ ] Upgrade COPPA — review and harden compliance for public launch
 - [ ] Update REST API — review and expand for public access
-
+- [ ] Age appropriate themes — Teacher/Institution can choose from a range of age-appropriate styles. Each style has its own light and dark modes. 
 ---
 
 ## 🎮 v1.3 — Growth & Engagement
