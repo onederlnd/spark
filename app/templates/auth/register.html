@@ -28,75 +28,150 @@
     </button>
   </div>
 
-  <form method="POST">
-    {% if request.args.get('invite') %}
-    <input type="hidden" name="invite" value="{{ request.args.get('invite') }}">
-    {% endif %}
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden" name="role" id="role-input" value="">
+  {# --- role hint --- #}
+  <p id="role-hint" style="font-size:0.82rem; color:var(--muted); text-align:center; margin-bottom:1rem;">
+    Select Student or Teacher above to continue.
+  </p>
 
-    <input name="username" placeholder="Choose a username" required autocomplete="username">
-    <input type="email" name="email" placeholder="Email address (optional)" autocomplete="email">
-    <input name="password" type="password" placeholder="Create a password" required autocomplete="new-password">
+  {# =================== STUDENT FORM =================== #}
+  <div id="view-student" style="display:none;">
 
-    <div style="position:relative; display:flex; flex-direction:column;">
-      <input
-        type="text"
-        name="dob"
-        id="dob"
-        required
-        placeholder="Date of Birth"
-        onfocus="this.type='date'; this.placeholder=''"
-        onblur="if(!this.value){ this.type='text'; this.placeholder='Date of Birth'; }"
-        autocomplete="bday"
-      >
-    </div>
-
-    {# --- teacher-only: bio --- #}
-    <div id="field-bio" style="display:none;">
-      <input name="bio" placeholder="Short bio (optional)" autocomplete="off">
-    </div>
-
-    <div class="form-actions" style="margin-top:1.25rem;">
-      <button type="submit" id="submit-btn" class="btn-submit" disabled
-              style="opacity:0.5; cursor:not-allowed;">
-        Create Account
+    {# step 1: join code #}
+    <div id="student-step-code">
+      <p style="font-size:0.85rem; color:var(--muted); margin-bottom:0.75rem; text-align:center;">
+        Enter the join code from your teacher to get started.
+      </p>
+      <input type="text" id="join-code-input" placeholder="Class join code"
+             style="width:100%; padding:10px 12px; border-radius:var(--radius);
+                    border:1px solid var(--border); background:var(--soft);
+                    color:var(--text); font-family:monospace; font-size:1rem;
+                    letter-spacing:0.1em; margin-bottom:0.75rem;">
+      <div id="join-code-error" style="display:none;" class="flash flash-error"></div>
+      <button type="button" onclick="validateJoinCode()"
+              class="btn btn-primary" style="width:100%;">
+        Continue →
       </button>
     </div>
 
-    <p id="role-hint" style="font-size:0.82rem; color:var(--muted); text-align:center; margin-top:0.5rem;">
-      Select Student or Teacher above to continue.
-    </p>
+    {# step 2: registration form (shown after valid code) #}
+    <div id="student-step-form" style="display:none;">
+      <div id="classroom-banner"
+           style="background:var(--soft); border:1px solid var(--border);
+                  border-radius:var(--radius); padding:0.6rem 1rem;
+                  font-size:0.85rem; font-weight:700; margin-bottom:1rem;
+                  display:flex; align-items:center; gap:0.5rem;">
+        🏫 <span id="classroom-name-display"></span>
+      </div>
 
-    <p style="font-size:0.78rem; color:var(--muted); margin-top:0.75rem; text-align:center;">
-      By joining you agree to our <a href="{{ url_for('auth.terms') }}">Terms of Service</a>
-      and <a href="{{ url_for('auth.privacy') }}">Privacy Policy</a>.
-    </p>
-  </form>
+      {# under-13 block #}
+      <div id="under-13-block" style="display:none; text-align:center; padding:1rem 0;">
+        <div style="font-size:2rem; margin-bottom:0.5rem;">🔒</div>
+        <p style="font-weight:800; margin-bottom:0.5rem;">Students under 13 must be added by their teacher.</p>
+        <p style="font-size:0.85rem; color:var(--muted);">Ask your teacher to provision your account — they'll give you a username and password to log in directly.</p>
+      </div>
 
-  <a href="/auth/login">Already have an account? Sign in →</a>
+      <form method="POST" id="student-form" action="/auth/register/student">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="role" value="student">
+        <input type="hidden" name="join_code" id="join-code-hidden">
+        <input type="hidden" name="classroom_id" id="classroom-id-hidden">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+          <input type="text" name="first_name" placeholder="First name" required
+                 style="padding:10px 12px; border-radius:var(--radius); border:1px solid var(--border);
+                        background:var(--soft); color:var(--text); font-size:0.9rem;">
+          <input type="text" name="last_name" placeholder="Last name" required
+                 style="padding:10px 12px; border-radius:var(--radius); border:1px solid var(--border);
+                        background:var(--soft); color:var(--text); font-size:0.9rem;">
+        </div>
+
+<!-- add the same inline styles as the other inputs -->
+        <input type="email" name="email" placeholder="Email address (optional)"
+              autocomplete="email"
+              style="width:100%; margin-bottom:0.75rem; padding:10px 12px;
+                border-radius:var(--radius); border:1px solid var(--border);
+                background:var(--soft); color:var(--text); font-size:0.9rem;">
+        <input name="password" type="password" placeholder="Create a password"
+               required autocomplete="new-password"
+               style="width:100%; margin-bottom:0.75rem;">
+
+        <input type="text" name="dob" id="dob-student" required
+               placeholder="Date of Birth"
+               onfocus="this.type='date'; this.placeholder=''; checkAge(this, 'student');"
+               onchange="checkAge(this, 'student');"
+               onblur="if(!this.value){ this.type='text'; this.placeholder='Date of Birth'; }"
+               autocomplete="bday"
+               style="width:100%; margin-bottom:0.75rem;">
+
+        <button type="submit" class="btn-submit" id="student-submit">
+          Create Account
+        </button>
+      </form>
+    </div>
+  </div>
+
+  {# =================== TEACHER FORM =================== #}
+  <div id="view-teacher" style="display:none;">
+    <form method="POST" action="/auth/register/teacher">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="role" value="teacher">
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-bottom:0.75rem;">
+        <input type="text" name="first_name" placeholder="First name" required
+               style="padding:10px 12px; border-radius:var(--radius); border:1px solid var(--border);
+                      background:var(--soft); color:var(--text); font-size:0.9rem;">
+        <input type="text" name="last_name" placeholder="Last name" required
+               style="padding:10px 12px; border-radius:var(--radius); border:1px solid var(--border);
+                      background:var(--soft); color:var(--text); font-size:0.9rem;">
+      </div>
+
+      <input type="email" name="email" placeholder="Email address" required
+             autocomplete="email"
+             style="width:100%; margin-bottom:0.75rem;">
+
+      <input name="password" type="password" placeholder="Create a password"
+             required autocomplete="new-password"
+             style="width:100%; margin-bottom:0.75rem;">
+
+      <input type="text" name="dob" id="dob-teacher" required
+             placeholder="Date of Birth"
+             onfocus="this.type='date'; this.placeholder='';"
+             onblur="if(!this.value){ this.type='text'; this.placeholder='Date of Birth'; }"
+             autocomplete="bday"
+             style="width:100%; margin-bottom:0.75rem;">
+
+      <p style="font-size:0.78rem; color:var(--muted); margin-bottom:1rem;">
+        Your username will be auto-generated. You'll be connected to your school by your administrator.
+      </p>
+
+      <button type="submit" class="btn-submit">Create Account</button>
+    </form>
+  </div>
+
+  {# --- footer --- #}
+  <p style="font-size:0.78rem; color:var(--muted); margin-top:1rem; text-align:center;">
+    By joining you agree to our <a href="{{ url_for('auth.terms') }}">Terms of Service</a>
+    and <a href="{{ url_for('auth.privacy') }}">Privacy Policy</a>.
+  </p>
+
+  <a href="/auth/login" style="display:block; margin-top:0.75rem;">Already have an account? Sign in →</a>
+
+  <div style="margin-top:0.75rem; text-align:center;">
+    <a href="{{ url_for('parent.join') }}" style="font-size:0.82rem; color:var(--muted);">
+      👨‍👩‍👧 Parent? Connect to your child →
+    </a>
+  </div>
+
 </div>
 
 <script>
+  // --- role toggle ---
   function selectRole(role) {
     const isTeacher = role === 'teacher';
-
-    // update hidden input
-    document.getElementById('role-input').value = role;
-
-    // toggle bio field
-    document.getElementById('field-bio').style.display = isTeacher ? 'block' : 'none';
-
-    // enable submit
-    const btn = document.getElementById('submit-btn');
-    btn.disabled = false;
-    btn.style.opacity = '1';
-    btn.style.cursor = 'pointer';
-
-    // hide hint
+    document.getElementById('view-student').style.display = isTeacher ? 'none' : 'block';
+    document.getElementById('view-teacher').style.display = isTeacher ? 'block' : 'none';
     document.getElementById('role-hint').style.display = 'none';
 
-    // update button styles
     const btnStudent = document.getElementById('btn-student');
     const btnTeacher = document.getElementById('btn-teacher');
 
@@ -114,6 +189,72 @@
       btnTeacher.style.background  = 'transparent';
       btnTeacher.style.borderColor = 'var(--border)';
       btnTeacher.style.color       = 'var(--muted)';
+    }
+  }
+
+  // --- join code validation ---
+  async function validateJoinCode() {
+    const code = document.getElementById('join-code-input').value.trim();
+    const errEl = document.getElementById('join-code-error');
+    errEl.style.display = 'none';
+
+    if (!code) {
+      errEl.textContent = 'Please enter a join code.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    try {
+      const res = await fetch(`/auth/validate-join-code?code=${encodeURIComponent(code)}`);
+      const data = await res.json();
+
+      if (!data.valid) {
+        errEl.textContent = data.error || 'Invalid join code.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      // valid — show form
+      document.getElementById('join-code-hidden').value = code;
+      document.getElementById('classroom-id-hidden').value = data.classroom_id;
+      document.getElementById('classroom-name-display').textContent = 'Joining: ' + data.classroom_name;
+      document.getElementById('student-step-code').style.display = 'none';
+      document.getElementById('student-step-form').style.display = 'block';
+
+    } catch(e) {
+      errEl.textContent = 'Something went wrong. Please try again.';
+      errEl.style.display = 'block';
+    }
+  }
+
+  // allow enter key on join code input
+  document.getElementById('join-code-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); validateJoinCode(); }
+  });
+
+  // --- age check ---
+  function checkAge(input, role) {
+    const dob = new Date(input.value);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const m = today.getMonth() - dob.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+
+    if (role === 'student') {
+      const under13 = document.getElementById('under-13-block');
+      const form    = document.getElementById('student-form');
+      const inputs  = form.querySelectorAll('input:not([type=hidden])');
+      const btn     = document.getElementById('student-submit');
+
+      if (age < 13) {
+        under13.style.display = 'block';
+        inputs.forEach(i => { if (i !== input) i.style.display = 'none'; });
+        btn.style.display = 'none';
+      } else {
+        under13.style.display = 'none';
+        inputs.forEach(i => i.style.display = '');
+        btn.style.display = '';
+      }
     }
   }
 </script>

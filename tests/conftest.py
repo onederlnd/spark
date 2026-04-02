@@ -9,6 +9,99 @@ from app.utils.brute_force import _lockouts
 from app.models.post import create_post
 
 
+# ---------------------------------------------------------------------------
+# shared helper functions (not fixtures — import or call directly in tests)
+# ---------------------------------------------------------------------------
+
+
+def _make_classroom(teacher_client, name="Test Classroom"):
+    """Create a classroom via the teacher client. Returns (join_code, classroom_id)."""
+    response = teacher_client.post(
+        "/classrooms/new",
+        data={"name": name},
+        follow_redirects=True,
+    )
+    html = response.data.decode()
+    match = re.search(r"/classrooms/(\d+)", html)
+    if not match:
+        raise ValueError("Classroom ID not found in response HTML")
+    classroom_id = int(match.group(1))
+    with teacher_client.application.app_context():
+        from app.models import get_db
+
+        row = (
+            get_db()
+            .execute("SELECT join_code FROM classrooms WHERE id = ?", (classroom_id,))
+            .fetchone()
+        )
+        return row["join_code"], classroom_id
+
+
+def _register_student(
+    client,
+    join_code,
+    *,
+    first="Alice",
+    last="Smith",
+    password="pass123",
+    dob="2005-06-01",
+    email="",
+):
+    """POST to /auth/register/student and return the response."""
+    return client.post(
+        "/auth/register/student",
+        data={
+            "first_name": first,
+            "last_name": last,
+            "password": password,
+            "dob": dob,
+            "join_code": join_code,
+            "email": email,
+        },
+    )
+
+
+def _register_teacher(
+    client,
+    *,
+    first="Bob",
+    last="Jones",
+    password="pass123",
+    dob="1985-03-15",
+    email="bob@school.edu",
+):
+    """POST to /auth/register/teacher and return the response."""
+    return client.post(
+        "/auth/register/teacher",
+        data={
+            "first_name": first,
+            "last_name": last,
+            "password": password,
+            "dob": dob,
+            "email": email,
+        },
+    )
+
+
+def _get_user(app, username_prefix):
+    """Fetch the first user whose username starts with username_prefix."""
+    with app.app_context():
+        from app.models import get_db
+
+        return (
+            get_db()
+            .execute(
+                "SELECT * FROM users WHERE username LIKE ?", (f"{username_prefix}%",)
+            )
+            .fetchone()
+        )
+
+
+# ---------------------------------------------------------------------------
+# fixtures
+# ---------------------------------------------------------------------------
+
+
 @pytest.fixture()
 def classroom(teacher_client):
     response = teacher_client.post(
@@ -16,24 +109,19 @@ def classroom(teacher_client):
         data={"name": "Test Classroom"},
         follow_redirects=True,
     )
-
     html = response.data.decode()
-
     match = re.search(r"/classrooms/(\d+)", html)
     if not match:
         raise ValueError("Classroom ID not found in response HTML")
-    classroom_id = int(match.group(1))
-
-    return classroom_id
+    return int(match.group(1))
 
 
 @pytest.fixture
 def post(classroom):
     """Create a post by student in a classroom."""
-    post_id = create_post(
+    return create_post(
         user_id=2, title="Test Post", body="test body", classroom_id=classroom
     )
-    return post_id
 
 
 @pytest.fixture()
@@ -46,10 +134,8 @@ def assignment(teacher_client, classroom):
             "due_date": "2030-01-01",
         },
     )
-
     assignment_url = response.headers["Location"]
-    assignment_id = int(assignment_url.rstrip("/").split("/")[-1])
-    return assignment_id
+    return int(assignment_url.rstrip("/").split("/")[-1])
 
 
 @pytest.fixture(autouse=True)
@@ -65,7 +151,6 @@ def reset_brute_force():
 
 @pytest.fixture(autouse=True)
 def reset_rate_limits():
-    """Reset the in-memory rate limit store before each test"""
     _request_counts.clear()
     yield
     _request_counts.clear()
@@ -74,20 +159,18 @@ def reset_rate_limits():
 @pytest.fixture(scope="function")
 def app():
     db_fd, db_path = tempfile.mkstemp()
-
     test_app = create_app(
         {
             "TESTING": True,
             "DATABASE_URL": db_path,
             "WTF_CSRF_ENABLED": False,
-            "SECRET_KEY": "test-source",
+            "SECRET_KEY": "test-secret",
             "BCRYPT_ROUNDS": 4,
             "SESSION_TIMEOUT_MINUTES": 10,
             "PROPAGATE_EXCEPTIONS": True,
         }
     )
     yield test_app
-
     os.close(db_fd)
     os.unlink(db_path)
 
@@ -109,19 +192,12 @@ def auth_client(app):
             "dob": "2000-01-01",
         },
     )
-    client.post(
-        "/auth/login",
-        data={
-            "username": "testuser",
-            "password": "pass123",
-        },
-    )
+    client.post("/auth/login", data={"username": "testuser", "password": "pass123"})
     return client
 
 
 @pytest.fixture(scope="function")
 def teacher_client(app):
-    """Authenticated client logged in as a teacher"""
     client = app.test_client()
     client.post(
         "/auth/register",
@@ -134,15 +210,14 @@ def teacher_client(app):
         },
     )
     client.post("/auth/login", data={"username": "teacher1", "password": "pass123"})
-
     return client
 
 
-@pytest.fixture
+@pytest.fixture(scope="function")
 def student_client(app, teacher_client):
     client = app.test_client()
     client.post(
-        "auth/register",
+        "/auth/register",
         data={
             "username": "student1",
             "password": "pass123",

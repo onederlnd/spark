@@ -285,3 +285,163 @@ def qr_login():
     )
     db.commit()
     return redirect(url_for("feed.index"))
+
+
+@auth_bp.route("/validate-join-code")
+def validate_join_code():
+    """Auth helper to pull join codes directly from the json in api."""
+    from flask import jsonify
+    from app.models.classroom import get_classroom_by_join_code
+
+    code = request.args.get("code", "").strip()
+    if not code:
+        return jsonify({"valid": False, "error": "No code provided."})
+    classroom = get_classroom_by_join_code(code)
+    if not classroom:
+        return jsonify({"valid": False, "error": "Invalid join code."})
+    return jsonify(
+        {
+            "valid": True,
+            "classroom_id": classroom["id"],
+            "classroom_name": classroom["name"],
+        }
+    )
+
+
+@auth_bp.route("/register/student", methods=["POST"])
+@rate_limit(max_requests=10, window_seconds=60)
+def register_student():
+    from app.utils.sanitize import sanitize_plain
+    from app.models.classroom import get_classroom_by_join_code, join_classroom
+
+    first_name = sanitize_plain(request.form.get("first_name").strip(), max_length=50)
+    last_name = sanitize_plain(request.form.get("last_name").strip(), max_length=50)
+    password = request.form.get("password", "")
+    dob = request.form.get("dob", "")
+    email = request.form.get("email", "").strip() or None
+    join_code = request.form.get("join_code", "").strip()
+
+    if not first_name or not last_name or not password or not dob or not join_code:
+        flash("All required fields must be filled in.", "error")
+        return redirect(url_for("auth.register"))
+
+    # age check
+    from datetime import date
+
+    try:
+        dob_date = datetime.strptime(dob, "%Y-%m-%d").date()
+        today = date.today()
+        age = (
+            today.year
+            - dob_date.year
+            - ((today.month, today.day) < (dob_date.month, dob_date.day))
+        )
+    except ValueError:
+        flash("Invalid date of birth.", "error")
+        return redirect(url_for("auth.register"))
+
+    if age < 13:
+        flash("Students under 13 must be provisioned by a teacher.", "error")
+        return redirect(url_for("auth.register"))
+
+    # validate join code
+    classroom = get_classroom_by_join_code(join_code)
+    if not classroom:
+        flash("Invalid join code.", "error")
+        return redirect(url_for("auth.register"))
+
+    # auto-generate username
+    db = get_db()
+    base = f"{first_name.lower()}.{last_name.lower()}"
+    username = base
+    counter = 1
+    while db.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone():
+        username = f"{base}{counter}"
+        counter += 1
+
+    display_name = f"{first_name} {last_name}"
+
+    success, error = create_user(
+        username=username,
+        password=password,
+        bio="",
+        role="student",
+        dob=dob,
+        email=email,
+    )
+
+    if not success:
+        flash(error or "Could not create account.", "error")
+        return redirect(url_for("auth.register"))
+
+    user = db.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone()
+    user_id = user["id"]
+
+    db.execute(
+        "UPDATE users SET display_name = ? WHERE id = ?", (display_name, user_id)
+    )
+    db.commit()
+
+    join_classroom(classroom["id"], user_id, role="student")
+
+    if email:
+        send_welcome_email(email, username)
+
+    flash("Account created! Please log in.", "success")
+    return redirect(url_for("auth.login"))
+
+
+@auth_bp.route("/register/teacher", methods=["POST"])
+@rate_limit(max_requests=10, window_seconds=60)
+def register_teacher():
+    from app.utils.sanitize import sanitize_plain
+
+    first_name = sanitize_plain(
+        request.form.get("first_name", "").strip(), max_length=50
+    )
+    last_name = sanitize_plain(request.form.get("last_name", "").strip(), max_length=50)
+    password = request.form.get("password", "")
+    dob = request.form.get("dob", "")
+    email = request.form.get("email", "")
+
+    if not first_name or not last_name or not password or not dob or not email:
+        flash("All fields are required.", "error")
+        return redirect(url_for("auth.register"))
+
+    # auto-generate username
+    db = get_db()
+    base = f"teacher.{first_name.lower()}.{last_name.lower()}"
+    username = base
+    counter = 1
+    while db.execute("SELECT 1 FROM users WHERE username = ?", (username,)).fetchone():
+        username = f"{base}{counter}"
+        counter += 1
+
+    display_name = f"{first_name} {last_name}"
+
+    success, error = create_user(
+        username=username,
+        password=password,
+        bio="",
+        role="teacher",
+        dob=dob,
+        email=email,
+    )
+
+    if not success:
+        flash(error or "Could not create account.", "error")
+        return redirect(url_for("auth.register"))
+
+    user = db.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone()
+    user_id = user["id"]
+
+    db.execute(
+        "UPDATE users SET display_name = ? WHERE id = ?", (display_name, user_id)
+    )
+    db.commit()
+
+    if email:
+        send_welcome_email(email, username)
+
+    flash("Account created! Please log in.", "success")
+    return redirect(url_for("auth.login"))

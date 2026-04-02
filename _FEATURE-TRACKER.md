@@ -144,7 +144,7 @@
 > Open the doors beyond the alpha classroom.
 
 - [x] Landing page — public marketing site
-- [ ] Student Signup with join code - students can enter a join code to their signup. 
+- [x] Student Signup with join code - students can enter a join code to their signup. 
 - [ ] Onboarding flow — guide new users on first login
 - [ ] User mentions — `@username` triggers notification
 - [ ] Direct messages — teacher ↔ student only initially
