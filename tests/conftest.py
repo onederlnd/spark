@@ -37,6 +37,32 @@ def _make_classroom(teacher_client, name="Test Classroom"):
         return row["join_code"], classroom_id
 
 
+def _join_classroom(client, join_code):
+    """Join a classroom via join code."""
+    return client.post(
+        "/classrooms/join",
+        data={"join_code": join_code},
+        follow_redirects=True,
+    )
+
+
+def _post_announcement(client, classroom_id, *, title="Announcement", body="Test body"):
+    """Create an announcement directly in the DB (no HTTP route for post_type yet)."""
+    with client.application.app_context():
+        from app.models import get_db
+
+        db = get_db()
+        # get the teacher's user_id from session cookie isn't available here,
+        # so look up by the known teacher username
+        user = db.execute("SELECT id FROM users WHERE username = 'teacher1'").fetchone()
+        db.execute(
+            """INSERT INTO posts (user_id, title, body, classroom_id, post_type, is_hidden, parent_id)
+               VALUES (?, ?, ?, ?, 'announcement', 0, NULL)""",
+            (user["id"], title, body, classroom_id),
+        )
+        db.commit()
+
+
 def _register_student(
     client,
     join_code,

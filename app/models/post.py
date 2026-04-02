@@ -22,8 +22,9 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 JOIN users ON posts.user_id = users.id
                 LEFT JOIN topics ON posts.topic_id = topics.id
                 WHERE posts.parent_id IS NULL
-                AND posts.is_hidden = 0
-                AND posts.user_id NOT IN ({placeholders})
+                    AND (posts.post_type = 'post' OR posts.post_type IS NULL)
+                    AND posts.is_hidden = 0
+                    AND posts.user_id NOT IN ({placeholders})
                 ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
         """,
@@ -38,8 +39,9 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 JOIN users ON posts.user_id = users.id
                 LEFT JOIN topics on posts.topic_id = topics.id
                 WHERE posts.parent_id IS NULL
-                AND posts.is_hidden = 0
-                AND posts.topic_id = ?
+                    AND (posts.post_type = 'post' OR posts.post_type IS NULL)
+                    AND posts.is_hidden = 0
+                    AND posts.topic_id = ?
                 ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
             """,
@@ -56,8 +58,9 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 JOIN users ON posts.user_id = users.id
                 LEFT JOIN topics ON posts.topic_id = topics.id
                 WHERE posts.parent_id IS NULL
-                  AND posts.is_hidden = 0
-                  AND posts.user_id NOT IN ({placeholder})
+                    AND (posts.post_type = 'post' OR posts.post_type IS NULL)
+                    AND posts.is_hidden = 0
+                    AND posts.user_id NOT IN ({placeholder})
                 ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
                 """,
@@ -72,6 +75,7 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 JOIN users ON posts.user_id = users.id
                 LEFT JOIN topics ON posts.topic_id = topics.id
                 WHERE posts.parent_id IS NULL
+                  AND (posts.post_type = 'post' OR posts.post_type IS NULL)
                   AND posts.is_hidden = 0
                 ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
@@ -84,16 +88,18 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
 
 
 # --- posting
-def create_post(user_id, title, body, classroom_id, topic_id=None, parent_id=None):
+def create_post(
+    user_id, title, body, classroom_id, topic_id=None, parent_id=None, post_type="post"
+):
     from app.utils.content_filter import check_content
     from app.models.report import auto_flag_post
 
     db = get_db()
     cursor = db.execute(
         """
-        INSERT INTO posts (user_id, topic_id, title, body, parent_id, classroom_id)
-                        VALUES (?,?,?,?,?,?)""",
-        (user_id, topic_id, title, body, parent_id, classroom_id),
+        INSERT INTO posts (user_id, topic_id, title, body, parent_id, classroom_id, post_type)
+                        VALUES (?,?,?,?,?,?,?)""",
+        (user_id, topic_id, title, body, parent_id, classroom_id, post_type),
     )
     db.commit()
 
@@ -294,6 +300,7 @@ def get_following_feed(user_id, page=1, blocked_ids=None):
             WHERE posts.user_id IN (
                 SELECT followed_id FROM follows WHERE follower_id = ?
             )
+            AND (posts.post_type = 'post' OR posts.post_type IS NULL)
             AND posts.parent_id IS NULL
             AND posts.is_hidden = 0
             AND posts.user_id NOT IN ({placeholders})
@@ -312,6 +319,7 @@ def get_following_feed(user_id, page=1, blocked_ids=None):
             LEFT JOIN topics ON posts.topic_id = topics.id
             WHERE posts.user_id IN (
                 SELECT followed_id FROM follows WHERE follower_id = ?
+                AND (posts.post_type = 'post' OR posts.post_type IS NULL)
             )
             AND posts.parent_id IS NULL
             AND posts.is_hidden = 0

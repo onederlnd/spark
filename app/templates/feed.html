@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% block title %}
   {% if active_topic %}{{ active_topic.name }} — SparK
+  {% elif feed_type == 'announcements' %}Announcements — SparK
+  {% elif feed_type == 'assignments' %}Assignments — SparK
   {% else %}Feed — SparK{% endif %}
 {% endblock %}
 
@@ -10,23 +12,24 @@
   <li><a href="/search?type=posts">
     <span class="icon">🔍</span> Search
   </a></li>
-  <li><a href="/?feed=all" class="{% if feed_type == 'all' and not active_topic %}active{% endif %}">
+  <li><a href="/feed/" class="{% if feed_type in ('all', 'following') and not active_topic %}active{% endif %}">
     <span class="icon">🏠</span> Home Feed
   </a></li>
   <li><a href="/classrooms">
-    <span class=""icon">🏫</span> Classrooms
+    <span class="icon">🏫</span> Classrooms
   </a></li>
-  <li><a href="/feed/following" class="{% if feed_type == 'following' %}active{% endif %}">
-    <span class="icon">👥</span> Following
-</a></li>
+  <li><a href="/feed/announcements" class="{% if feed_type == 'announcements' %}active{% endif %}">
+    <span class="icon">📢</span> Announcements
+  </a></li>
+  <li><a href="/feed/assignments" class="{% if feed_type == 'assignments' %}active{% endif %}">
+    <span class="icon">📝</span> Assignments
+  </a></li>
   <li><a href="/notifications/">
     <span class="icon">🔔</span> Notifications
     {% if session.username and unread_count > 0 %}
       <span class="nav-badge" style="position:static;margin-left:auto">{{ unread_count }}</span>
     {% endif %}
   </a></li>
-
-
   <li><a href="/topics">
     <span class="icon">🏷️</span> All Topics
   </a></li>
@@ -101,108 +104,259 @@
   <div>
     <h1 class="feed-title">
       {% if active_topic %}{{ active_topic.name }}
+      {% elif feed_type == 'announcements' %}Announcements
+      {% elif feed_type == 'assignments' %}Assignments
       {% else %}Home Feed{% endif %}
     </h1>
     {% if active_topic and active_topic.description %}
       <p class="feed-desc">{{ active_topic.description }}</p>
+    {% elif feed_type == 'announcements' %}
+    {% elif feed_type == 'assignments' %}
     {% endif %}
   </div>
 </div>
 
+{# ── Top-level tabs (not shown on topic pages) ── #}
 {% if not active_topic %}
 <div class="feed-tabs">
+  <a href="/feed/"
+     class="feed-tab {% if feed_type in ('all', 'following') %}active{% endif %}">
+    Posts
+  </a>
+  <a href="/feed/announcements"
+     class="feed-tab {% if feed_type == 'announcements' %}active{% endif %}">
+    📢 Announcements
+  </a>
+  <a href="/feed/assignments"
+     class="feed-tab {% if feed_type == 'assignments' %}active{% endif %}">
+    📝 Assignments
+  </a>
+</div>
+{% endif %}
+
+{# ── Posts sub-tabs ── #}
+{% if feed_type in ('all', 'following') and not active_topic %}
+<div class="feed-tabs" style="margin-top:-10px">
   <a href="/feed/" class="feed-tab {% if feed_type == 'all' %}active{% endif %}">For You</a>
   <a href="/feed/following" class="feed-tab {% if feed_type == 'following' %}active{% endif %}">Following</a>
 </div>
 {% endif %}
 
-{% if posts %}
-  <div class="post-list">
-    {% for post in posts %}
-    <div class="post-card">
-      <div class="post-body">
-        <div class="post-meta">
-          {% if post.topic_name %}
-            <a href="/t/{{ post.topic_name }}" class="post-topic">{{ post.topic_name }}</a>
-          {% endif %}
-          <span class="post-author">{{ post.username }}</span>
-          <span class="post-time">· {{ post.created_at | time_ago }}</span>
-        </div>
-        <a href="/posts/{{ post.id }}" class="post-title">{{ post.title }}</a>
-        <p class="post-preview">{{ post.body | striptags | truncate(140) }}</p>
-        <div class="post-footer">
-          <a href="/posts/{{ post.id }}" class="reply-count">
-            💬 {{ post.reply_count }} {{ 'reply' if post.reply_count == 1 else 'replies' }}
-          </a>
-          {% if post.reaction_count > 0 %}
-            <span class="post-reaction-total">⚡ {{ post.reaction_count }}</span>
-          {% endif %}
+
+{# ══════════════════════════════════════
+   ANNOUNCEMENTS TAB
+══════════════════════════════════════ #}
+{% if feed_type == 'announcements' %}
+  {% if announcements %}
+    <div class="post-list">
+      {% for item in announcements %}
+      <div class="post-card">
+        <div class="post-body">
+          <div class="post-meta">
+            <span class="post-topic">📢 {{ item.classroom_name }}</span>
+            <span class="post-author">{{ item.username }}</span>
+            <span class="post-time">· {{ item.created_at | time_ago }}</span>
+          </div>
+          <a href="/posts/{{ item.id }}" class="post-title">{{ item.title }}</a>
+          <p class="post-preview">{{ item.body | striptags | truncate(180) }}</p>
+          <div class="post-footer">
+            <a href="/posts/{{ item.id }}" class="reply-count">
+              💬 {{ item.reply_count }} {{ 'reply' if item.reply_count == 1 else 'replies' }}
+            </a>
+          </div>
         </div>
       </div>
+      {% endfor %}
     </div>
-    {% endfor %}
-  </div>
 
-  <div class="pagination">
-    {% if page > 1 %}
-      {% if active_topic %}
-        <a href="/t/{{ active_topic.name }}?page={{ page - 1 }}" class="page-btn">← Prev</a>
-      {% else %}
-      {% if feed_type == 'following' %}<a href="/feed/following?page={{ page - 1 }}" class="page-btn">← Prev</a>{% else %}<a href="/feed/?page={{ page - 1 }}" class="page-btn">← Prev</a>{% endif %}      {% endif %}
-    {% endif %}
-    <span class="page-num">Page {{ page }}</span>
-    {% if has_next %}
-      {% if active_topic %}
-        <a href="/t/{{ active_topic.name }}?page={{ page + 1 }}" class="page-btn">Next →</a>
-      {% else %}
-      {% if feed_type == 'following' %}
-        <a href="/feed/following?page={{ page + 1 }}" class="page-btn">Next →</a>{% else %}<a href="/feed/?page={{ page + 1 }}" class="page-btn">Next →</a>{% endif %}      {% endif %}
-    {% endif %}
-  </div>
-
-{% else %}
-
-  {% if feed_type == 'following' %}
-  <div class="empty-state">
-    <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
-      <circle cx="28" cy="28" r="14" stroke="currentColor" stroke-width="2"/>
-      <circle cx="28" cy="22" r="6" stroke="currentColor" stroke-width="2"/>
-      <path d="M14 42c0-5 6.3-9 14-9s14 4 14 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      <circle cx="50" cy="30" r="10" stroke="currentColor" stroke-width="2"/>
-      <circle cx="50" cy="25" r="4.5" stroke="currentColor" stroke-width="2"/>
-      <path d="M40 44c0-3.9 4.5-7 10-7s10 3.1 10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    <div class="empty-state-title">Your following feed is empty</div>
-    <div class="empty-state-desc">Follow other students and teachers to see their posts here.</div>
-    <a href="/?feed=all" class="btn btn-primary">Browse All Posts</a>
-  </div>
-
-  {% elif active_topic %}
-  <div class="empty-state">
-    <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
-      <rect x="12" y="18" width="48" height="36" rx="6" stroke="currentColor" stroke-width="2"/>
-      <path d="M22 30h28M22 38h18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-      <circle cx="54" cy="38" r="2" fill="currentColor"/>
-    </svg>
-    <div class="empty-state-title">No posts in {{ active_topic.name }} yet</div>
-    <div class="empty-state-desc">Be the first to start a conversation in this topic.</div>
-    <a href="/posts/new" class="btn btn-primary">Create First Post ✦</a>
-  </div>
+    <div class="pagination">
+      {% if page > 1 %}
+        <a href="/feed/announcements?page={{ page - 1 }}" class="page-btn">← Prev</a>
+      {% endif %}
+      <span class="page-num">Page {{ page }}</span>
+      {% if has_next %}
+        <a href="/feed/announcements?page={{ page + 1 }}" class="page-btn">Next →</a>
+      {% endif %}
+    </div>
 
   {% else %}
-  <div class="empty-state">
-    <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
-      <path d="M36 12L46 28H26L36 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-      <rect x="14" y="32" width="20" height="20" rx="3" stroke="currentColor" stroke-width="2"/>
-      <circle cx="50" cy="42" r="10" stroke="currentColor" stroke-width="2"/>
-      <path d="M46 42h8M50 38v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    </svg>
-    <div class="empty-state-title">Nothing here yet</div>
-    <div class="empty-state-desc">SparK is just getting started. Be the first to post something!</div>
-    <a href="/posts/new" class="btn btn-primary">Create First Post ✦</a>
-  </div>
+    <div class="empty-state">
+      <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
+        <rect x="12" y="20" width="48" height="34" rx="6" stroke="currentColor" stroke-width="2"/>
+        <path d="M22 32h28M22 40h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M48 14v8M24 14v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="empty-state-title">No announcements yet</div>
+      <div class="empty-state-desc">Your teachers haven't posted any announcements. Check back soon.</div>
+    </div>
   {% endif %}
 
+
+{# ══════════════════════════════════════
+   ASSIGNMENTS TAB
+══════════════════════════════════════ #}
+{% elif feed_type == 'assignments' %}
+  {% if assignments %}
+    <div class="post-list">
+      {% for item in assignments %}
+      <div class="post-card">
+        <div class="post-body">
+          <div class="post-meta">
+            <span class="post-topic">{{ item.classroom_name }}</span>
+            <span class="post-time">
+              {% if item.due_date %}Due {{ item.due_date | time_ago }}{% else %}No due date{% endif %}
+            </span>
+          </div>
+
+          {% if item.post_id %}
+            <a href="/posts/{{ item.post_id }}" class="post-title">{{ item.title }}</a>
+          {% else %}
+            <a href="/classrooms/{{ item.classroom_id }}/assignments/{{ item.id }}" class="post-title">{{ item.title }}</a>
+          {% endif %}
+
+          {% if item.instructions %}
+            <p class="post-preview">{{ item.instructions | striptags | truncate(140) }}</p>
+          {% endif %}
+
+          <div class="post-footer" style="gap:8px;margin-top:10px">
+            {% if item.graded %}
+              <span class="post-topic" style="background:rgba(29,158,117,0.12);color:var(--teal)">✓ Graded</span>
+              {% if item.grade %}
+                <span style="font-size:0.85rem;font-weight:700;color:var(--text)">{{ item.grade }}</span>
+              {% endif %}
+              {% if item.feedback %}
+                <span class="post-reaction-total" style="font-style:italic">"{{ item.feedback | truncate(60) }}"</span>
+              {% endif %}
+            {% elif item.turned_in %}
+              <span class="post-topic" style="background:rgba(15,126,168,0.10);color:var(--blue)">↑ Submitted</span>
+              <span class="post-time">{{ item.submitted_at | time_ago }}</span>
+            {% else %}
+              <span class="post-topic" style="background:rgba(242,107,107,0.10);color:var(--rose)">✗ Not submitted</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="pagination">
+      {% if page > 1 %}
+        <a href="/feed/assignments?page={{ page - 1 }}" class="page-btn">← Prev</a>
+      {% endif %}
+      <span class="page-num">Page {{ page }}</span>
+      {% if has_next %}
+        <a href="/feed/assignments?page={{ page + 1 }}" class="page-btn">Next →</a>
+      {% endif %}
+    </div>
+
+  {% else %}
+    <div class="empty-state">
+      <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
+        <rect x="16" y="14" width="40" height="48" rx="5" stroke="currentColor" stroke-width="2"/>
+        <path d="M26 28h20M26 36h20M26 44h12" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M28 14v-4h16v4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="empty-state-title">No assignments yet</div>
+      <div class="empty-state-desc">You don't have any assignments across your classrooms yet.</div>
+    </div>
+  {% endif %}
+
+
+{# ══════════════════════════════════════
+   POSTS TAB
+══════════════════════════════════════ #}
+{% else %}
+  {% if posts %}
+    <div class="post-list">
+      {% for post in posts %}
+      <div class="post-card">
+        <div class="post-body">
+          <div class="post-meta">
+            {% if post.topic_name %}
+              <a href="/t/{{ post.topic_name }}" class="post-topic">{{ post.topic_name }}</a>
+            {% endif %}
+            <span class="post-author">{{ post.username }}</span>
+            <span class="post-time">· {{ post.created_at | time_ago }}</span>
+          </div>
+          <a href="/posts/{{ post.id }}" class="post-title">{{ post.title }}</a>
+          <p class="post-preview">{{ post.body | striptags | truncate(140) }}</p>
+          <div class="post-footer">
+            <a href="/posts/{{ post.id }}" class="reply-count">
+              💬 {{ post.reply_count }} {{ 'reply' if post.reply_count == 1 else 'replies' }}
+            </a>
+            {% if post.reaction_count > 0 %}
+              <span class="post-reaction-total">⚡ {{ post.reaction_count }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="pagination">
+      {% if page > 1 %}
+        {% if active_topic %}
+          <a href="/t/{{ active_topic.name }}?page={{ page - 1 }}" class="page-btn">← Prev</a>
+        {% elif feed_type == 'following' %}
+          <a href="/feed/following?page={{ page - 1 }}" class="page-btn">← Prev</a>
+        {% else %}
+          <a href="/feed/?page={{ page - 1 }}" class="page-btn">← Prev</a>
+        {% endif %}
+      {% endif %}
+      <span class="page-num">Page {{ page }}</span>
+      {% if has_next %}
+        {% if active_topic %}
+          <a href="/t/{{ active_topic.name }}?page={{ page + 1 }}" class="page-btn">Next →</a>
+        {% elif feed_type == 'following' %}
+          <a href="/feed/following?page={{ page + 1 }}" class="page-btn">Next →</a>
+        {% else %}
+          <a href="/feed/?page={{ page + 1 }}" class="page-btn">Next →</a>
+        {% endif %}
+      {% endif %}
+    </div>
+
+  {% else %}
+    {% if feed_type == 'following' %}
+    <div class="empty-state">
+      <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
+        <circle cx="28" cy="28" r="14" stroke="currentColor" stroke-width="2"/>
+        <circle cx="28" cy="22" r="6" stroke="currentColor" stroke-width="2"/>
+        <path d="M14 42c0-5 6.3-9 14-9s14 4 14 9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="50" cy="30" r="10" stroke="currentColor" stroke-width="2"/>
+        <circle cx="50" cy="25" r="4.5" stroke="currentColor" stroke-width="2"/>
+        <path d="M40 44c0-3.9 4.5-7 10-7s10 3.1 10 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="empty-state-title">Your following feed is empty</div>
+      <div class="empty-state-desc">Follow other students and teachers to see their posts here.</div>
+      <a href="/feed/" class="btn btn-primary">Browse All Posts</a>
+    </div>
+
+    {% elif active_topic %}
+    <div class="empty-state">
+      <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
+        <rect x="12" y="18" width="48" height="36" rx="6" stroke="currentColor" stroke-width="2"/>
+        <path d="M22 30h28M22 38h18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="54" cy="38" r="2" fill="currentColor"/>
+      </svg>
+      <div class="empty-state-title">No posts in {{ active_topic.name }} yet</div>
+      <div class="empty-state-desc">Be the first to start a conversation in this topic.</div>
+      <a href="/posts/new" class="btn btn-primary">Create First Post ✦</a>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
+        <path d="M36 12L46 28H26L36 12Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+        <rect x="14" y="32" width="20" height="20" rx="3" stroke="currentColor" stroke-width="2"/>
+        <circle cx="50" cy="42" r="10" stroke="currentColor" stroke-width="2"/>
+        <path d="M46 42h8M50 38v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <div class="empty-state-title">Nothing here yet</div>
+      <div class="empty-state-desc">SparK is just getting started. Be the first to post something!</div>
+      <a href="/posts/new" class="btn btn-primary">Create First Post ✦</a>
+    </div>
+    {% endif %}
+  {% endif %}
 {% endif %}
 
 {% endblock %}

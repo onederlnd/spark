@@ -5,6 +5,8 @@ from app.models.post import get_feed, get_following_feed
 from app.models.topic import get_all_topics, get_topic_by_name
 from app.models.user import coppa_required
 from app.models.block import get_blocked_ids
+from app.models.announcement import get_announcements
+from app.models.assignments import get_assignments
 from app.utils.auth import login_required
 
 
@@ -82,4 +84,38 @@ def following_feed():
         page=page,
         has_next=has_next,
         feed_type="following",
+    )
+
+
+@feed_bp.route("/feed/announcements")
+@login_required
+@coppa_required
+def announcement_feed():
+    page = request.args.get("page", 1, type=int)
+    topics = get_all_topics()
+    announcements, has_next = get_announcements(session["user_id"], page=page)
+    return render_template(
+        "feed.html",
+        announcements=announcements,
+        topics=topics,
+        page=page,
+        has_next=has_next,
+        feed_type="announcements",
+    )
+
+
+@feed_bp.route("/feed/assignments")
+@login_required
+@coppa_required
+def assignments_feed():
+    page = request.args.get("page", 1, type=int)
+    topics = get_all_topics()
+    assignments, has_next = get_assignments(session["user_id"], page=page)
+    return render_template(
+        "feed.html",
+        assignments=assignments,
+        topics=topics,
+        page=page,
+        has_next=has_next,
+        feed_type="assignments",
     )

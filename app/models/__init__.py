@@ -89,7 +89,6 @@ def init_db(app):
                 created_by INTEGER REFERENCES users(id) DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-
             CREATE TABLE IF NOT EXISTS topics (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT UNIQUE NOT NULL,
@@ -97,6 +96,8 @@ def init_db(app):
             );
             CREATE TABLE IF NOT EXISTS posts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                post_type TEXT NOT NULL DEFAULT 'post'
+                    check(post_type IN ('post', 'announcement')),
                 user_id INTEGER NOT NULL,
                 topic_id INTEGER,
                 title TEXT NOT NULL,
@@ -193,7 +194,7 @@ def init_db(app):
                 title TEXT NOT NULL,
                 instructions TEXT NOT NULL,
                 due_date TEXT,
-                post_id INTEGER REFERENCES post(id),
+                post_id INTEGER REFERENCES posts(id),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (classroom_id) REFERENCES classrooms(id)
             );

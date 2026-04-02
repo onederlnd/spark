@@ -1,11 +1,6 @@
 from conftest import _make_classroom, _register_student, _register_teacher, _get_user
 
 
-# ---------------------------------------------------------------------------
-# generic register route
-# ---------------------------------------------------------------------------
-
-
 def test_register_success(client):
     response = client.post(
         "/auth/register",
