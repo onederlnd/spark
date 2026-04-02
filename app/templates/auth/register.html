@@ -148,18 +148,17 @@
     </form>
   </div>
 
-  {# --- footer --- #}
-  <p style="font-size:0.78rem; color:var(--muted); margin-top:1rem; text-align:center;">
-    By joining you agree to our <a href="{{ url_for('auth.terms') }}">Terms of Service</a>
-    and <a href="{{ url_for('auth.privacy') }}">Privacy Policy</a>.
-  </p>
-
-  <a href="/auth/login" style="display:block; margin-top:0.75rem;">Already have an account? Sign in →</a>
-
-  <div style="margin-top:0.75rem; text-align:center;">
-    <a href="{{ url_for('parent.join') }}" style="font-size:0.82rem; color:var(--muted);">
-      👨‍👩‍👧 Parent? Connect to your child →
-    </a>
+{# --- footer --- #}
+  <div style="margin-top:1rem; text-align:center; font-size:0.78rem; color:var(--muted);">
+    <p style="margin-bottom:0.5rem;">
+      By joining you agree to our <a href="{{ url_for('auth.terms') }}">Terms of Service</a> and <a href="{{ url_for('auth.privacy') }}">Privacy Policy</a>.
+    </p>
+    <p style="margin-bottom:0.5rem;">
+      <a href="/auth/login">Already have an account? Sign in →</a>
+    </p>
+    <p>
+      <a href="{{ url_for('parent.join') }}" style="color:var(--muted);">👨‍👩‍👧 Parent? Connect to your child →</a>
+    </p>
   </div>
 
 </div>
