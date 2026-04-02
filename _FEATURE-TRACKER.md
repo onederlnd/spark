@@ -131,8 +131,7 @@
 
 - [x] Email verification on register
 - [x] Admin dashboard — full moderation UI for platform-level oversight
-- [ ] Parent dashboard — visibility into student activity via follow system
-- [ ] Topic moderators — role-based permissions per topic
+- [x] Parent dashboard — visibility into student activity via follow system
 - [ ] Safety visibility modes — teacher toggles full view vs flagged-only
 - [ ] School / district accounts — umbrella accounts managing multiple classrooms
 - [ ] WebSocket update for COPPA pending screen — no re-login required (similar to Netflix /activate flow)

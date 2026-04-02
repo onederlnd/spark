@@ -73,7 +73,9 @@ def create_user(username, password, bio="", role="student", dob=None, email=None
     ).decode()
     try:
         db.execute(
-            "INSERT INTO users (username, email, password_hash, dob, bio, role, coppa_status, onboarded) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO users "
+            "(username, email, password_hash, dob, bio, role, coppa_status, onboarded) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (username, email, password_hash, dob_str, bio, role, coppa_status, 0),
         )
         db.commit()

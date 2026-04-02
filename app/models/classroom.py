@@ -318,7 +318,9 @@ def _slugify(text):
 
 def generate_username(first_name, last_name):
     """
-    Generate a unique username as firstname.lastname, with a numeric suffix to resolve collisions (e.g. john.smith2, john.smith3).
+    Generate a unique username as firstname.lastname,
+    with a numeric suffix to resolve collisions (e.g.
+    john.smith2, john.smith3).
     """
     db = get_db()
     first = _slugify(first_name)
@@ -345,7 +347,11 @@ def generate_password():
 
 def provision_student(first_name, last_name, dob, join_codes=None, created_by=None):
     """
-    Create a provisioned student account. Returns a dict with account info and a list of classroom names the student was enrolled in. join_codes is an optional list of strings. Provisioned students are always coppa_status='approved' (school official exception)
+    Create a provisioned student account. Returns a dict
+    with account info and a list of classroom names the
+    student was enrolled in. join_codes is an optional list of strings.
+    Provisioned students are always coppa_status='approved' (school
+    official exception)
     """
     import bcrypt
     from flask import current_app
@@ -369,10 +375,10 @@ def provision_student(first_name, last_name, dob, join_codes=None, created_by=No
     qr_token = generate_qr_token()
 
     cursor = db.execute(
-        """
-        INSERT INTO users (username, password_hash, dob, bio, role, coppa_status, onboarded, provisional, qr_token, created_by)
-        VALUES (?, ?, ?, '', 'student', 'approved', 0, 1, ?, ?)
-        """,
+        "INSERT INTO users "
+        "(username, password_hash, dob, bio, role, coppa_status,"
+        "onboarded, provisional, qr_token, created_by) "
+        "VALUES (?, ?, ?, '', 'student', 'approved', 0, 1, ?, ?)",
         (username, password_hash, dob_date.isoformat(), qr_token, created_by),
     )
     db.commit()
@@ -407,9 +413,9 @@ def provision_student(first_name, last_name, dob, join_codes=None, created_by=No
 
 def provision_students_bulk(rows, created_by=None):
     """
-    Provision multiple students form a list of dicts with keys:
-    first_name, last_name, dob, join_codes (optional, comma-separated string).
-    Returns (student, skipped) where students is a list of result dicts and skipped is a list of error strings.
+    Provision multiple students from a list of dicts with keys:
+    first_name, last_name, dob, join_codes (optional, comma-separated).
+    Returns (students, errors).
     """
     students = []
     errors = []

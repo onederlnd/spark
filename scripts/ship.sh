@@ -1,17 +1,24 @@
-# dev workflow: test -> lint -> commit -> push
-
 #!/bin/bash
-
+# dev workflow: test -> lint -> commit -> push
 
 set -e
 
+SKIP_TESTS=false
+if [[ "$1" == "--skip" ]]; then
+    SKIP_TESTS=true
+fi
 . .venv/bin/activate
 
-echo "== running tests..."
-pytest tests/
+echo "== running..."
+if [ "$SKIP_TESTS" = false ]; then
+    echo "== running tests..."
+    pytest tests/
+else
+    echo "== skipping tests..."
+fi
 
 echo "== linting..."
-flake8 app/ --max-line-length=100 --ignore=E501,W503
+flake8 app/ --max-line-length=120 --ignore=W503
 
 echo "== staging changes..."
 git add .
@@ -26,13 +33,11 @@ fi
 
 git commit -m "$msg"
 
-# moved here — no longer blocks feature branches
 branch=$(git rev-parse --abbrev-ref HEAD)
 git push -u origin "$branch"
 
 echo "== shipped on branch: $branch"
 
-# notify instead of exit
 if [ "$branch" != "main" ]; then
     echo "== open a PR at: https://github.com/onederlnd/devstack/compare/$branch"
 fi

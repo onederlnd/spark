@@ -10,7 +10,9 @@ def create_report(post_id, user_id, reason, description):
     if prevent_duplicate_reports(post_id, user_id):
         return None
     cursor = db.execute(
-        "INSERT INTO reports (post_id, reported_by_user_id, reason, description, status) VALUES (?, ?, ?, ?, 'pending')",
+        "INSERT INTO reports "
+        "(post_id, reported_by_user_id, reason, description, status) "
+        "VALUES (?, ?, ?, ?, 'pending')",
         (post_id, user_id, reason, description),
     )
 
@@ -99,16 +101,16 @@ def get_report_count(post_id):
 
 
 def auto_flag_post(post_id, matched_words):
-    """Auto-flag a post that matched the content filter. Creates a system report and hides the post for teacher review."""
+    """Auto-flag a post that matched the content filter.
+    Creates a system report and hides the post for teacher review."""
     db = get_db()
     reason = "Auto-flagged by content filter"
     description = f"Matched words: {', '.join(matched_words)}"
 
     db.execute(
-        """
-        INSERT INTO reports (post_id, reported_by_user_id, reason, description, status)
-        VALUES (?, NULL, ?, ?, 'pending')
-        """,
+        "INSERT INTO reports "
+        "(post_id, reported_by_user_id, reason, description, status) "
+        "VALUES (?, NULL, ?, ?, 'pending')",
         (post_id, reason, description),
     )
     db.commit()
