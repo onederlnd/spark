@@ -8,6 +8,8 @@ from app.models.report import (
     get_reports_for_post,
 )
 from app.models.post import delete_post, get_post, unhide_post
+from app.models.notifications import create_notification
+from app.models.classroom import get_classroom
 from app.utils.auth import login_required, is_teacher_in_classroom
 from app.utils.rate_limit import rate_limit
 from app.utils.sanitize import sanitize_plain
@@ -46,6 +48,19 @@ def submit_report():
         flash("Already reported", "warning")
     else:
         flash("Report submitted successfully.", "success")
+
+    post = get_post(post_id)
+    if post and post["classroom_id"]:
+        classroom = get_classroom(post["classroom_id"])
+        if classroom:
+            create_notification(
+                user_id=classroom["teacher_id"],
+                type="report",
+                message=f"A post in {classroom['name']} was reported.",
+                link=url_for(
+                    "moderation.moderation_dashboard", classroom_id=classroom["id"]
+                ),
+            )
 
     return redirect(request.referrer or url_for("feed.index"))
 

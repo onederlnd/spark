@@ -9,8 +9,7 @@ def test_unhide_post(app, classroom):
     """hide_post hides a post, unhide_post restores it"""
     create_user("poster", "pass123", dob="2005-01-01")
     user = get_user_by_username("poster")
-    post_id = create_post(user["id"], "Test", "body", classroom)
-
+    post_id = create_post(user["id"], "Test", "body", classroom_id=classroom)
     hide_post(post_id)
     assert get_post(post_id)["is_hidden"] == 1
 
@@ -22,8 +21,7 @@ def test_unhide_post_that_is_not_hidden(app, classroom):
     """unhide_post on a visible post is a no-op -- doesn't error"""
     create_user("poster", "pass123", dob="2005-01-01")
     user = get_user_by_username("poster")
-    post_id = create_post(user["id"], "Test", "body", classroom)
-
+    post_id = create_post(user["id"], "Test", "body", classroom_id=classroom)
     assert get_post(post_id)["is_hidden"] == 0
     unhide_post(post_id)
     assert get_post(post_id)["is_hidden"] == 0

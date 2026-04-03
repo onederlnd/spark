@@ -177,7 +177,7 @@ def test_unblocked_user_appears_in_feed(app, client):
     viewer = get_user_by_username("viewer")
     author = get_user_by_username("author")
 
-    create_post(author["id"], "Visible Post", "You should see this", None)
+    create_post(author["id"], "Visible Post", "You should see this", classroom_id=None)
     block_user(viewer["id"], author["id"])
     unblock_user(viewer["id"], author["id"])
 

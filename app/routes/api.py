@@ -1,6 +1,7 @@
 # app/routes/api.py
 
 from flask import Blueprint, jsonify, request, session
+from app.models import get_db
 from app.models.post import (
     get_feed,
     get_post,
@@ -66,7 +67,10 @@ def create_new_post():
     if not title or not body:
         return jsonify({"error": "Title and body are required"}), 400
 
-    post_id = create_post(session["user_id"], title, body, topic_id)
+    post_id = create_post(
+        session["user_id"], session["username"], title, body, topic_id=topic_id
+    )
+
     return jsonify({"post_id": post_id}), 201
 
 
@@ -108,3 +112,23 @@ def preview():
     clean = sanitize_bbcode(body)
     html = render_bbcode(clean)
     return jsonify({"html": html})
+
+
+@api_bp.route("/users/search")
+@api_login_required
+def search_users():
+    q = request.args.get("q", "").strip()
+    if len(q) < 1:
+        return jsonify([])
+    db = get_db()
+    rows = db.execute(
+        """
+        SELECT username FROM users
+        WHERE username LIKE ?
+        AND coppa_status = 'approved'
+        LIMIT 8
+        """,
+        (f"{q}%",),
+    ).fetchall()
+
+    return jsonify([r["username"] for r in rows])

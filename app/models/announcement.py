@@ -5,7 +5,7 @@ PER_PAGE = 20
 
 def create_announcement(classroom_id, user_id, title, body):
     db = get_db()
-    db.execute(
+    cursor = db.execute(
         """
         INSERT INTO posts (title, body, user_id, classroom_id, post_type, parent_id, is_hidden)
         VALUES (?, ?, ?, ?, 'announcement', NULL, 0)
@@ -13,6 +13,7 @@ def create_announcement(classroom_id, user_id, title, body):
         (title, body, user_id, classroom_id),
     )
     db.commit()
+    return cursor.lastrowid
 
 
 def get_announcements(user_id, page=1):

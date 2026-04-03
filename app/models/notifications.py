@@ -57,3 +57,23 @@ def mark_all_read(user_id):
     db = get_db()
     db.execute("UPDATE notifications SET is_read=1 WHERE user_id=?", (user_id,))
     db.commit()
+
+
+def notify_mentions(body, post_id, author_id, author_username=None):
+    from app.utils.sanitize import extract_mentions
+    from app.models.user import get_user_by_username
+
+    usernames = extract_mentions(body)
+    for username in usernames:
+        user = get_user_by_username(username)
+        if not user:
+            continue
+        if user["id"] == author_id:
+            continue
+
+        create_notification(
+            user_id=user["id"],
+            type="mention",
+            message=f"@{author_username} mentioned you in a post",
+            link=f"/posts/{post_id}",
+        )

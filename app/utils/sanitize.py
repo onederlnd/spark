@@ -30,3 +30,9 @@ def sanitize_username(value):
     value = value.strip()
     value = re.sub(r"[^\w]", "", value)
     return value[:32]
+
+
+def extract_mentions(text):
+    """Extract unique @username mentions for post body."""
+    text = re.sub(r"\b[\w.+-]+@[\w.-]+\.\w+\b", "", text)
+    return list(set(re.findall(r"@([\w.-]+)", text)))

@@ -2503,3 +2503,36 @@ a:hover { text-decoration: underline; }
 @media (max-width: 480px) {
   .feedback-panel { width: 100%; border-left: none; border-right: none; border-radius: var(--radius) var(--radius) 0 0; bottom: 0; right: 0; }
 }
+
+.mention {
+    color: var(--teal);
+    font-weight: 700;
+}
+
+.mention:hover {
+    text-decoration: underline;
+}
+
+.mention-preview {
+    color: transparent;
+    font-weight: 700;
+    background: rgba(58, 188, 177, 0.12);
+    border-radius: 4px;
+    padding: 0 3px;
+}
+.mention-highlight-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+mark.mention-preview {
+  background: transparent;
+  color: transparent;
+  font-weight: 700;
+
+}
+
+textarea.mention-active {
+  background: transparent !important;
+}

@@ -17,7 +17,12 @@ from app.models.post import (
     update_post,
     delete_post,
 )
-from app.models.classroom import get_classrooms_for_user, get_member_role
+from app.models.classroom import (
+    get_classrooms_for_user,
+    get_member_role,
+    get_classroom_members,
+    get_classroom,
+)
 from app.models.announcement import create_announcement
 from app.models.user import coppa_required
 from app.models.topic import get_all_topics
@@ -107,19 +112,30 @@ def new_post():
             if member_role != "teacher":
                 return "Forbidden", 403
 
-            create_announcement(classroom_id, session["user_id"], title, body)
+            post_id = create_announcement(classroom_id, session["user_id"], title, body)
+            classroom = get_classroom(classroom_id)
+            members = get_classroom_members(classroom_id)
+
+            for member in members:
+                if member["role"] == "student":
+                    create_notification(
+                        user_id=member["id"],
+                        type="announcement",
+                        message=f"New announcement in {classroom['name']}: {title}",
+                        link=url_for("posts.view_post", post_id=post_id),
+                    )
+
             flash("Announcement posted!", "success")
             return redirect(
                 url_for("classrooms.classroom_home", classroom_id=classroom_id)
             )
 
         topic_id = request.form.get("topic_id") or None
-        post_id = create_post(session["user_id"], title, body, topic_id)
+        post_id = create_post(
+            session["user_id"], title, body, session["username"], topic_id=topic_id
+        )
         return redirect(url_for("posts.view_post", post_id=post_id))
 
-    print(
-        f"[DEBUG] user_id={session['user_id']} role={session.get('role')} classrooms={classrooms}"
-    )
     return render_template("new_post.html", topics=topics, classrooms=classrooms)
 
 
@@ -218,8 +234,9 @@ def reply(post_id):
     if parent:
         create_post(
             session["user_id"],
-            "re: reply",
+            f"re: {parent['title'][:80]}",
             body,
+            session["username"],
             classroom_id=parent["classroom_id"],
             parent_id=post_id,
         )

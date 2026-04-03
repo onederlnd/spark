@@ -255,6 +255,19 @@ def new_assignment(classroom_id):
             )
         assignment_id = create_assignment(classroom_id, title, instructions, due_date)
 
+        members = get_classroom_members(classroom_id)
+        for member in members:
+            if member["role"] == "student":
+                create_notification(
+                    user_id=member["id"],
+                    type="assignment",
+                    message=f"New assignment in {classroom['name']}: {title}",
+                    link=url_for(
+                        "classrooms.view_assignment",
+                        classroom_id=classroom_id,
+                        assignment_id=assignment_id,
+                    ),
+                )
         resource_ids = request.form.getlist("resource_ids", type=int)
         if resource_ids:
             attach_resources_to_assignment(assignment_id, resource_ids)
@@ -319,7 +332,19 @@ def view_assignment(classroom_id, assignment_id):
                 classroom_resources=classroom_resources,
                 error="Submission cannot be empty.",
             )
+
         create_submission(assignment_id, session["user_id"], body)
+
+        create_notification(
+            user_id=classroom["teacher_id"],
+            type="submission",
+            message=f"{session['username']} submitted {assignment['title']}",
+            link=url_for(
+                "classrooms.grade_grid",
+                classroom_id=classroom_id,
+                assignment_id=assignment_id,
+            ),
+        )
         submission = get_submission(assignment_id, session["user_id"])
         files = request.files.getlist("files")
         errors = []
@@ -807,7 +832,7 @@ def provision():
             session["provisioned_students"] = students
             session["provisioned_skipped"] = []
             return redirect(url_for("classrooms.credentials"))
-    print("[DEBUG] passing to template:", len(provisioned_students), "students")
+
     return render_template(
         "classrooms/provision.html",
         prefill_join_code=prefill_join_code,
@@ -926,11 +951,8 @@ def qr_sheet():
     qr_codes = []
 
     for student in students:
-        # fetch full user record to get qr_token
-
         user = get_user_by_id(student["id"])
         token = user["qr_token"] if user else None
-        print(f"[DEBUG] student={student['username']} token={token}")
 
         if not token:
             qr_codes.append({"student": student, "qr_b64": None})
@@ -942,8 +964,7 @@ def qr_sheet():
             img.save(buffer, format="PNG")
             qr_b64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
             qr_codes.append({"student": student, "qr_b64": qr_b64})
-        except Exception as e:
-            print(f"[DEBUG] QR generation error for {student['username']}: {e}")
+        except Exception:
             qr_codes.append({"student": student, "qr_b64": None})
 
     return render_template("classrooms/qr_sheet.html", qr_codes=qr_codes)
@@ -1338,11 +1359,15 @@ def invite_coteacher_route(classroom_id):
         if success:
             flash(f'"{username}" has been added as a co-teacher.', "success")
             if invitee_email:
-                send_coteacher_invite_email(
-                    to_email=invitee_email,
-                    inviter_username=inviter["username"],
-                    classroom_name=classroom["name"],
-                    login_url=request.host_url.rstrip("/") + "/auth/login",
+                send_coteacher_invite_email(...)
+            if classroom["teacher_id"] != session["user_id"]:
+                create_notification(
+                    user_id=classroom["teacher_id"],
+                    type="coteacher",
+                    message=f"{username} joined {classroom['name']} as a co-teacher.",
+                    link=url_for(
+                        "classrooms.classroom_home", classroom_id=classroom_id
+                    ),
                 )
         else:
             flash(error, "error")

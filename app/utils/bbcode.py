@@ -4,6 +4,10 @@ import re
 import html
 
 
+def linkify_mentions(text):
+    return re.sub(r"@([\w.-]+)", r'<a href="/profile/\1" class="mention">@\1</a>', text)
+
+
 def render_bbcode(text):
     """Convert stored BBCode to safe HTML for display."""
     if not text:
@@ -80,5 +84,7 @@ def render_bbcode(text):
     text = re.sub(
         r"\[list\](.*?)\[/list\]", render_list, text, flags=re.IGNORECASE | re.DOTALL
     )
+
+    text = linkify_mentions(text)
 
     return text

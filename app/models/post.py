@@ -89,16 +89,24 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
 
 # --- posting
 def create_post(
-    user_id, title, body, classroom_id, topic_id=None, parent_id=None, post_type="post"
+    user_id,
+    title,
+    body,
+    author_username=None,
+    topic_id=None,
+    classroom_id=None,
+    parent_id=None,
+    post_type="post",
 ):
     from app.utils.content_filter import check_content
     from app.models.report import auto_flag_post
+    from app.models.notifications import notify_mentions
 
     db = get_db()
     cursor = db.execute(
         """
         INSERT INTO posts (user_id, topic_id, title, body, parent_id, classroom_id, post_type)
-                        VALUES (?,?,?,?,?,?,?)""",
+        VALUES (?,?,?,?,?,?,?)""",
         (user_id, topic_id, title, body, parent_id, classroom_id, post_type),
     )
     db.commit()
@@ -121,6 +129,7 @@ def create_post(
     if matched:
         auto_flag_post(post_id, matched)
 
+    notify_mentions(body, post_id, user_id, author_username)
     return post_id
 
 
@@ -228,7 +237,7 @@ def get_replies(post_id):
             FROM posts
             JOIN users ON posts.user_id = users.id
             WHERE posts.parent_id = ?
-            ORDER BY posts.reply_count DESC
+            ORDER BY posts.reply_count ASC
     """,
         (post_id,),
     ).fetchall()
