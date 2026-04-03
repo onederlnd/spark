@@ -14,14 +14,16 @@
   <form method="POST" class="post-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="post_type" id="post_type" value="post">
-{{ session.role }}
+    {{ session.role }}
     {% if session.role == 'teacher' %}
     <label>Post Type</label>
     <div style="display:flex;gap:8px;margin-bottom:4px">
-      <button type="button" class="feed-tab active" id="tab-post" onclick="setPostType('post')">
+      <button type="button" id="tab-post" onclick="setPostType('post')"
+        style="flex:1;padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--blue);background:var(--blue);color:white;font-family:var(--font);font-size:0.88rem;font-weight:700;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
         ✦ Regular Post
       </button>
-      <button type="button" class="feed-tab" id="tab-announcement" onclick="setPostType('announcement')">
+      <button type="button" id="tab-announcement" onclick="setPostType('announcement')"
+        style="flex:1;padding:10px 16px;border-radius:var(--radius-sm);border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font);font-size:0.88rem;font-weight:700;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center;gap:6px;">
         📢 Announcement
       </button>
     </div>

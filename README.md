@@ -256,7 +256,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 ### v1.1 — Trust & Verification
 - [x] Email verification
 - [x] Admin dashboard
-- [ ] Parent dashboard
+- [x] Parent dashboard
 - [ ] Topic moderators
 - [ ] School / district accounts
 

@@ -571,6 +571,43 @@ document.addEventListener("click", function(e) {
 document.querySelectorAll('.child-avatar').forEach(el => {
   el.style.background = el.dataset.bg;
 });
+
+function setPostType(type) {
+  document.getElementById('post_type').value = type;
+
+  const tabPost = document.getElementById('tab-post');
+  const tabAnn = document.getElementById('tab-announcement');
+  const annFields = document.getElementById('announcement-fields');
+  const topicField = document.getElementById('topic-field');
+  const submitBtn = document.getElementById('submit-btn');
+  const classroomSelect = document.getElementById('classroom_id');
+
+  if (type === 'announcement') {
+    tabPost.style.background = 'transparent';
+    tabPost.style.color = 'var(--muted)';
+    tabPost.style.borderColor = 'var(--border)';
+    tabAnn.style.background = 'var(--teal)';
+    tabAnn.style.color = 'white';
+    tabAnn.style.borderColor = 'var(--teal)';
+    annFields.style.display = 'block';
+    topicField.style.display = 'none';
+    if (classroomSelect) classroomSelect.required = true;
+    submitBtn.textContent = 'Post Announcement 📢';
+    submitBtn.style.background = 'var(--teal)';
+  } else {
+    tabPost.style.background = 'var(--blue)';
+    tabPost.style.color = 'white';
+    tabPost.style.borderColor = 'var(--blue)';
+    tabAnn.style.background = 'transparent';
+    tabAnn.style.color = 'var(--muted)';
+    tabAnn.style.borderColor = 'var(--border)';
+    annFields.style.display = 'none';
+    topicField.style.display = 'block';
+    if (classroomSelect) classroomSelect.required = false;
+    submitBtn.textContent = 'Post ✦';
+    submitBtn.style.background = 'var(--blue)';
+  }
+}
     </script>
     {% endif %}
   </body>

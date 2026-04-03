@@ -18,18 +18,6 @@
   <li><a href="/classrooms">
     <span class="icon">🏫</span> Classrooms
   </a></li>
-  <li><a href="/feed/announcements" class="{% if feed_type == 'announcements' %}active{% endif %}">
-    <span class="icon">📢</span> Announcements
-  </a></li>
-  <li><a href="/feed/assignments" class="{% if feed_type == 'assignments' %}active{% endif %}">
-    <span class="icon">📝</span> Assignments
-  </a></li>
-  <li><a href="/notifications/">
-    <span class="icon">🔔</span> Notifications
-    {% if session.username and unread_count > 0 %}
-      <span class="nav-badge" style="position:static;margin-left:auto">{{ unread_count }}</span>
-    {% endif %}
-  </a></li>
   <li><a href="/topics">
     <span class="icon">🏷️</span> All Topics
   </a></li>
@@ -125,11 +113,11 @@
   </a>
   <a href="/feed/announcements"
      class="feed-tab {% if feed_type == 'announcements' %}active{% endif %}">
-    📢 Announcements
+    Announcements
   </a>
   <a href="/feed/assignments"
      class="feed-tab {% if feed_type == 'assignments' %}active{% endif %}">
-    📝 Assignments
+    Assignments
   </a>
 </div>
 {% endif %}
