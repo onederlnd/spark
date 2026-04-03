@@ -335,6 +335,8 @@ def init_db(app):
                 linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(parent_id, student_id)
             );
+        INSERT OR IGNORE INTO classroom_members (classroom_id, user_id, role)
+        SELECT id, teacher_id, 'teacher' FROM classrooms;
         """),
         )
         db.commit()

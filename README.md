@@ -245,11 +245,11 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Structured logging
 - [x] Health check endpoint
 - [x] Rate limit / lockout recovery UX 
-- [ ] Manual QA pass
+- [x] Manual QA pass
 
 ### v1.0 — Closed Beta
 - [ ] Live classroom deployment
-- [ ] Teacher feedback loop
+- [x] Teacher feedback loop
 - [ ] Safety incident review
 - [ ] Database backups
 
@@ -288,10 +288,3 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 *Last updated: March 2026*
 *Current focus: v0.3 Alpha Classroom Ready → v1.0 Closed Beta*
 
-
-In **Roadmap → v1.3 Growth & Engagement**, change:
-```
-- [ ] Achievement badges
-```
-to:
-```

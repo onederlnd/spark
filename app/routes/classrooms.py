@@ -49,6 +49,7 @@ from app.models.user import (
     mark_onboarded,
     regenerate_qr_token,
 )
+from app.models.announcement import create_announcement
 from app.models.report import get_reports_for_classroom
 from app.models.attachments import (
     get_assignment_attachments,
@@ -1391,3 +1392,31 @@ def remove_coteacher_route(classroom_id, target_user_id):
         flash(error, "error")
 
     return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
+
+
+@classrooms_bp.route("/<int:classroom_id>/announcements/new", methods=["GET", "POST"])
+@login_required
+@coppa_required
+def new_announcement(classroom_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if role != "teacher":
+        return "Forbidden", 403
+
+    if request.method == "POST":
+        title = sanitize_plain(request.form.get("title", ""), max_length=TITLE_MAX)
+        body = sanitize_plain(request.form.get("body", ""), max_length=BODY_MAX)
+
+        if not title or not body:
+            return render_template(
+                "classrooms/announcement_new.html",
+                classroom=classroom,
+                error="Title and body are required.",
+            )
+
+        create_announcement(classroom_id, session["user_id"], title, body)
+        flash("Announcement posted!", "success")
+        return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
+
+    return render_template("classrooms/announcement_new.html", classroom=classroom)

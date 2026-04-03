@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}New Announcement — {{ classroom.name }} — SparK{% endblock %}
+{% from "macros/bbcode_toolbar.html" import toolbar %}
+
+{% block content %}
+<div class="layout form-page">
+
+  <div class="breadcrumb">
+    <a href="/classrooms">Classrooms</a>
+    <span>/</span>
+    <a href="/classrooms/{{ classroom.id }}">{{ classroom.name }}</a>
+    <span>/</span>
+    <span>New Announcement</span>
+  </div>
+
+  <div class="form-title">📢 New Announcement</div>
+  <p class="form-subtitle">This will appear in the Announcements feed for all students in <strong>{{ classroom.name }}</strong>.</p>
+
+  {% if error %}
+    <div class="flash flash-error" style="position:static;transform:none;margin-bottom:16px;padding:10px 16px;border-radius:var(--radius-sm);border:1px solid">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  <form method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="post-form">
+      <label for="title">Title</label>
+      <div class="field-wrap">
+        <input
+          type="text"
+          name="title"
+          id="title"
+          placeholder="e.g. No class Friday — field trip day"
+          maxlength="200"
+          required
+          oninput="updateCounter(this, 'title-counter', 200)"
+        >
+        <div class="char-counter" id="title-counter">0 / 200</div>
+      </div>
+
+      <label for="announcement-body">Message</label>
+      <div class="field-wrap">
+        {{ toolbar("announcement-body") }}
+        <textarea
+          name="body"
+          id="announcement-body"
+          rows="8"
+          placeholder="Write your announcement here..."
+          required
+          oninput="updateCounter(this, 'body-counter', 10000); schedulePreview()"
+        ></textarea>
+        <div class="char-counter" id="body-counter">0 / 10000</div>
+      </div>
+
+      <div class="editor-tabs" style="margin-top:4px">
+        <button type="button" class="editor-tab active" onclick="switchTab(this, 'pane-write')">Write</button>
+        <button type="button" class="editor-tab" onclick="switchTab(this, 'pane-preview')">Preview</button>
+      </div>
+      <div class="editor-pane active" id="pane-write" style="display:none"></div>
+      <div class="editor-pane" id="pane-preview">
+        <div class="preview-pane" id="preview-output"></div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Post Announcement 📢</button>
+        <a href="/classrooms/{{ classroom.id }}" class="btn-cancel">Cancel</a>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+function updateCounter(input, counterId, max) {
+  const counter = document.getElementById(counterId);
+  if (!counter) return;
+  const len = input.value.length;
+  counter.textContent = len + ' / ' + max;
+  counter.className = 'char-counter';
+  if (len / max >= 0.95) counter.classList.add('danger');
+  else if (len / max >= 0.8) counter.classList.add('warn');
+}
+
+function switchTab(btn, paneId) {
+  document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(paneId).classList.add('active');
+  if (paneId === 'pane-preview') renderPreview();
+}
+
+function renderPreview() {
+  const body = document.getElementById('announcement-body').value;
+  const output = document.getElementById('preview-output');
+  if (!body.trim()) { output.innerHTML = ''; return; }
+  fetch('/api/preview', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ body })
+  })
+  .then(r => r.json())
+  .then(data => { output.innerHTML = data.html || ''; })
+  .catch(() => { output.textContent = body; });
+}
+
+function schedulePreview() {
+  clearTimeout(window._previewTimer);
+  window._previewTimer = setTimeout(() => {
+    const pane = document.getElementById('pane-preview');
+    if (pane && pane.classList.contains('active')) renderPreview();
+  }, 300);
+}
+</script>
+{% endblock %}

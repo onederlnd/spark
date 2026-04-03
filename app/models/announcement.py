@@ -3,6 +3,18 @@ from app.models import get_db
 PER_PAGE = 20
 
 
+def create_announcement(classroom_id, user_id, title, body):
+    db = get_db()
+    db.execute(
+        """
+        INSERT INTO posts (title, body, user_id, classroom_id, post_type, parent_id, is_hidden)
+        VALUES (?, ?, ?, ?, 'announcement', NULL, 0)
+        """,
+        (title, body, user_id, classroom_id),
+    )
+    db.commit()
+
+
 def get_announcements(user_id, page=1):
     """
     Return classroom announcements visibile to this user.

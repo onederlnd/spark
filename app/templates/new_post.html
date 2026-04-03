@@ -13,14 +13,40 @@
 
   <form method="POST" class="post-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="post_type" id="post_type" value="post">
+{{ session.role }}
+    {% if session.role == 'teacher' %}
+    <label>Post Type</label>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <button type="button" class="feed-tab active" id="tab-post" onclick="setPostType('post')">
+        ✦ Regular Post
+      </button>
+      <button type="button" class="feed-tab" id="tab-announcement" onclick="setPostType('announcement')">
+        📢 Announcement
+      </button>
+    </div>
 
-    <label for="topic_id">Topic</label>
-    <select name="topic_id" id="topic_id">
-      <option value="">— No topic —</option>
-      {% for t in topics %}
-        <option value="{{ t.id }}">{{ t.name }}</option>
-      {% endfor %}
-    </select>
+    <div id="announcement-fields" style="display:none">
+      <label for="classroom_id">Classroom</label>
+      <select name="classroom_id" id="classroom_id">
+        <option value="">— Select a classroom —</option>
+        {% for c in classrooms %}
+          <option value="{{ c.id }}">{{ c.name }}</option>
+        {% endfor %}
+      </select>
+      <p class="field-hint">Announcements appear in the Announcements feed for all students in that classroom.</p>
+    </div>
+    {% endif %}
+
+    <div id="topic-field">
+      <label for="topic_id">Topic</label>
+      <select name="topic_id" id="topic_id">
+        <option value="">— No topic —</option>
+        {% for t in topics %}
+          <option value="{{ t.id }}">{{ t.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
 
     <label for="title">Title</label>
     <div class="field-wrap">
@@ -36,7 +62,6 @@
       <button type="button" class="editor-tab" onclick="switchTab(this, 'preview-pane')">Preview</button>
     </div>
 
-{# replace the existing reply editor-pane block with: #}
     <div class="editor-pane active" id="write-pane">
       <div class="field-wrap">
         {{ toolbar("body") }}
@@ -55,14 +80,40 @@
     <p class="field-hint">Formatting: [b]bold[/b] · [i]italic[/i] · [code]code[/code] · [url=https://...]link[/url] · [quote]quote[/quote]</p>
 
     <div class="form-actions">
-      <button type="submit" class="btn-submit">Post ✦</button>
+      <button type="submit" class="btn-submit" id="submit-btn">Post ✦</button>
       <a href="/" class="btn-cancel">Cancel</a>
     </div>
   </form>
 </div>
 
 <script>
-  // ---- Character counter ----
+  function setPostType(type) {
+    document.getElementById('post_type').value = type;
+
+    const tabPost = document.getElementById('tab-post');
+    const tabAnn = document.getElementById('tab-announcement');
+    const annFields = document.getElementById('announcement-fields');
+    const topicField = document.getElementById('topic-field');
+    const submitBtn = document.getElementById('submit-btn');
+    const classroomSelect = document.getElementById('classroom_id');
+
+    if (type === 'announcement') {
+      tabPost.classList.remove('active');
+      tabAnn.classList.add('active');
+      annFields.style.display = 'block';
+      topicField.style.display = 'none';
+      if (classroomSelect) classroomSelect.required = true;
+      submitBtn.textContent = 'Post Announcement 📢';
+    } else {
+      tabPost.classList.add('active');
+      tabAnn.classList.remove('active');
+      annFields.style.display = 'none';
+      topicField.style.display = 'block';
+      if (classroomSelect) classroomSelect.required = false;
+      submitBtn.textContent = 'Post ✦';
+    }
+  }
+
   function updateCounter(input, counterId, max) {
     const counter = document.getElementById(counterId);
     if (!counter) return;
@@ -73,11 +124,9 @@
     else if (len / max >= 0.8) counter.classList.add('warn');
   }
 
-  // Init counters on page load (if form was pre-filled)
   updateCounter(document.getElementById('title'), 'title-counter', 200);
   updateCounter(document.getElementById('body'), 'body-counter', 10000);
 
-  // ---- Editor tabs ----
   function switchTab(btn, paneId) {
     document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
@@ -86,9 +135,7 @@
     if (paneId === 'preview-pane') renderPreview();
   }
 
-  // ---- BBCode preview ----
   let previewTimer = null;
-
   function schedulePreview() {
     clearTimeout(previewTimer);
     previewTimer = setTimeout(() => {
@@ -101,11 +148,10 @@
     const body = document.getElementById('body').value;
     const output = document.getElementById('preview-output');
     if (!body.trim()) { output.innerHTML = ''; return; }
-
     fetch('/api/preview', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body: body })
+      body: JSON.stringify({ body })
     })
     .then(r => r.json())
     .then(data => { output.innerHTML = data.html || ''; })

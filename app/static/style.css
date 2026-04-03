@@ -8,46 +8,43 @@
 :root,
 /* --- DARK THEME (default) --- */
 
-:root,
 [data-theme="dark"] {
-  --sky:    #0d1e2c;   /* page bg tint — cooler to match teal */
-  --navy:   #e0eaf4;
-  --blue:   #0F7EA8;   /* ← primary action color */
-  --teal:   #1D9E75;
-  --amber:  #D85A30;   /* ← coral accent replaces orange */
-  --rose:   #F26B6B;
-  --green:  #4CAF82;
-  --soft:   #0b1a24;   /* deepened to match teal hue */
-  --card:   #101f2b;
-  --border: #1a2e3d;
-  --text:   #dce8f0;
-  --muted:  #6a8fa8;
-  --radius:    8px;
-  --radius-sm: 6px;
-  --shadow:    0 2px 12px rgba(0,0,0,0.3);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.45);
-  --font:       'Nunito', sans-serif;
+  --sky: #1e2a3a;
+  --navy: #e2eaf4;
+  --blue: #5ba3d9;
+  --teal: #3ABCB1;
+  --amber: #F5A623;
+  --rose: #F26B6B;
+  --green: #4CAF82;
+  --soft: #1a1f26;
+  --card: #222831;
+  --border: #2e3744;
+  --text: #dce6f0;
+  --muted: #7a92aa;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 2px 16px rgba(0,0,0,0.25);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
+  --font: 'Nunito', sans-serif;
   --font-serif: 'Lora', serif;
 }
 
 /* --- LIGHT THEME --- */
-/* --- LIGHT THEME --- */
-
 [data-theme="light"] {
-  --sky:    #E3F5FB;   /* teal-tinted surface */
-  --navy:   #0e2233;
-  --blue:   #0F7EA8;   /* same primary — works on light bg */
-  --teal:   #0F6E56;
-  --amber:  #B84A22;   /* darkened coral for light mode contrast */
-  --rose:   #d94f4f;
-  --green:  #2e8a5e;
-  --soft:   #f0f7fa;
-  --card:   #ffffff;
-  --border: #c8dde8;
-  --text:   #0e2233;
-  --muted:  #4a7590;
-  --shadow:    0 2px 12px rgba(0,0,0,0.07);
-  --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
+  --sky: #e8f0f9;
+  --navy: #1a2a3a;
+  --blue: #2d7fc1;
+  --teal: #1fa89e;
+  --amber: #d4880d;
+  --rose: #d94f4f;
+  --green: #2e8a5e;
+  --soft: #f0f4f8;
+  --card: #ffffff;
+  --border: #d0dce8;
+  --text: #1a2535;
+  --muted: #5a7590;
+  --shadow: 0 2px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 40px rgba(0,0,0,0.15);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

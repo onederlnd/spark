@@ -17,6 +17,8 @@ from app.models.post import (
     update_post,
     delete_post,
 )
+from app.models.classroom import get_classrooms_for_user, get_member_role
+from app.models.announcement import create_announcement
 from app.models.user import coppa_required
 from app.models.topic import get_all_topics
 from app.models.notifications import create_notification
@@ -59,18 +61,25 @@ def _contains_blocked_word(text):
 @rate_limit(max_requests=10, window_seconds=60)  # limit to  posts per minute
 @coppa_required
 def new_post():
+
     topics = get_all_topics()
+    classrooms = (
+        [dict(r) for r in get_classrooms_for_user(session["user_id"])]
+        if session.get("role") == "teacher"
+        else []
+    )
     if request.method == "POST":
         title = sanitize_plain(request.form.get("title", ""), max_length=TITLE_MAX)
-        body = sanitize_plain(request.form.get("body", ""), max_length=BODY_MAX)
+        body = sanitize_bbcode(request.form.get("body", ""), max_length=BODY_MAX)
+        post_type = request.form.get("post_type", "post")
+
         if len(title) > TITLE_MAX:
             error = f"Title must be under {TITLE_MAX} characters"
             return render_template("new_post.html", topics=topics, error=error)
+
         if len(body) > BODY_MAX:
             error = f"Body must be under {BODY_MAX} character"
             return render_template("new_post.html", topics=topics, error=error)
-
-        topic_id = request.form.get("topic_id") or None
 
         if not title or not body:
             return render_template(
@@ -83,10 +92,35 @@ def new_post():
                 topics=topics,
                 error="Your post contains a word that is not allowed.",
             )
+
+        if post_type == "announcement":
+            classroom_id = request.form.get("classroom_id", type=int)
+            if not classroom_id:
+                return render_template(
+                    "new_post.html",
+                    topics=topics,
+                    classrooms=classrooms,
+                    error="Please select a classroom for your announcement.",
+                )
+
+            member_role = get_member_role(classroom_id, session["user_id"])
+            if member_role != "teacher":
+                return "Forbidden", 403
+
+            create_announcement(classroom_id, session["user_id"], title, body)
+            flash("Announcement posted!", "success")
+            return redirect(
+                url_for("classrooms.classroom_home", classroom_id=classroom_id)
+            )
+
+        topic_id = request.form.get("topic_id") or None
         post_id = create_post(session["user_id"], title, body, topic_id)
         return redirect(url_for("posts.view_post", post_id=post_id))
 
-    return render_template("new_post.html", topics=topics)
+    print(
+        f"[DEBUG] user_id={session['user_id']} role={session.get('role')} classrooms={classrooms}"
+    )
+    return render_template("new_post.html", topics=topics, classrooms=classrooms)
 
 
 @posts_bp.route("/<int:post_id>")
@@ -131,7 +165,6 @@ def edit_post(post_id):
     if not post:
         return "Post not found", 404
 
-    # only the author can edit
     if post["user_id"] != session["user_id"]:
         return "Forbidden", 403
 
@@ -139,7 +172,6 @@ def edit_post(post_id):
         title = sanitize_plain(request.form.get("title", ""), max_length=TITLE_MAX)
         body = sanitize_bbcode(request.form.get("body", ""), max_length=BODY_MAX)
 
-        # if title or body are empty
         if not title or not body:
             return render_template(
                 "edit_post.html", post=post, error="Title and body required"
@@ -160,7 +192,6 @@ def delete(post_id):
     if not post:
         return "Post not found", 404
 
-    # check if author (only author can delete)
     if post["user_id"] != session["user_id"]:
         return "Forbidden", 403
 
