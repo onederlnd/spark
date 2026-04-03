@@ -44,6 +44,7 @@ def get_waitlist_all():
             waitlist.id,
             waitlist.email,
             waitlist.joined_at,
+            waitlist.invited_at,
             CASE WHEN users.id IS NOT NULL THEN 1 ELSE 0 END as converted
         FROM waitlist
         LEFT JOIN users ON LOWER(users.email) = waitlist.email

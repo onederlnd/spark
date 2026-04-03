@@ -702,16 +702,16 @@
                   {% if row.converted %}
                   <span class="badge badge-teal">Registered</span>
                   {% else %}
-                  <span class="badge badge-muted">Waiting</span>
-                  {% endif %}
+                  <span class="badge badge-muted">{{ 'Email Sent' if row.invited_at else 'Waiting' }}</span>                  {% endif %}
                 </td>
                 <td>
                   {% if not row.converted %}
                   <form method="POST" action="/admin/alpha/waitlist/invite/{{ row.id }}" style="display:inline;">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="badge badge-teal" style="cursor:pointer; border:none;">Send Invite</button>
-                  </form>
-                  {% else %}
+                    <button type="submit" class="badge badge-teal" style="cursor:pointer; border:none;">
+                        {{ 'Resend Email' if row.invited_at else 'Send Invite' }}
+                    </button>
+                    {% else %}
                   <span style="color:var(--muted); font-size:0.75rem;">—</span>
                   {% endif %}
                 </td>

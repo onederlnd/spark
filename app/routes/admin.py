@@ -2,6 +2,7 @@ import csv
 import json
 import io
 import os
+from app.models import get_db
 from datetime import datetime, timezone
 from flask import (
     Blueprint,
@@ -291,6 +292,14 @@ def invite_from_waitlist(waitlist_id):
         return redirect(url_for("admin.dashboard"))
 
     send_acceptance_email(entry["email"])
+
+    db = get_db()
+    db.execute(
+        "UPDATE waitlist SET invited_at = ? WHERE id = ?",
+        (datetime.now(timezone.utc).isoformat(), waitlist_id),
+    )
+    db.commit()
+
     flash(f"Invite sent to {entry['email']}", "success")
     return redirect(url_for("admin.dashboard") + "#waitlist")
 
