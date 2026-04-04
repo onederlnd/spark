@@ -3,13 +3,21 @@
 import os
 from flask import Blueprint, request, session, redirect, url_for, render_template, flash
 from datetime import datetime, timezone
-from app.models.user import create_user, check_password, get_user_by_id
+from app.models.user import (
+    create_user,
+    check_password,
+    get_user_by_id,
+    get_user_by_email,
+)
 from app.models import get_db
 from app.models.notifications import create_notification
+from app.routes.settings import update_user_password
 from app.utils.brute_force import is_locked_out, record_failure, record_success
 from app.utils.rate_limit import rate_limit
 from app.utils.auth import current_user, login_required, teacher_required
-from app.utils.email import send_welcome_email
+from app.utils.email import send_welcome_email, send_password_reset_email
+from app.utils.password_reset import generate_reset_token, verify_reset_token
+
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
@@ -445,3 +453,57 @@ def register_teacher():
 
     flash("Account created! Please log in.", "success")
     return redirect(url_for("auth.login"))
+
+
+@auth_bp.route("/forgot-password", methods=["GET", "POST"])
+@rate_limit(max_requests=5, window_seconds=300)
+def forgot_password():
+    if request.method == "POST":
+        email = request.form.get("email").strip().lower()
+        user = get_user_by_email(email)
+        if user:
+            token = generate_reset_token(user["id"])
+            reset_url = url_for("auth.reset_password", token=token, _external=True)
+            try:
+                send_password_reset_email(email, user["username"], reset_url)
+            except Exception:
+                pass
+        flash(
+            "If that email is registered, you'll receive a reset link shortly.", "info"
+        )
+        return redirect(url_for("auth.forgot_password"))
+
+    return render_template("auth/forgot_password.html")
+
+
+@auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    user_id = verify_reset_token(token)
+    if not user_id:
+        flash("That reset link is invalid or has expired.", "error")
+        return redirect(url_for("auth.forgot_password"))
+
+    if request.method == "POST":
+        user_id = verify_reset_token(token)
+        if not user_id:
+            flash("Your reset link expired. Please request a new one.", "error")
+
+            return redirect(url_for("auth.forgot_password"))
+
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm_password", "")
+
+        if len(password) < 8:
+            flash("Password must be at least 8 characters.", "error")
+            return render_template("auth/reset_password.html", token=token)
+
+        if password != confirm:
+            flash("Passwords do not match", "error")
+            return render_template("auth/reset_password.html", token=token)
+
+        update_user_password(user_id, password)
+
+        flash("Password updated. You can now log in.", "success")
+        return redirect(url_for("auth.login"))
+
+    return render_template("auth/reset_password.html", token=token)

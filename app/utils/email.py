@@ -101,3 +101,20 @@ def send_coteacher_invite_email_by_email(
         mail.send(msg)
     except Exception as e:
         current_app.logger.error(f"Co-teacher invite email failed: {e}")
+
+
+def send_password_reset_email(to_email, username, reset_url):
+    msg = Message(subject="Reset your SparK password", recipients=[to_email])
+    msg.html = render_template(
+        "email/reset_password.html",
+        username=username,
+        reset_url=reset_url,
+    )
+    msg.msg = (
+        f"Hello {username},\n\n"
+        f"Click the link below to reset your SparK password (expires in 1 hour):\n\n"
+        f"{reset_url}\n\n"
+        f"If you didn't request this, you can ignore this email.\n\n"
+        f"-- The SparK Team"
+    )
+    mail.send(msg)

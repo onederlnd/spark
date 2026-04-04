@@ -97,7 +97,11 @@ def get_user_by_id(user_id):
     return db.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
 
 
-# --- password
+def get_user_by_email(email):
+    db = get_db()
+    return db.execute(
+        "SELECT * FROM users WHERE LOWER(email) = LOWER(?)", (email,)
+    ).fetchone()
 
 
 def check_password(username, password):

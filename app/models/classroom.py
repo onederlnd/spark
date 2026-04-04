@@ -124,14 +124,31 @@ def join_classroom(classroom_id, user_id, role):
 
 
 # --- assignments
-def create_assignment(classroom_id, title, instructions, due_date=None):
+def create_assignment(
+    classroom_id,
+    title,
+    instructions,
+    due_date=None,
+    auto_grade=0,
+    attempts_allowed=1,
+    show_answers=0,
+):
     db = get_db()
     cursor = db.execute(
         """
-                    INSERT INTO assignments (classroom_id, title, instructions, due_date)
-                            VALUES (?,?,?,?)
+                    INSERT INTO assignments
+                    (classroom_id, title, instructions, due_date, auto_grade, attempts_allowed, show_answers)
+                            VALUES (?,?,?,?,?,?,?)
                         """,
-        (classroom_id, title, instructions, due_date),
+        (
+            classroom_id,
+            title,
+            instructions,
+            due_date,
+            auto_grade,
+            attempts_allowed,
+            show_answers,
+        ),
     )
     db.commit()
     return cursor.lastrowid

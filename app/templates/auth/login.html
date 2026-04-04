@@ -7,9 +7,9 @@
   <p class="form-subtitle">Sign in to your SparK account</p>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
-    {% for category, message in messages %}
-      <div class="flash flash-{{ category }}">{{ message }}</div>
-    {% endfor %}
+  {% for category, message in messages %}
+  <div class="flash flash-{{ category }}">{{ message }}</div>
+  {% endfor %}
   {% endwith %}
 
   <form method="POST">
@@ -18,6 +18,11 @@
     <input name="password" type="password" placeholder="Password" required autocomplete="current-password">
     <button type="submit" class="btn-submit">Sign In</button>
   </form>
+  <div style="margin-top:1rem; text-align:center;">
+    <p style="font-size:0.82rem; color:var(--muted);">
+      <a href="{{ url_for('auth.forgot_password') }}">Forgot your password?</a>
+    </p>
+  </div>
 
   <div style="margin: 1.25rem 0; display:flex; align-items:center; gap:0.75rem;">
     <div style="flex:1; height:1px; background:var(--border);"></div>
@@ -25,29 +30,24 @@
     <div style="flex:1; height:1px; background:var(--border);"></div>
   </div>
 
-  <button
-    type="button"
-    onclick="startQRScan()"
-    class="btn btn-ghost"
-    style="width:100%; justify-content:center; gap:0.5rem;"
-    id="qr-btn">
+  <button type="button" onclick="startQRScan()" class="btn btn-ghost"
+    style="width:100%; justify-content:center; gap:0.5rem;" id="qr-btn">
     📷 Scan QR Code
   </button>
 
   <div id="qr-error" style="display:none; margin-top:0.75rem;" class="flash flash-error"></div>
 
-  <video id="qr-video"
-    style="display:none; width:100%; border-radius:var(--radius); margin-top:1rem; background:#000;"
+  <video id="qr-video" style="display:none; width:100%; border-radius:var(--radius); margin-top:1rem; background:#000;"
     playsinline autoplay></video>
 
   <canvas id="qr-canvas" style="display:none;"></canvas>
   {% if registration_open %}
-    <a href="/auth/register" style="display:block; margin-top:1rem;">Don't have an account? Join free →</a>
+  <a href="/auth/register" style="display:block; margin-top:1rem;">Don't have an account? Join free →</a>
   {% else %}
-    <p style="margin-top:1rem; color:var(--muted);">Registration is currently closed.</p>
+  <p style="margin-top:1rem; color:var(--muted);">Registration is currently closed.</p>
   {% endif %}
-  
-  </div>
+
+</div>
 
 <script src="{{ url_for('static', filename='jsQR.js') }}"></script>
 <script>
@@ -106,7 +106,7 @@
         document.getElementById("qr-btn").textContent = "📷 Scan QR Code";
       });
 
-   function scanFrame() {
+    function scanFrame() {
       if (!scanning) return;
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -124,7 +124,7 @@
         }
       }
       animFrame = requestAnimationFrame(scanFrame);
- }
+    }
   }
 </script>
 

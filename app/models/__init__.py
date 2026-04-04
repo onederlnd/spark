@@ -195,7 +195,7 @@ def init_db(app):
                 instructions TEXT NOT NULL,
                 due_date TEXT,
                 auto_grade INTEGER NOT NULL DEFAULT 0,
-                attempt_allowed INTEGER NOT NULL DEFAULT 1,
+                attempts_allowed INTEGER NOT NULL DEFAULT 1,
                 show_answers INTEGER NOT NULL DEFAULT 0,
                 post_id INTEGER REFERENCES posts(id),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

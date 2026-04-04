@@ -1,6 +1,7 @@
 import csv
 import os
 import io
+import secrets
 from flask import (
     Blueprint,
     render_template,
@@ -71,6 +72,22 @@ from app.models.resources import (
     detach_resource_from_assignment,
 )
 from app.models.notifications import create_notification
+from app.routes.settings import update_user_password
+from app.models.lesson import (
+    create_block,
+    get_blocks_for_assignment,
+    get_block,
+    update_block,
+    delete_block,
+    reorder_blocks,
+    create_choice,
+    get_choices_for_blocks,
+    delete_choices_for_block,
+    save_block_response,
+    auto_grade_submission,
+    get_block_stats,
+)
+
 
 classrooms_bp = Blueprint("classrooms", __name__, url_prefix="/classrooms")
 
@@ -245,33 +262,33 @@ def new_assignment(classroom_id):
             request.form.get("instructions", ""), max_length=INSTRUCTIONS_MAX
         )
         due_date = request.form.get("due_date", "").strip() or None
+        auto_grade = 1 if request.form.get("auto_grade") else 0
+        attempts_allowed = int(request.form.get("attempts_allowed", 1))
+        show_answers = 1 if request.form.get("show_answers") else 0
 
         if not title or not instructions:
             return render_template(
                 "classrooms/assignments_new.html",
                 classroom=classroom,
                 resources=resources,
-                error="Title and instructions are required.",
+                error="Title is required.",
             )
-        assignment_id = create_assignment(classroom_id, title, instructions, due_date)
 
-        members = get_classroom_members(classroom_id)
-        for member in members:
-            if member["role"] == "student":
-                create_notification(
-                    user_id=member["id"],
-                    type="assignment",
-                    message=f"New assignment in {classroom['name']}: {title}",
-                    link=url_for(
-                        "classrooms.view_assignment",
-                        classroom_id=classroom_id,
-                        assignment_id=assignment_id,
-                    ),
-                )
+        assignment_id = create_assignment(
+            classroom_id,
+            title,
+            instructions,
+            due_date,
+            auto_grade=auto_grade,
+            attempts_allowed=attempts_allowed,
+            show_answers=show_answers,
+        )
+
         resource_ids = request.form.getlist("resource_ids", type=int)
         if resource_ids:
             attach_resources_to_assignment(assignment_id, resource_ids)
-        flash("Assignment created!", "success")
+
+        flash("Lesson created! Add blocks below.", "success")
         return redirect(
             url_for(
                 "classrooms.view_assignment",
@@ -279,14 +296,41 @@ def new_assignment(classroom_id):
                 assignment_id=assignment_id,
             )
         )
+
     return render_template(
-        "classrooms/assignments_new.html",
+        "classrooms/assignment_new.html",
         classroom=classroom,
         resources=resources,
     )
 
 
-# --- view assignments + submit
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/builder", methods=["GET"]
+)
+@login_required
+@teacher_required
+def lesson_builder(classroom_id, assignment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if role != "teacher":
+        return "Forbidden", 403
+
+    assignment = get_assignment(assignment_id)
+    if not assignment or assignment["classroom_id"] != classroom_id:
+        return "Assignment not found", 404
+
+    blocks = get_blocks_for_assignment(assignment_id)
+    block_ids = [b["id"] for b in blocks]
+    choices_map = get_choices_for_blocks(block_ids)
+
+    return render_template(
+        "classrooms/lesson_builder.html",
+        classroom=classroom,
+        assignment=assignment,
+        blocks=blocks,
+        choices_map=choices_map,
+    )
 
 
 @classrooms_bp.route(
@@ -1502,4 +1546,328 @@ def export_grades(classroom_id):
         output.getvalue(),
         mimetype="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/students/<int:student_id>/reset-password",
+    methods=["POST"],
+)
+@login_required
+@teacher_required
+def reset_student_password(classroom_id, student_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    student = get_user_by_id(student_id)
+    member_role = get_member_role(classroom_id, student_id)
+    if not student or not member_role:
+        return "Student not found in classroom", 404
+
+    new_password = _generate_temp_password()
+    update_user_password(student_id, new_password)
+
+    flash(
+        f"Password for {student['username']} reset to: {new_password} - share this with the student.",
+        "success",
+    )
+    return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
+
+
+def _generate_temp_password():
+    _WORDS = [
+        "sunny",
+        "windy",
+        "rainy",
+        "cloud",
+        "maple",
+        "river",
+        "stone",
+        "frost",
+        "bloom",
+        "creek",
+        "tiger",
+        "eagle",
+        "panda",
+        "koala",
+        "finch",
+        "robin",
+        "cedar",
+        "birch",
+        "ember",
+        "coral",
+        "lunar",
+        "solar",
+        "misty",
+        "sandy",
+        "brave",
+        "swift",
+        "quiet",
+        "jolly",
+        "lucky",
+        "fuzzy",
+        "witty",
+        "stormy",
+    ]
+    return (
+        f"{secrets.choice(_WORDS)}{secrets.choice(_WORDS)}{secrets.randbelow(90) + 10}"
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/blocks/add",
+    methods=["POST"],
+)
+@login_required
+@teacher_required
+def add_block(classroom_id, assignment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    assignment = get_assignment(assignment_id)
+    if not assignment or assignment["classroom_id"] != classroom_id:
+        return "Assignment not found", 404
+
+    block_type = request.form.get("type", "").strip()
+    valid_types = (
+        "text",
+        "multiple_choice",
+        "true_false",
+        "short_answer",
+        "file_upload",
+    )
+    if block_type not in valid_types:
+        return "Invalid block type", 400
+
+    existing_blocks = get_blocks_for_assignment(assignment_id)
+    position = len(existing_blocks)
+
+    body = ""
+    if block_type == "true_false":
+        body = "True or False?"
+
+    block_id = create_block(
+        assignment_id=assignment_id,
+        block_type=block_type,
+        body=body,
+        position=position,
+        points=1 if block_type not in ("text", "file_upload") else 0,
+    )
+
+    if block_type == "true_false":
+        create_choice(block_id, "True", is_correct=0)
+        create_choice(block_id, "False", is_correct=0)
+
+    return redirect(
+        url_for(
+            "classrooms.lesson_builder",
+            classroom_id=classroom_id,
+            assignment_id=assignment_id,
+        )
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/blocks/<int:block_id>/update",
+    methods=["POST"],
+)
+@login_required
+@teacher_required
+def update_block_route(classroom_id, assignment_id, block_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    block = get_block(block_id)
+    if not block:
+        return "Block not found.", 404
+
+    body = sanitize_plain(request.form.get("body", ""), max_length=2000)
+    points = int(request.form.get("points", 0))
+    required = 1 if request.form.get("required") else 0
+
+    update_block(block_id, body, points, required)
+
+    if block["type"] in ("multiple_choice", "true_false"):
+        delete_choices_for_block(block_id)
+        choices = request.form.getlist("choices")
+        correct_index = request.form.get("correct", type=int)
+        for i, choice_body in enumerate(choices):
+            choice_body = sanitize_plain(choice_body, max_length=500)
+            if choice_body:
+                create_choice(
+                    block_id, choice_body, is_correct=1 if i == correct_index else 0
+                )
+
+    return redirect(
+        url_for(
+            "classrooms.lesson_builder",
+            classroom_id=classroom_id,
+            assignment_id=assignment_id,
+        )
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/blocks/<int:block_id>/delete",
+    methods=["POST"],
+)
+@login_required
+@teacher_required
+def delete_block_route(classroom_id, assignment_id, block_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    block = get_block(block_id)
+    if not block:
+        return "Block not found", 404
+
+    delete_choices_for_block(block_id)
+    delete_block(block_id)
+
+    return redirect(
+        url_for(
+            "classrooms.lesson_builder",
+            classroom_id=classroom_id,
+            assignment_id=assignment_id,
+        )
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/blocks/reorder",
+    methods=["POST"],
+)
+@login_required
+@teacher_required
+def reorder_blocks_route(classroom_id, assignment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    order = request.get_json()
+    if not order or not isinstance(order, list):
+        return "Invalid data", 400
+
+    block_positions = [(item["id"], item["position"]) for item in order]
+    reorder_blocks(block_positions)
+    return "", 204
+
+
+@login_required
+@teacher_required
+def publish_lesson(classroom_id, assignment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    assignment = get_assignment(assignment_id)
+    if not assignment or assignment["classroom_id"] != classroom_id:
+        return "Assignment not found", 404
+
+    members = get_classroom_members(classroom_id)
+    for member in members:
+        if member["role"] == "student":
+            create_notification(
+                user_id=member["id"],
+                type="assignment",
+                message=f"New lesson in {classroom['name']}: {assignment['title']}",
+                link=url_for(
+                    "classrooms.view_assignment",
+                    classroom_id=classroom_id,
+                    assignment_id=assignment_id,
+                ),
+            )
+
+    flash("Lesson published!", "success")
+    return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
+
+
+@login_required
+@coppa_required
+def submit_lesson(classroom_id, assignment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "student":
+        return "Forbidden", 403
+
+    assignment = get_assignment(assignment_id)
+    if not assignment or assignment["classroom_id"] != classroom_id:
+        return "Assignment not found", 404
+
+    submission_id = create_submission(assignment_id, session["user_id"], "")
+    blocks = get_blocks_for_assignment(assignment_id)
+
+    for block in blocks:
+        if block["type"] == "text":
+            continue
+        elif block["type"] in ("multiple_choice", "true_false"):
+            choice_id = request.form.get(f"block_{block['id']}", type=int)
+            save_block_response(submission_id, block["id"], choice_id=choice_id)
+        elif block["type"] == "short_answer":
+            body = sanitize_plain(
+                request.form.get(f"block_{block['id']}", ""), max_length=5000
+            )
+            save_block_response(submission_id, block["id"], body=body)
+
+    if assignment["auto_grade"]:
+        total = auto_grade_submission(submission_id)
+        create_notification(
+            user_id=session["user_id"],
+            type="grade",
+            message=f'Your submission for "{assignment["title"]}" was auto-graded: {total} pts',
+            link=url_for(
+                "classrooms.view_assignment",
+                classroom_id=classroom_id,
+                assignment_id=assignment_id,
+            ),
+        )
+    else:
+        create_notification(
+            user_id=classroom["teacher_id"],
+            type="submission",
+            message=f'{session["username"]} submitted "{assignment["title"]}"',
+            link=url_for(
+                "classrooms.grade_grid",
+                classroom_id=classroom_id,
+                assignment_id=assignment_id,
+            ),
+        )
+
+    flash("Lesson submitted!", "success")
+    return redirect(
+        url_for(
+            "classrooms.view_assignment",
+            classroom_id=classroom_id,
+            assignment_id=assignment_id,
+        )
+    )
+
+
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/results",
+    methods=["GET"],
+)
+@login_required
+@teacher_required
+def lesson_results(classroom_id, assignment_id):
+    classroom, role = _require_member(classroom_id)
+    if not classroom or role != "teacher":
+        return "Forbidden", 403
+
+    assignment = get_assignment(assignment_id)
+    if not assignment or assignment["classroom_id"] != classroom_id:
+        return "Assignment not found", 404
+
+    stats = get_block_stats(assignment_id)
+    grid = get_submission_grid(assignment_id, classroom_id)
+
+    return render_template(
+        "classrooms/lesson_results.html",
+        classroom=classroom,
+        assignment=assignment,
+        stats=stats,
+        grid=grid,
     )

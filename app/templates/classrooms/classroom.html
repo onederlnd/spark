@@ -16,24 +16,25 @@
       <span class="icon">⬅</span> All Classrooms
     </a>
   </li>
-{% if role is defined and role == 'teacher' and classroom is defined %}
-<li>
-  <a href="{{ url_for('moderation.moderation_dashboard', classroom_id=classroom.id) }}">
-    <span class="icon">🚩</span> Moderation Queue
-    {% if pending_reports > 0 %}
-    <span style="background:var(--rose); color:#fff; border-radius:999px; padding:1px 7px; font-size:0.75rem; margin-left:4px;">
-      {{ pending_reports }}
-    </span>
-    {% endif %}
-  </a>
-</li>
+  {% if role is defined and role == 'teacher' and classroom is defined %}
+  <li>
+    <a href="{{ url_for('moderation.moderation_dashboard', classroom_id=classroom.id) }}">
+      <span class="icon">🚩</span> Moderation Queue
+      {% if pending_reports > 0 %}
+      <span
+        style="background:var(--rose); color:#fff; border-radius:999px; padding:1px 7px; font-size:0.75rem; margin-left:4px;">
+        {{ pending_reports }}
+      </span>
+      {% endif %}
+    </a>
+  </li>
 
-<li>
-  <a href="{{ url_for('classrooms.resource_library', classroom_id=classroom.id) }}">
-    <span class="icon">📚</span> Resource Library
-  </a>
-</li>
-{% endif %}
+  <li>
+    <a href="{{ url_for('classrooms.resource_library', classroom_id=classroom.id) }}">
+      <span class="icon">📚</span> Resource Library
+    </a>
+  </li>
+  {% endif %}
 </ul>
 
 <div class="sidebar-divider"></div>
@@ -53,16 +54,12 @@
 <div class="sidebar-divider"></div>
 <div class="sidebar-title">Join Code</div>
 <div style="padding: 8px 12px">
-  <div
-    style="font-size:1.5rem; font-weight:900; letter-spacing:0.2em; color:var(--teal);"
-    data-join-code="{{ classroom.join_code }}"
-  >
+  <div style="font-size:1.5rem; font-weight:900; letter-spacing:0.2em; color:var(--teal);"
+    data-join-code="{{ classroom.join_code }}">
     {{ classroom.join_code }}
   </div>
   <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">Share this with students</div>
-  <button
-    onclick="copyJoinCode('{{ classroom.join_code }}')"
-    class="btn btn-ghost"
+  <button onclick="copyJoinCode('{{ classroom.join_code }}')" class="btn btn-ghost"
     style="margin-top:8px; font-size:0.78rem; width:100%; display:flex; justify-content:center; align-items:center;"
     id="copy-btn">
     Copy code
@@ -79,9 +76,12 @@
   </div>
   {% if role == 'teacher' %}
   <div style="display:flex; gap:0.5rem;">
-    <a href="{{ url_for('classrooms.provision') }}?join_code={{ classroom.join_code }}" class="btn btn-ghost">+ Add Students</a>
-    <a href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}" class="btn btn-primary">+ New Assignment</a>
-    <a href="{{ url_for('classrooms.export_grades', classroom_id=classroom.id) }}" class="btn btn-ghost">⬇ Export Grades</a>
+    <a href="{{ url_for('classrooms.provision') }}?join_code={{ classroom.join_code }}" class="btn btn-ghost">+ Add
+      Students</a>
+    <a href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}" class="btn btn-primary">+ New
+      Assignment</a>
+    <a href="{{ url_for('classrooms.export_grades', classroom_id=classroom.id) }}" class="btn btn-ghost">⬇ Export
+      Grades</a>
   </div>
   {% endif %}
 </div>
@@ -93,8 +93,8 @@
     <div class="card-body">
       <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
         <div>
-          
-            <a href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+
+          <a href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
             style="font-size:1.1rem; font-weight:700; color:var(--text); text-decoration:none;">
             {{ assignment.title }}
           </a>
@@ -102,15 +102,15 @@
           <div style="font-size:0.8rem; color:var(--muted); margin-top:4px;">Due: {{ assignment.due_date }}</div>
           {% endif %}
         </div>
-        <div style="display:flex; gap:0.5rem; flex-shrink:0;">
-          
-            <a href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+        <div style="display:flexg; gap:0.5rem; flex-shrink:0;">
+
+          <a href="{{ url_for('classrooms.view_assignment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
             class="btn btn-ghost" style="font-size:0.85rem;">
             {% if role == 'teacher' %}View{% else %}Open{% endif %}
           </a>
           {% if role == 'teacher' %}
-          
-            <a href="{{ url_for('classrooms.grade_grid', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+
+          <a href="{{ url_for('classrooms.grade_grid', classroom_id=classroom.id, assignment_id=assignment.id) }}"
             class="btn btn-ghost" style="font-size:0.85rem;">Grade</a>
           {% endif %}
         </div>
@@ -123,14 +123,15 @@
 {% else %}
 <div class="empty-state">
   <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
-    <rect x="16" y="12" width="40" height="48" rx="4" stroke="currentColor" stroke-width="2"/>
-    <path d="M24 28h24M24 36h24M24 44h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    <path d="M24 20h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <rect x="16" y="12" width="40" height="48" rx="4" stroke="currentColor" stroke-width="2" />
+    <path d="M24 28h24M24 36h24M24 44h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    <path d="M24 20h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
   </svg>
   {% if role == 'teacher' %}
   <div class="empty-state-title">No assignments yet</div>
   <div class="empty-state-desc">Create your first assignment for this classroom.</div>
-  <a href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}" class="btn btn-primary">+ New Assignment</a>
+  <a href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}" class="btn btn-primary">+ New
+    Assignment</a>
   {% else %}
   <div class="empty-state-title">No assignments yet</div>
   <div class="empty-state-desc">Your teacher hasn't posted any assignments yet.</div>
@@ -146,10 +147,9 @@
         Students ({{ members | selectattr('role', 'equalto', 'student') | list | length }})
       </h2>
       <div style="display:flex; gap:0.5rem; align-items:center;">
-        <a href="{{ url_for('classrooms.print_all_qr', classroom_id=classroom.id) }}"
-           class="btn btn-ghost" style="font-size:0.78rem;">🖨 Print All QR</a>
-        <button onclick="toggleStudentList()" id="toggle-btn"
-                class="btn btn-ghost" style="font-size:0.78rem;">
+        <a href="{{ url_for('classrooms.print_all_qr', classroom_id=classroom.id) }}" class="btn btn-ghost"
+          style="font-size:0.78rem;">🖨 Print All QR</a>
+        <button onclick="toggleStudentList()" id="toggle-btn" class="btn btn-ghost" style="font-size:0.78rem;">
           ▼ Expand
         </button>
       </div>
@@ -160,10 +160,11 @@
       {% if students %}
       <div style="display:flex; flex-direction:column; gap:0.5rem;">
         {% for member in students %}
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
           <div>
             <a href="/profile/{{ member.username }}"
-               style="font-weight:700; color:var(--text); text-decoration:none; font-size:0.9rem;">
+              style="font-weight:700; color:var(--text); text-decoration:none; font-size:0.9rem;">
               {{ member.username | display_name }}
             </a>
             {% if member.provisional %}
@@ -173,76 +174,87 @@
           {% if member.provisional %}
           <div style="display:flex; gap:0.5rem; align-items:center;">
             <form method="POST"
-                  action="{{ url_for('classrooms.regenerate_student_qr', classroom_id=classroom.id, student_id=member.id) }}"
-                  onsubmit="return confirm('Regenerate QR code for {{ member.username }}? Their current QR code will stop working.')">
+              action="{{ url_for('classrooms.regenerate_student_qr', classroom_id=classroom.id, student_id=member.id) }}"
+              onsubmit="return confirm('Regenerate QR code for {{ member.username }}? Their current QR code will stop working.')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <button type="submit" class="btn btn-ghost" style="font-size:0.78rem;">🔄 Regenerate QR</button>
             </form>
             <a href="{{ url_for('classrooms.show_student_qr', classroom_id=classroom.id, student_id=member.id) }}"
-               class="btn btn-ghost" style="font-size:0.78rem;">📱 Show QR</a>
+              class="btn btn-ghost" style="font-size:0.78rem;">📱 Show QR</a>
+            <form method="POST"
+              action="{{ url_for('classrooms.reset_student_password', classroom_id=classroom.id, student_id=member.id) }}"
+              onsubmit="return confirm('Reset password for {{ member.username }}? You\'ll need to share the new password with them.')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-ghost" style="font-size:0.78rem;">🔑 Reset Password</button>
+            </form>
           </div>
           {% endif %}
 
         </div>{% if member.locked_out %}
-<form method="POST" action="{{ url_for('classrooms.unlock_student', classroom_id=classroom.id, student_id=member.id) }}">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <button type="submit" class="btn btn-ghost" style="font-size:0.78rem;">🔓</button>
-</form>
-{% endif %}
+        <form method="POST"
+          action="{{ url_for('classrooms.unlock_student', classroom_id=classroom.id, student_id=member.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn btn-ghost" style="font-size:0.78rem;">🔓</button>
+        </form>
+        {% endif %}
         {% endfor %}
       </div>
       {% else %}
-      <p style="color:var(--muted); font-size:0.88rem;">No students yet. Share the join code or add students directly.</p>
+      <p style="color:var(--muted); font-size:0.88rem;">No students yet. Share the join code or add students directly.
+      </p>
       {% endif %}
     </div>
   </div>
-{% if is_owner %}
-<div class="card" style="margin-top:1.5rem;">
-  <div class="card-body">
-    <h2 style="font-size:1rem; font-weight:800; margin:0 0 1rem 0;">
-      Co-Teachers ({{ members | selectattr('role', 'equalto', 'teacher') | rejectattr('id', 'equalto', classroom.teacher_id) | list | length }})
-    </h2>
+  {% if is_owner %}
+  <div class="card" style="margin-top:1.5rem;">
+    <div class="card-body">
+      <h2 style="font-size:1rem; font-weight:800; margin:0 0 1rem 0;">
+        Co-Teachers ({{ members | selectattr('role', 'equalto', 'teacher') | rejectattr('id', 'equalto',
+        classroom.teacher_id) | list | length }})
+      </h2>
 
-    {% set coteachers = members | selectattr('role', 'equalto', 'teacher') | rejectattr('id', 'equalto', classroom.teacher_id) | list %}
-    {% if coteachers %}
-    <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem;">
-      {% for member in coteachers %}
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
-        <a href="/profile/{{ member.username }}"
-           style="font-weight:700; color:var(--text); text-decoration:none; font-size:0.9rem;">
-          {{ member.username | display_name }}
-        </a>
-        <form method="POST"
-              action="{{ url_for('classrooms.remove_coteacher_route', classroom_id=classroom.id, target_user_id=member.id) }}"
-              onsubmit="return confirm('Remove {{ member.username }} as co-teacher?')">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="btn btn-ghost" style="font-size:0.78rem; color:var(--rose);">Remove</button>
-        </form>
+      {% set coteachers = members | selectattr('role', 'equalto', 'teacher') | rejectattr('id', 'equalto',
+      classroom.teacher_id) | list %}
+      {% if coteachers %}
+      <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem;">
+        {% for member in coteachers %}
+        <div
+          style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
+          <a href="/profile/{{ member.username }}"
+            style="font-weight:700; color:var(--text); text-decoration:none; font-size:0.9rem;">
+            {{ member.username | display_name }}
+          </a>
+          <form method="POST"
+            action="{{ url_for('classrooms.remove_coteacher_route', classroom_id=classroom.id, target_user_id=member.id) }}"
+            onsubmit="return confirm('Remove {{ member.username }} as co-teacher?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-ghost" style="font-size:0.78rem; color:var(--rose);">Remove</button>
+          </form>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
+      {% else %}
+      <p style="color:var(--muted); font-size:0.88rem; margin-bottom:1rem;">No co-teachers yet.</p>
+      {% endif %}
+
+      <form method="POST" action="{{ url_for('classrooms.invite_coteacher_route', classroom_id=classroom.id) }}"
+        style="display:flex; flex-direction:column; gap:0.5rem;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div style="display:flex; gap:0.5rem; align-items:center;">
+          <input name="username" placeholder="Username"
+            style="flex:1; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--soft); color:var(--text); font-size:0.88rem;">
+          <span style="color:var(--muted); font-size:0.85rem;">or</span>
+          <input name="email" type="email" placeholder="Email address"
+            style="flex:1; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--soft); color:var(--text); font-size:0.88rem;">
+          <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">Invite</button>
+        </div>
+        <p style="font-size:0.78rem; color:var(--muted); margin:0;">
+          Enter a username to add an existing teacher, or an email to send an invite to someone new.
+        </p>
+      </form>
     </div>
-    {% else %}
-    <p style="color:var(--muted); font-size:0.88rem; margin-bottom:1rem;">No co-teachers yet.</p>
-    {% endif %}
-
-    <form method="POST" action="{{ url_for('classrooms.invite_coteacher_route', classroom_id=classroom.id) }}"
-          style="display:flex; flex-direction:column; gap:0.5rem;">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <div style="display:flex; gap:0.5rem; align-items:center;">
-        <input name="username" placeholder="Username"
-               style="flex:1; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--soft); color:var(--text); font-size:0.88rem;">
-        <span style="color:var(--muted); font-size:0.85rem;">or</span>
-        <input name="email" type="email" placeholder="Email address"
-               style="flex:1; padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border); background:var(--soft); color:var(--text); font-size:0.88rem;">
-        <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">Invite</button>
-      </div>
-      <p style="font-size:0.78rem; color:var(--muted); margin:0;">
-        Enter a username to add an existing teacher, or an email to send an invite to someone new.
-      </p>
-    </form>
   </div>
-</div>
-{% endif %}
+  {% endif %}
 </div>
 
 <script>
