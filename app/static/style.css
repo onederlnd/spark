@@ -2536,3 +2536,7 @@ mark.mention-preview {
 textarea.mention-active {
   background: transparent !important;
 }
+
+.classroom-wide .main-content {
+    grid-column: span 2;
+}

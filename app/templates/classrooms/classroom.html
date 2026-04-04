@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% block layout_class %}classroom-wide{% endblock %}
+{% block full_width %}true{% endblock %}
 {% block title %}{{ classroom.name }} — SparK{% endblock %}
 
 {% block left_sidebar %}
@@ -79,6 +81,7 @@
   <div style="display:flex; gap:0.5rem;">
     <a href="{{ url_for('classrooms.provision') }}?join_code={{ classroom.join_code }}" class="btn btn-ghost">+ Add Students</a>
     <a href="{{ url_for('classrooms.new_assignment', classroom_id=classroom.id) }}" class="btn btn-primary">+ New Assignment</a>
+    <a href="{{ url_for('classrooms.export_grades', classroom_id=classroom.id) }}" class="btn btn-ghost">⬇ Export Grades</a>
   </div>
   {% endif %}
 </div>

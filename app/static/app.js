@@ -149,7 +149,6 @@ function setPostType(type) {
 
 // --- mention autocomplete ---
 (function () {
-  let mentionDropdown = null;
   let activeTextarea = null;
   let mentionStart = -1;
 
@@ -326,7 +325,6 @@ function setPostType(type) {
     if (!e.target.closest('#mention-dropdown')) hideDropdown();
   });
   window.addEventListener('scroll', hideDropdown, true);
-
 })();
 
 // --- mention highlight ---
@@ -386,3 +384,120 @@ function initMentionHighlight(textarea) {
 }
 
 document.querySelectorAll('textarea').forEach(initMentionHighlight);
+
+// --- feedback panel ---
+(function () {
+  const FIELDS = [
+    { key: "classroom_experience", name: "Classroom experience" },
+    { key: "student_engagement",   name: "Student engagement" },
+    { key: "ease_of_use",          name: "Ease of use" },
+    { key: "assignment_workflow",  name: "Assignment workflow" },
+    { key: "safety_moderation",    name: "Safety & moderation" },
+  ];
+
+  const ratings = {};
+
+  function starSVG(filled) {
+    const fill   = filled ? "var(--teal, #1d9e75)" : "none";
+    const stroke = filled ? "var(--teal, #1d9e75)" : "var(--muted)";
+    return `<svg viewBox="0 0 22 22" fill="${fill}" stroke="${stroke}" style="pointer-events:none;" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="11,2 13.9,8.1 20.5,8.7 15.5,13.4 17.1,19.8 11,16.3 4.9,19.8 6.5,13.4 1.5,8.7 8.1,8.1"/>
+    </svg>`;
+  }
+
+  function renderStars(key) {
+    const container = document.getElementById("fps-" + key);
+    if (!container) return;
+    const current = ratings[key] || 0;
+    container.innerHTML = "";
+    for (let i = 1; i <= 5; i++) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "fp-star";
+      btn.setAttribute("aria-label", `${i} star`);
+      btn.innerHTML = starSVG(i <= current);
+      btn.onclick = function () {
+        ratings[key] = i;
+        renderStars(key);
+      };
+      container.appendChild(btn);
+    }
+  }
+
+  function buildPanel() {
+    const list = document.getElementById("fp-ratings");
+    list.innerHTML = "";
+    FIELDS.forEach(f => {
+      const row = document.createElement("div");
+      row.className = "fp-row";
+      row.innerHTML = `
+        <div class="fp-row-labels">
+          <div class="fp-row-name">${f.name}</div>
+        </div>
+        <div class="fp-stars" id="fps-${f.key}"></div>`;
+      list.appendChild(row);
+      renderStars(f.key);
+    });
+  }
+
+  window.openFeedback = function () {
+    Object.keys(ratings).forEach(k => delete ratings[k]);
+    buildPanel();
+    document.getElementById("feedbackOverlay").style.display = "block";
+    requestAnimationFrame(() => {
+      document.getElementById("feedbackPanel").classList.add("open");
+    });
+  };
+
+  window.closeFeedback = function () {
+    document.getElementById("feedbackPanel").classList.remove("open");
+    setTimeout(() => { document.getElementById("feedbackOverlay").style.display = "none"; }, 280);
+    document.getElementById("fp-error").style.display = "none";
+    document.getElementById("fp-body").style.display = "";
+    document.getElementById("fp-success").style.display = "none";
+    const btn = document.getElementById("fp-submit-btn");
+    if (btn) { btn.disabled = false; btn.textContent = "Submit feedback"; }
+  };
+
+  window.submitFeedback = async function () {
+    const missing = FIELDS.some(f => !ratings[f.key]);
+    const errEl = document.getElementById("fp-error");
+    if (missing) { errEl.style.display = "block"; return; }
+    errEl.style.display = "none";
+
+    const btn = document.getElementById("fp-submit-btn");
+    btn.disabled = true;
+    btn.textContent = "Submitting…";
+
+    const payload = { ...ratings };
+    payload.open_suggestions = document.getElementById("fp-suggestions").value.trim();
+    payload.page_url = window.location.href;
+    payload.page_context = document.title;
+
+    try {
+      const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+      const res = await fetch("/feedback/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        document.getElementById("fp-body").style.display = "none";
+        document.getElementById("fp-success").style.display = "flex";
+      } else {
+        btn.disabled = false;
+        btn.textContent = "Submit feedback";
+        errEl.textContent = "Something went wrong — please try again.";
+        errEl.style.display = "block";
+      }
+    } catch {
+      btn.disabled = false;
+      btn.textContent = "Submit feedback";
+      errEl.textContent = "Network error — please check your connection.";
+      errEl.style.display = "block";
+    }
+  };
+})();

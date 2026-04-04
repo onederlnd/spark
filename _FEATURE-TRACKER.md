@@ -266,8 +266,8 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 ### v1.2 — Public Launch
 - [x] Landing page
 - [x] Student signup with join code
-- [ ] User mentions
-- [ ] Direct messages (teacher ↔ student)
+- [x] User mentions
+- [ ] Direct messages (teacher ↔ student). Allow all communication between students for the
 - [ ] Data export
 - [ ] Trending algorithm
 - [x] Co-teachers

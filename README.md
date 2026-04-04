@@ -257,13 +257,12 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Email verification
 - [x] Admin dashboard
 - [x] Parent dashboard
-- [ ] Topic moderators
 - [ ] School / district accounts
 
 ### v1.2 — Public Launch
 - [x] Landing page
 - [x] Co-Teachers
-- [ ] User mentions
+- [x] User mentions
 - [ ] Direct messages (teacher ↔ student)
 - [ ] Data export
 - [ ] Trending algorithm

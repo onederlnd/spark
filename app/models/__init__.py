@@ -152,7 +152,7 @@ def init_db(app):
             CREATE TABLE IF NOT EXISTS follows (
                 follower_id INTEGER NOT NULL,
                 followed_id INTEGER NOT NULL,
-                create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 PRIMARY KEY (follower_id, followed_id),
                 FOREIGN KEY (follower_id) REFERENCES users(id),
                 FOREIGN KEY (followed_id) REFERENCES users(id)
@@ -194,6 +194,9 @@ def init_db(app):
                 title TEXT NOT NULL,
                 instructions TEXT NOT NULL,
                 due_date TEXT,
+                auto_grade INTEGER NOT NULL DEFAULT 0,
+                attempt_allowed INTEGER NOT NULL DEFAULT 1,
+                show_answers INTEGER NOT NULL DEFAULT 0,
                 post_id INTEGER REFERENCES posts(id),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (classroom_id) REFERENCES classrooms(id)
@@ -335,8 +338,30 @@ def init_db(app):
                 linked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(parent_id, student_id)
             );
-        INSERT OR IGNORE INTO classroom_members (classroom_id, user_id, role)
-        SELECT id, teacher_id, 'teacher' FROM classrooms;
+            CREATE TABLE IF NOT EXISTS lesson_blocks (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                assignment_id INTEGER NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
+                type TEXT NOT NULL
+                    CHECK(type IN ('text', 'multiple_choice', 'true_false', 'short_answer', 'file_upload')),
+                body TEXT NOT NULL,
+                position INTEGER NOT NULL DEFAULT 0,
+                points INTEGER NOT NULL DEFAULT 0,
+                required INTEGER NOT NULL DEFAULT 1
+            );
+            CREATE TABLE IF NOT EXISTS block_choices (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                block_id INTEGER NOT NULL REFERENCES lesson_blocks(id) ON DELETE CASCADE,
+                body TEXT NOT NULL,
+                is_correct INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS block_responses (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                submission_id INTEGER NOT NULL REFERENCES submissions(id) ON DELETE CASCADE,
+                block_id INTEGER NOT NULL REFERENCES lesson_blocks(id) ON DELETE CASCADE,
+                choice_id INTEGER REFERENCES block_choices(id),
+                body TEXT,
+                score INTEGER NOT NULL DEFAULT 0
+            );
         """),
         )
         db.commit()

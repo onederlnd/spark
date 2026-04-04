@@ -1296,7 +1296,7 @@ def print_submissions(classroom_id, assignment_id):
 
     submissions_with_attachments = []
     for sub in submissions:
-        attachments = get_assignment_attachments(sub["id"])
+        attachments = get_submission_attachments(sub["id"])
         submissions_with_attachments.append(
             {
                 "submission": sub,
@@ -1324,7 +1324,8 @@ def unlock_student(classroom_id, student_id):
     if not student:
         return "Not found", 404
     unlock_user(student["username"])
-    flash(f"{student['username']} has been unlocked.success")
+
+    flash(f"{student['username']} has been unlocked", "success")
     return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
 
 
@@ -1359,7 +1360,11 @@ def invite_coteacher_route(classroom_id):
         if success:
             flash(f'"{username}" has been added as a co-teacher.', "success")
             if invitee_email:
-                send_coteacher_invite_email(...)
+                send_coteacher_invite_email(
+                    to_email=invitee_email,
+                    inviter_username=inviter["username"],
+                    classroom_name=classroom["name"],
+                )
             if classroom["teacher_id"] != session["user_id"]:
                 create_notification(
                     user_id=classroom["teacher_id"],
@@ -1445,3 +1450,56 @@ def new_announcement(classroom_id):
         return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
 
     return render_template("classrooms/announcement_new.html", classroom=classroom)
+
+
+@classrooms_bp.route("/<int:classroom_id>/grades.csv")
+@login_required
+@teacher_required
+def export_grades(classroom_id):
+
+    classroom, role = _require_member(classroom_id)
+    if not classroom:
+        return "Classroom not found", 404
+    if role != "teacher":
+        return "Forbidden", 403
+
+    assignments = get_assignments_for_classroom(classroom_id)
+    print(f"DEBUG: {len(assignments)} assignments found")
+    members = get_classroom_members(classroom_id)
+    print(f"DEBUG: {len(members)} members found")
+    students = [m for m in members if m["role"] == "student"]
+
+    grade_map = {}
+    for assignment in assignments:
+        grid = get_submission_grid(assignment["id"], classroom_id)
+        for row in grid:
+            grade_map.setdefault(row["user_id"], {})[assignment["id"]] = row
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    header = ["username"]
+    for a in assignments:
+        label = a["title"][:40]
+        header += [f"{label} - grade", f"{label} - feedback"]
+    writer.writerow(header)
+
+    for student in students:
+        row = [student["username"]]
+        for a in assignments:
+            entry = grade_map.get(student["id"], {}).get(a["id"])
+            if entry is None:
+                row += ["", ""]
+            elif entry["submission_id"] is None:
+                row += ["", ""]
+            else:
+                row += [entry["grade"] or "", entry["feedback"] or ""]
+        writer.writerow(row)
+
+    filename = f"{classroom['name'].replace(' ', '_')}_grades.csv"
+    filename = filename.encode("ascii", "ignore").decode("ascii")
+    return Response(
+        output.getvalue(),
+        mimetype="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )

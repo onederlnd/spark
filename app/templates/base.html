@@ -210,7 +210,7 @@
     {% set has_right = self.right_sidebar()|trim %}
 
     {% if has_left or has_right %}
-    <div class="app-layout">
+    <div class="app-layout {% block layout_class %}{% endblock %}">
       <aside class="sidebar">{% block left_sidebar %}{% endblock %}</aside>
       <main class="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
