@@ -11,10 +11,8 @@ Full test coverage for the password reset feature:
   - Security / edge cases
 """
 
-import pytest
-from unittest.mock import patch, call
-from flask_mail import Message
-from conftest import _make_classroom, _register_student, _register_teacher, _get_user
+from unittest.mock import patch
+from conftest import _make_classroom, _register_teacher
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -59,7 +57,6 @@ def _provision_student_in_classroom(app, teacher_client, classroom_id):
     with app.app_context():
         from app.models import get_db
         import bcrypt
-        import secrets
 
         db = get_db()
         pw = bcrypt.hashpw(b"temppass99", bcrypt.gensalt(rounds=4)).decode()
@@ -734,7 +731,6 @@ def test_second_reset_token_also_works(client, app, monkeypatch):
             .execute("SELECT id FROM users WHERE username='twotoken'")
             .fetchone()
         )
-        token1 = _get_reset_token(app, user["id"])
 
     import time
 

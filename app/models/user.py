@@ -64,7 +64,7 @@ def create_user(username, password, bio="", role="student", dob=None, email=None
 
     # Determine COPPA status
     age = calculate_age(dob_date)
-    coppa_status = "pending" if age < 13 else "approved"
+    coppa_status = "pending" if age < 13 and role == "student" else "approved"
 
     dob_str = dob_date.isoformat()
 
@@ -104,8 +104,10 @@ def get_user_by_email(email):
     ).fetchone()
 
 
-def check_password(username, password):
-    user = get_user_by_username(username)
+def check_password(username_or_email, password):
+    user = get_user_by_username(username_or_email)
+    if not user:
+        user = get_user_by_email(username_or_email)
     if not user:
         return None
     if bcrypt.checkpw(password.encode(), user["password_hash"].encode()):

@@ -14,7 +14,7 @@
 
   <form method="POST">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input name="username" placeholder="Username" required autocomplete="username">
+    <input name="username" placeholder="Username or Email" required autocomplete="username">
     <input name="password" type="password" placeholder="Password" required autocomplete="current-password">
     <button type="submit" class="btn-submit">Sign In</button>
   </form>

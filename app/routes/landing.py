@@ -7,10 +7,8 @@ from flask import (
     flash,
     current_app,
 )
-from flask_mail import Message
-from app.extensions import mail
 from app.models.waitlist import add_to_waitlist
-from datetime import datetime, timezone
+from app.utils.email import send_waitlist_confirmation, send_waitlist_admin_notification
 
 marketing_bp = Blueprint("landing", __name__)
 
@@ -32,35 +30,13 @@ def waitlist():
         return redirect(url_for("landing.index") + "#waitlist")
 
     added = add_to_waitlist(email)
-
     if added:
-        # Confirmation to user
         try:
-            msg = Message(
-                subject="You're on the SparK waitlist! ⚡",
-                recipients=[email],  # ✅ signup email, not sender
-                html=render_template("email/waitlist_confirmation.html"),
-            )
-            mail.send(msg)
+            send_waitlist_confirmation(email)
         except Exception as e:
             current_app.logger.error(f"Waitlist confirm email failed: {e}")
-
-        # Notify admin
         try:
-            admin_email = current_app.config.get("ADMIN_EMAIL")
-            if admin_email:
-                msg = Message(
-                    subject="New SparK waitlist signup",
-                    recipients=[admin_email],
-                    html=render_template(
-                        "email/admin_notification.html",
-                        email=email,
-                        timestamp=datetime.now(timezone.utc).strftime(
-                            "%B %d, %Y at %I:%M %p UTC"
-                        ),
-                    ),
-                )
-                mail.send(msg)
+            send_waitlist_admin_notification(email)
         except Exception as e:
             current_app.logger.error(f"Admin notify email failed: {e}")
 

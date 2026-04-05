@@ -597,7 +597,9 @@ def test_submit_lesson_unauthenticated(client, classroom):
 
 def test_publish_lesson_notifies_students(app, teacher_client, classroom):
     assignment_id = _make_lesson(teacher_client, classroom)
-    client = _make_enrolled_student(app, teacher_client, classroom)
+
+    # ← add this — student must exist and be enrolled before publishing
+    _make_enrolled_student(app, teacher_client, classroom)
 
     teacher_client.post(
         f"/classrooms/{classroom}/assignments/{assignment_id}/blocks/publish",

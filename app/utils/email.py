@@ -38,7 +38,7 @@ def send_acceptance_email(email):
 def send_waitlist_confirmation(to_email):
     msg = Message(
         subject="You're on the SparK waitlist!",
-        recipient=[to_email],
+        recipients=[to_email],
         html=render_template("email/waitlist_confirmation.html", email=to_email),
         sender=current_app.config["MAIL_DEFAULT_SENDER"],
     )

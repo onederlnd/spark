@@ -98,10 +98,10 @@ def login():
     from app.models import get_db
 
     if request.method == "POST":
-        username = request.form["username"].strip()
+        username_or_email = request.form["username"].strip()
         password = request.form["password"]
         ip = request.remote_addr
-        locked, seconds_remaining = is_locked_out(username, ip)
+        locked, seconds_remaining = is_locked_out(username_or_email, ip)
         if locked:
             minutes = seconds_remaining // 60 + 1
             flash(
@@ -110,9 +110,9 @@ def login():
             )
             return render_template("auth/login.html")
 
-        user = check_password(username, password)
+        user = check_password(username_or_email, password)
         if user:
-            record_success(username)
+            record_success(user["username"])
             session.clear()
 
             session["user_id"] = user["id"]
@@ -143,7 +143,7 @@ def login():
 
             return redirect(url_for("feed.index"))
         else:
-            record_failure(username, ip)
+            record_failure(username_or_email, ip)
             flash("Invalid username or password", "error")
     return render_template("auth/login.html")
 
@@ -195,10 +195,6 @@ def coppa_approve(user_id):
         flash("Student not found", "error")
         return redirect(url_for("auth.coppa_pending"))
 
-    if student["role"] != "student":
-        flash("Invalid approval target", "error")
-        return redirect(url_for("auth.coppa_pending"))
-
     db.execute("UPDATE users SET coppa_status='approved' WHERE id=?", (user_id,))
     db.commit()
 
@@ -215,7 +211,7 @@ def coppa_pending():
     db = get_db()
 
     pending_students = db.execute(
-        "SELECT id, username, dob FROM users WHERE coppa_status='pending'"
+        "SELECT id, username, dob, role FROM users WHERE coppa_status='pending'"
     ).fetchall()
 
     return render_template("coppa_pending.html", pending_students=pending_students)

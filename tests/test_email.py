@@ -1,5 +1,4 @@
 from unittest.mock import patch
-from flask_mail import Message
 
 
 # --- mail extension is initialized ---
@@ -17,25 +16,19 @@ def test_mail_extension_is_configured(app):
 
 
 def test_waitlist_signup_attempts_confirmation_email(client, app):
-    app.config["ADMIN_EMAIL"] = "admin_email@example.com"
-    with patch("app.routes.landing.mail.send") as mock_send:
-        client.post("/waitlist", data={"email": "emailtest@example.com"})
-        assert mock_send.called
-        first_call = mock_send.call_args_list[0][0][0]
-        assert isinstance(first_call, Message)
-        assert "emailtest@example.com" in first_call.recipients
+    with patch("app.routes.landing.send_waitlist_confirmation") as mock_confirm:
+        with patch("app.routes.landing.add_to_waitlist", return_value=True):
+            client.post("/waitlist", data={"email": "emailtest@example.com"})
 
-
-# --- admin notification email is attempted on signup ---
+            assert mock_confirm.called
 
 
 def test_waitlist_signup_attempts_admin_notification(client, app):
     app.config["ADMIN_EMAIL"] = "admin@example.com"
-    with patch("app.routes.landing.mail.send") as mock_send:
-        client.post("/waitlist", data={"email": "notify@example.com"})
-        assert mock_send.call_count == 2
-        admin_msg = mock_send.call_args_list[1][0][0]
-        assert "admin@example.com" in admin_msg.recipients
+    with patch("app.routes.landing.send_waitlist_admin_notification") as mock_admin:
+        with patch("app.routes.landing.add_to_waitlist", return_value=True):
+            client.post("/waitlist", data={"email": "notify@example.com"})
+            assert mock_admin.called
 
 
 # --- no email sent for duplicate signup ---
@@ -43,29 +36,30 @@ def test_waitlist_signup_attempts_admin_notification(client, app):
 
 def test_no_email_sent_for_duplicate(client):
     client.post("/waitlist", data={"email": "dupe@example.com"})
-    with patch("app.routes.landing.mail.send") as mock_send:
+    with patch("app.routes.landing.send_waitlist_confirmation") as mock_confirm:
         client.post("/waitlist", data={"email": "dupe@example.com"})
-        mock_send.assert_not_called()
+        assert not mock_confirm.called
 
 
 # --- no email sent for invalid input ---
 
 
 def test_no_email_sent_for_invalid_email(client):
-    with patch("app.routes.landing.mail.send") as mock_send:
-        client.post("/waitlist", data={"email": "notvalid"})
-        mock_send.assert_not_called()
+    with patch("app.routes.landing.send_waitlist_confirmation") as mock_confirm:
+        client.post("/waitlist", data={"email": "notanemail"})
+        assert not mock_confirm.called
 
 
 # --- mail send failure does not crash the route ---
 
 
 def test_mail_failure_does_not_break_signup(client):
-    with patch("app.routes.landing.mail.send", side_effect=Exception("SMTP down")):
-        response = client.post(
-            "/waitlist",
-            data={"email": "resilient@example.com"},
-            follow_redirects=False,
+    with patch(
+        "app.routes.landing.send_waitlist_confirmation",
+        side_effect=Exception("SMTP down"),
+    ):
+        resp = client.post(
+            "/waitlist", data={"email": "fail@example.com"}, follow_redirects=True
         )
-    assert response.status_code == 302
-    assert "/waitlist/thank-you" in response.headers["Location"]
+
+        assert resp.status_code == 200

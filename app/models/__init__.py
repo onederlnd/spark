@@ -300,7 +300,8 @@ def init_db(app):
             CREATE TABLE IF NOT EXISTS waitlist (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT NOT NULL UNIQUE,
-                joined_at TEXT NOT NULL
+                joined_at TEXT NOT NULL,
+                invited_at TEXT DEFAULT NULL
             );
             CREATE TABLE IF NOT EXISTS classroom_invites (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -342,7 +343,7 @@ def init_db(app):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 assignment_id INTEGER NOT NULL REFERENCES assignments(id) ON DELETE CASCADE,
                 type TEXT NOT NULL
-                    CHECK(type IN ('text', 'multiple_choice', 'true_false', 'short_answer', 'file_upload')),
+                    CHECK(type IN ('text', 'multiple_choice', 'true_false', 'short_answer', 'file_upload', 'code')),
                 body TEXT NOT NULL,
                 position INTEGER NOT NULL DEFAULT 0,
                 points INTEGER NOT NULL DEFAULT 0,

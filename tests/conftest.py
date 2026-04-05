@@ -270,12 +270,6 @@ def mock_emails(monkeypatch):
         email_module, "send_coteacher_invite_email", lambda *a, **kw: None
     )
     monkeypatch.setattr(admin_module, "send_acceptance_email", lambda *a, **kw: None)
-    monkeypatch.setattr(
-        email_module, "send_waitlist_admin_notification", lambda *a, **kw: None
-    )
-    monkeypatch.setattr(
-        email_module, "send_waitlist_confirmation", lambda *a, **kw: None
-    )
 
 
 @pytest.fixture(scope="function")
