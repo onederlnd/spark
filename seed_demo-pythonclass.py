@@ -411,6 +411,25 @@ POSTS = [
     },
 ]
 
+ANNOUNCEMENTS = [
+    {
+        "title": "Welcome to CodeForward!",
+        "body": "We're excited to have you here. Start with Python Basics and introduce yourself in Community Chat.",
+    },
+    {
+        "title": "Assignment Reminder",
+        "body": "Don't forget — the Calculator assignment is due this Friday!",
+    },
+    {
+        "title": "Live Help Session",
+        "body": "I'll be hosting a live debugging session tomorrow at 6pm. Bring your questions!",
+    },
+    {
+        "title": "Great Work So Far",
+        "body": "Really impressed with the progress everyone is making. Keep it up!",
+    },
+]
+
 ASSIGNMENTS = [
     {
         "title": "Build a Calculator",
@@ -739,6 +758,29 @@ def seed_posts(db, users, topics, classroom_id):
     return post_ids
 
 
+def seed_announcements(db, users, classroom_id):
+    teacher_ids = [u["id"] for u in users.values() if u["role"] == "teacher"]
+
+    for a in ANNOUNCEMENTS:
+        insert_and_get_id(
+            db,
+            """
+            INSERT INTO posts (
+                post_type, user_id, title, body, classroom_id, created_at
+            )
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (
+                "announcement",
+                random.choice(teacher_ids),
+                a["title"],
+                a["body"],
+                classroom_id,
+                days_ago(random.randint(0, 5)),
+            ),
+        )
+
+
 def seed_reactions(db, users, post_ids):
     for pid in post_ids:
         for u in users.values():
@@ -829,6 +871,7 @@ def main():
         topics = seed_topics(db)
         classroom_id = seed_classroom(db, users)
 
+        seed_announcements(db, users, classroom_id)
         post_ids = seed_posts(db, users, topics, classroom_id)
         seed_reactions(db, users, post_ids)
         seed_assignments(db, users, classroom_id)

@@ -7,8 +7,8 @@ def get_user_counts():
     return db.execute(
         """
         SELECT COUNT(*) AS total,
-        SUM(CASE WHEN created_at >= datetime('now', '-7 days' THEN 1 ELSE 0 END) as last_7,
-        SUM(CASE WHEN created_at >= datetime('now', '-30 days' THEN 1 ELSE 0 END) as last_30,
+        SUM(CASE WHEN created_at >= datetime('now', '-7 days') THEN 1 ELSE 0 END) AS last_7,
+        SUM(CASE WHEN created_at >= datetime('now', '-30 days') THEN 1 ELSE 0 END) AS last_30
         FROM users
         """
     ).fetchone()
@@ -54,7 +54,7 @@ def get_daily_replies(days=14):
         GROUP BY day
         ORDER BY day ASC
         """,
-        (f"{days} days",),
+        (f"-{days} days",),
     ).fetchall()
 
 
@@ -97,7 +97,7 @@ def get_top_active_students_by_posts(limit=10):
         WHERE users.role = 'student'
         AND posts.parent_id IS NULL
         GROUP BY users.id
-        ORDER BY posts_count DESC
+        ORDER BY post_count DESC
         LIMIT ?
         """,
         (limit,),
@@ -112,7 +112,7 @@ def get_top_active_students_by_submissions(limit=10):
         FROM submissions
         JOIN users ON submissions.user_id = users.id
         GROUP BY users.id
-        ORDER BY submission_count DESC
+        ORDER BY submissions_count DESC
         LIMIT ?
         """,
         (limit,),
@@ -133,10 +133,10 @@ def get_report_counts():
     db = get_db()
     return db.execute(
         """
-        SELECT COUNT(*) AS TOTAL
+        SELECT COUNT(*) AS total,
             SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS open,
             SUM(CASE WHEN status != 'pending' THEN 1 ELSE 0 END) AS resolved
-        FROM
+        FROM reports
         """
     ).fetchone()
 
@@ -289,12 +289,12 @@ def get_students_with_zero_submissions():
     return db.execute(
         """
         SELECT users.username,
-            COUNT(DISTINCT classroom_members. classroom_id) AS classroom_count
+            COUNT(DISTINCT classroom_members.classroom_id) AS classroom_count
             FROM users
             JOIN classroom_members ON classroom_members.user_id = users.id
                 AND classroom_members.role = 'student'
             LEFT JOIN submissions ON submissions.user_id = users.id
-            WHERE usres.role = 'student'
+            WHERE users.role = 'student'
             GROUP BY users.id
             HAVING COUNT(submissions.id) = 0
             ORDER BY users.username ASC
@@ -306,7 +306,7 @@ def get_daily_rate_limit_hits(days=14):
     db = get_db()
     return db.execute(
         """
-        SELECT day(created_at) AS day, COUNT(*) AS count
+        SELECT date(created_at) AS day, COUNT(*) AS count
         FROM rate_limit_hits
         WHERE created_at >= datetime('now', ?)
         GROUP BY day
