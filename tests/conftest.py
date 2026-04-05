@@ -160,8 +160,9 @@ def assignment(teacher_client, classroom):
             "due_date": "2030-01-01",
         },
     )
-    assignment_url = response.headers["Location"]
-    return int(assignment_url.rstrip("/").split("/")[-1])
+    location = response.headers["Location"]
+    parts = location.rstrip("/").split("/")
+    return int(parts[-2])
 
 
 @pytest.fixture(autouse=True)

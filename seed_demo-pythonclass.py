@@ -777,7 +777,7 @@ def seed_assignments(db, users, classroom_id):
             db.execute(
                 """
                 INSERT OR IGNORE INTO submissions (assignment_id, user_id, body, grade, feedback)
-                VALUES (?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?)
                 """,
                 (
                     aid,

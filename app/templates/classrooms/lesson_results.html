@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Results — {{ assignment.title }} — SparK{% endblock %}
+{% block content %}
+<div class="form-page" style="max-width:760px;">
+
+  <div style="margin-bottom:1rem;">
+    <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
+       style="color:var(--muted); font-size:0.85rem; text-decoration:none;">
+      ← {{ classroom.name }}
+    </a>
+  </div>
+
+  <h1 class="form-title">{{ assignment.title }} — Results</h1>
+
+  {% if stats %}
+  <div class="card" style="margin-bottom:1.5rem;">
+    <div class="card-body">
+      <h2 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">Question Stats</h2>
+      {% for s in stats %}
+      <div style="margin-bottom:1rem; padding-bottom:1rem; border-bottom:1px solid var(--border);">
+        <div style="font-size:0.9rem; font-weight:700; margin-bottom:0.25rem;">{{ s.question }}</div>
+        <div style="font-size:0.85rem; color:var(--muted);">
+          {{ s.correct_count or 0 }} / {{ s.total_responses or 0 }} correct
+          ({{ s.max_points }} pts)
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-body">
+      <h2 style="font-size:1rem; font-weight:800; margin-bottom:1rem;">Student Submissions</h2>
+      {% for row in grid %}
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm); margin-bottom:0.4rem;">
+        <span style="font-size:0.88rem; font-weight:600;">{{ row.username }}</span>
+        {% if row.submission_id %}
+          <span style="font-size:0.85rem; color:var(--teal);">{{ row.grade or 'submitted' }}</span>
+        {% else %}
+          <span style="font-size:0.85rem; color:var(--muted);">not submitted</span>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}

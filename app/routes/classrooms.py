@@ -266,7 +266,7 @@ def new_assignment(classroom_id):
         attempts_allowed = int(request.form.get("attempts_allowed", 1))
         show_answers = 1 if request.form.get("show_answers") else 0
 
-        if not title or not instructions:
+        if not title:
             return render_template(
                 "classrooms/assignments_new.html",
                 classroom=classroom,
@@ -291,14 +291,14 @@ def new_assignment(classroom_id):
         flash("Lesson created! Add blocks below.", "success")
         return redirect(
             url_for(
-                "classrooms.view_assignment",
+                "classrooms.lesson_builder",
                 classroom_id=classroom_id,
                 assignment_id=assignment_id,
             )
         )
 
     return render_template(
-        "classrooms/assignment_new.html",
+        "classrooms/assignments_new.html",
         classroom=classroom,
         resources=resources,
     )
@@ -358,6 +358,11 @@ def view_assignment(classroom_id, assignment_id):
     classroom_resources = (
         get_resources_for_classroom(classroom_id) if role == "teacher" else []
     )
+
+    blocks = get_blocks_for_assignment(assignment_id)
+    block_ids = [b["id"] for b in blocks]
+    choices_map = get_choices_for_blocks(block_ids)
+
     if request.method == "POST":
         if role != "student":
             return "Forbidden", 403
@@ -374,6 +379,8 @@ def view_assignment(classroom_id, assignment_id):
                 submission_attachments=submission_attachments,
                 assignment_resources=assignment_resources,
                 classroom_resources=classroom_resources,
+                blocks=blocks,
+                choices_map=choices_map,
                 error="Submission cannot be empty.",
             )
 
@@ -430,6 +437,8 @@ def view_assignment(classroom_id, assignment_id):
         submission_attachments=submission_attachments,
         assignment_resources=assignment_resources,
         classroom_resources=classroom_resources,
+        blocks=blocks,
+        choices_map=choices_map,
     )
 
 
@@ -1757,6 +1766,10 @@ def reorder_blocks_route(classroom_id, assignment_id):
     return "", 204
 
 
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/blocks/publish",
+    methods=["POST"],
+)
 @login_required
 @teacher_required
 def publish_lesson(classroom_id, assignment_id):
@@ -1786,6 +1799,10 @@ def publish_lesson(classroom_id, assignment_id):
     return redirect(url_for("classrooms.classroom_home", classroom_id=classroom_id))
 
 
+@classrooms_bp.route(
+    "/<int:classroom_id>/assignments/<int:assignment_id>/lesson/submit",
+    methods=["POST"],
+)
 @login_required
 @coppa_required
 def submit_lesson(classroom_id, assignment_id):

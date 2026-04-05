@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% block title %}Lesson Builder — {{ assignment.title }} — SparK{% endblock %}
+{% block content %}
+
+{% macro block_badge_style(type) %}
+  {% if type == 'text' %}background:var(--soft); color:var(--muted); border:1px solid var(--border);
+  {% elif type == 'multiple_choice' %}background:#dbeafe; color:#1e40af;
+  {% elif type == 'true_false' %}background:#dcfce7; color:#166534;
+  {% elif type == 'short_answer' %}background:#fef9c3; color:#854d0e;
+  {% elif type == 'file_upload' %}background:#f3e8ff; color:#6b21a8;
+  {% endif %}
+{% endmacro %}
+<div class="form-page" style="max-width:760px;">
+
+  <div style="margin-bottom:1rem;">
+    <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
+       style="color:var(--muted); font-size:0.85rem; text-decoration:none;">
+      ← {{ classroom.name }}
+    </a>
+  </div>
+
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem; gap:1rem; flex-wrap:wrap;">
+    <div>
+      <h1 class="form-title" style="margin-bottom:0.25rem;">{{ assignment.title }}</h1>
+      <p class="form-subtitle" style="margin:0;">
+        Lesson builder
+        {% if assignment.auto_grade %} · auto-grade on{% endif %}
+        {% if assignment.due_date %} · due {{ assignment.due_date }}{% endif %}
+      </p>
+    </div>
+    <div style="display:flex; gap:0.5rem; align-items:center;">
+      <span style="font-size:0.78rem; color:var(--muted); border:1px solid var(--border); border-radius:999px; padding:3px 10px;">
+        {{ blocks|length }} block{{ 's' if blocks|length != 1 else '' }}
+      </span>
+      <form method="POST" action="{{ url_for('classrooms.publish_lesson', classroom_id=classroom.id, assignment_id=assignment.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn btn-primary">Publish Lesson</button>
+      </form>
+    </div>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <!-- blocks -->
+  <div id="blocks-list" style="display:flex; flex-direction:column; gap:0.75rem; margin-bottom:1rem;">
+    {% for block in blocks %}
+    <div class="card" id="block-{{ block.id }}" style="border-radius:var(--radius-sm); overflow:hidden;">
+
+      <!-- block header -->
+      <div style="display:flex; align-items:center; gap:0.75rem; padding:0.6rem 1rem; background:var(--soft); border-bottom:1px solid var(--border);">
+        <span class="block-badge block-badge-{{ block.type }}">
+          {{ block.type | replace('_', ' ') | title }}
+        </span>
+        <span style="font-size:0.82rem; color:var(--muted); flex:1;">
+          {% if block.body %}{{ block.body[:60] }}{% if block.body|length > 60 %}…{% endif %}{% else %}(empty){% endif %}
+        </span>
+        {% if block.type not in ('text', 'file_upload') %}
+        <span style="font-size:0.78rem; color:var(--muted);">{{ block.points }} pt{{ 's' if block.points != 1 else '' }}</span>
+        {% endif %}
+        <button onclick="toggleBlock('{{ block.id }}')" class="btn btn-ghost" style="font-size:0.78rem; padding:3px 10px;">Edit</button>
+        <form method="POST" action="{{ url_for('classrooms.delete_block_route', classroom_id=classroom.id, assignment_id=assignment.id, block_id=block.id) }}"
+              onsubmit="return confirm('Delete this block?');" style="margin:0;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+          <button type="submit" class="btn btn-ghost" style="font-size:0.78rem; padding:3px 10px; color:var(--rose);">✕</button>
+        </form>
+      </div>
+
+      <!-- block edit form (hidden by default) -->
+      <div id="block-form-{{ block.id }}" style="display:none; padding:1rem;">
+        <form method="POST" action="{{ url_for('classrooms.update_block_route', classroom_id=classroom.id, assignment_id=assignment.id, block_id=block.id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+          <label style="font-size:0.82rem; color:var(--muted);">
+            {% if block.type == 'text' %}Content{% else %}Question{% endif %}
+          </label>
+          <textarea name="body" rows="{% if block.type == 'text' %}4{% else %}2{% endif %}"
+                    style="width:100%; margin-top:4px; margin-bottom:0.75rem;"
+                    maxlength="2000">{{ block.body }}</textarea>
+
+          {% if block.type in ('multiple_choice', 'true_false') %}
+          <label style="font-size:0.82rem; color:var(--muted); display:block; margin-bottom:0.5rem;">
+            Choices <span style="font-size:0.75rem;">(select the correct answer)</span>
+          </label>
+          {% set block_choices = choices_map.get(block.id, []) %}
+          {% for choice in block_choices %}
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem;">
+            <input type="radio" name="correct" value="{{ loop.index0 }}"
+                   {% if choice.is_correct %}checked{% endif %} />
+            <input type="text" name="choices" value="{{ choice.body }}"
+                   {% if block.type == 'true_false' %}readonly{% endif %}
+                   style="flex:1; font-size:0.88rem;" maxlength="500" />
+          </div>
+          {% endfor %}
+          {% if block.type == 'multiple_choice' %}
+          <div id="extra-choices-{{ block.id }}"></div>
+          <button type="button" onclick="addChoice('{{ block.id }}')"
+                  style="font-size:0.78rem; color:var(--teal); background:none; border:none; cursor:pointer; margin-top:0.25rem;">
+            + add choice
+          </button>
+          {% endif %}
+          {% endif %}
+
+          {% if block.type not in ('text', 'file_upload') %}
+          <div style="display:flex; align-items:center; gap:0.5rem; margin-top:0.75rem;">
+            <label style="font-size:0.82rem; color:var(--muted);">Points</label>
+            <input type="number" name="points" value="{{ block.points }}" min="0" max="100"
+                   style="width:60px; font-size:0.88rem;" />
+            <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.82rem; color:var(--muted); margin-left:1rem;">
+              <input type="checkbox" name="required" {% if block.required %}checked{% endif %} />
+              Required
+            </label>
+          </div>
+          {% endif %}
+
+          <div style="display:flex; gap:0.5rem; margin-top:1rem;">
+            <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">Save</button>
+            <button type="button" onclick="toggleBlock('{{ block.id }}')"
+                    class="btn btn-ghost" style="font-size:0.85rem;">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+
+  {% if not blocks %}
+  <div style="text-align:center; padding:2rem; border:1px dashed var(--border); border-radius:var(--radius-sm); color:var(--muted); margin-bottom:1rem;">
+    No blocks yet. Add your first block below.
+  </div>
+  {% endif %}
+
+  <!-- add block -->
+  <div style="border:1px dashed var(--border); border-radius:var(--radius-sm); padding:1rem; display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+    <span style="font-size:0.82rem; color:var(--muted); margin-right:0.25rem;">+ add block</span>
+    {% for block_type in ['text', 'multiple_choice', 'true_false', 'short_answer', 'file_upload'] %}
+    <form method="POST" action="{{ url_for('classrooms.add_block', classroom_id=classroom.id, assignment_id=assignment.id) }}" style="margin:0;">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+      <input type="hidden" name="type" value="{{ block_type }}" />
+      <button type="submit" class="btn btn-ghost" style="font-size:0.8rem; padding:4px 12px;">
+        {{ block_type | replace('_', ' ') | title }}
+      </button>
+    </form>
+    {% endfor %}
+  </div>
+
+</div>
+
+<script>
+function toggleBlock(id) {
+  const form = document.getElementById('block-form-' + id);
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function addChoice(blockId) {
+  const container = document.getElementById('extra-choices-' + blockId);
+  const idx = container.querySelectorAll('input[name="choices"]').length;
+  const existing = document.querySelectorAll('#block-form-' + blockId + ' input[name="choices"]').length;
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex; align-items:center; gap:0.5rem; margin-bottom:0.4rem;';
+  div.innerHTML = `
+    <input type="radio" name="correct" value="${existing}" />
+    <input type="text" name="choices" style="flex:1; font-size:0.88rem;" maxlength="500" placeholder="Choice ${existing + 1}" />
+  `;
+  container.appendChild(div);
+}
+</script>
+{% endblock %}

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}New Assignment — SparK{% endblock %}
+{% block title %}New Lesson — SparK{% endblock %}
 {% from "macros/bbcode_toolbar.html" import toolbar %}
 {% block content %}
 <div class="form-page">
@@ -10,8 +10,8 @@
     </a>
   </div>
 
-  <h1 class="form-title">New Assignment</h1>
-  <p class="form-subtitle">Create a new assignment for this classroom</p>
+  <h1 class="form-title">New Lesson</h1>
+  <p class="form-subtitle">Set the basics — you'll add blocks on the next screen</p>
 
   {% if error %}
   <div class="flash flash-error">{{ error }}</div>
@@ -27,35 +27,46 @@
       <div class="char-counter" id="title-counter">0 / 200</div>
     </div>
 
-    <label>Instructions</label>
+    <label>Instructions <span style="font-size:0.8rem; color:var(--muted); font-weight:400;">(optional — shown above the lesson)</span></label>
     <div class="editor-tabs">
       <button type="button" class="editor-tab active" onclick="switchTab(this, 'write-pane')">Write</button>
       <button type="button" class="editor-tab" onclick="switchTab(this, 'preview-pane')">Preview</button>
     </div>
-
     <div class="editor-pane active" id="write-pane">
       <div class="field-wrap">
         {{ toolbar("instructions") }}
-        <textarea name="instructions" id="instructions" rows="8" maxlength="10000" required
-                  placeholder="Write assignment instructions"
+        <textarea name="instructions" id="instructions" rows="5" maxlength="10000"
+                  placeholder="Optional context or overview for students"
                   oninput="updateCounter(this, 'instructions-counter', 10000); schedulePreview()"></textarea>
         <div class="char-counter" id="instructions-counter">0 / 10000</div>
       </div>
     </div>
-
     <div class="editor-pane" id="preview-pane">
       <div class="preview-pane" id="preview-output"></div>
     </div>
 
-    <p class="field-hint">
-      Formatting: [b]bold[/b] · [i]italic[/i] · [code]code[/code] ·
-      [url=https://...]link[/url] · [quote]quote[/quote]
-    </p>
-
     <label for="due_date">Due Date</label>
     <input type="date" name="due_date" id="due_date" />
 
-    <!-- Resource picker -->
+    <label for="attempts_allowed" style="margin-top:1rem;">Attempts allowed</label>
+    <select name="attempts_allowed" id="attempts_allowed" style="max-width:200px;">
+      <option value="1">1 (default)</option>
+      <option value="2">2</option>
+      <option value="3">3</option>
+      <option value="99">Unlimited</option>
+    </select>
+
+    <div style="display:flex; flex-direction:column; gap:0.6rem; margin-top:1.25rem;">
+      <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer; font-size:0.9rem;">
+        <input type="checkbox" name="auto_grade" id="auto_grade" style="width:16px; height:16px;">
+        Auto-grade multiple choice and true/false questions
+      </label>
+      <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer; font-size:0.9rem;">
+        <input type="checkbox" name="show_answers" id="show_answers" style="width:16px; height:16px;">
+        Show correct answers to students after submission
+      </label>
+    </div>
+
     {% if resources %}
     <div style="margin-top: 1.25rem;">
       <label style="font-size:0.85rem; font-weight:600; display:block; margin-bottom:0.25rem;">
@@ -92,7 +103,7 @@
     {% endif %}
 
     <div class="form-actions" style="margin-top:1.5rem;">
-      <button type="submit" class="btn-submit">Create Assignment</button>
+      <button type="submit" class="btn-submit">Continue to Lesson Builder →</button>
       <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
          class="btn-cancel">Cancel</a>
     </div>

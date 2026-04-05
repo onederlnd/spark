@@ -157,7 +157,7 @@ def test_assignment_shows_submitted(app, teacher_client, student_client):
         f"/classrooms/{classroom_id}/assignments/new",
         data={"title": "Submit Me", "instructions": "Do it", "due_date": "2030-01-01"},
     )
-    assignment_id = int(resp.headers["Location"].rstrip("/").split("/")[-1])
+    assignment_id = int(resp.headers["Location"].rstrip("/").split("/")[-2])
     student_client.post(
         f"/classrooms/{classroom_id}/assignments/{assignment_id}",
         data={"body": "My answer"},
@@ -175,7 +175,7 @@ def test_assignment_shows_graded(app, teacher_client, student_client):
         f"/classrooms/{classroom_id}/assignments/new",
         data={"title": "Grade Me", "instructions": "Do it", "due_date": "2030-01-01"},
     )
-    assignment_id = int(resp.headers["Location"].rstrip("/").split("/")[-1])
+    assignment_id = int(resp.headers["Location"].rstrip("/").split("/")[-2])
     student_client.post(
         f"/classrooms/{classroom_id}/assignments/{assignment_id}",
         data={"body": "My answer"},
@@ -208,7 +208,7 @@ def test_assignment_shows_grade_value(app, teacher_client, student_client):
             "due_date": "2030-01-01",
         },
     )
-    assignment_id = int(resp.headers["Location"].rstrip("/").split("/")[-1])
+    assignment_id = int(resp.headers["Location"].rstrip("/").split("/")[-2])
     student_client.post(
         f"/classrooms/{classroom_id}/assignments/{assignment_id}",
         data={"body": "My answer"},
@@ -257,7 +257,7 @@ def test_unsubmitted_sorted_before_submitted(app, teacher_client, student_client
         f"/classrooms/{classroom_id}/assignments/new",
         data={"title": "Submit Me", "instructions": "...", "due_date": "2030-01-01"},
     )
-    assignment_id = int(resp.headers["Location"].rstrip("/").split("/")[-1])
+    assignment_id = int(resp.headers["Location"].rstrip("/").split("/")[-2])
     teacher_client.post(
         f"/classrooms/{classroom_id}/assignments/new",
         data={"title": "Pending One", "instructions": "...", "due_date": "2030-06-01"},

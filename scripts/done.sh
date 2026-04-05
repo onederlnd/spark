@@ -62,6 +62,6 @@ fi
 echo ""
 echo "✅ '$branch' merged into main and pushed."
 echo "   🔍 Watch your deploy at: https://fly.io/apps/social-platform/monitoring"
-echo "   🌐 Live at: https://get-spark.app"
+echo "   🌐 Live at: https://go-spark.app"
 echo ""
 echo "== Start your next feature with: ./scripts/feature.sh"

@@ -65,7 +65,7 @@ def create_choice(block_id, body, is_correct=0):
     db = get_db()
     cursor = db.execute(
         """
-        INSERT INTO blocks_choices (block_id, body, is_correct)
+        INSERT INTO block_choices (block_id, body, is_correct)
         VALUES (?, ?, ?)
         """,
         (block_id, body, is_correct),
@@ -91,11 +91,8 @@ def get_choices_for_blocks(block_ids):
 
 def delete_choices_for_block(block_id):
     db = get_db()
-    db.execute(
-        "DELETE FROM block_choices WHERE block_id = ?",
-        (block_id,),
-    )
-    db.execute()
+    db.execute("DELETE FROM block_choices WHERE block_id = ?", (block_id,))
+    db.commit()
 
 
 def save_block_response(submission_id, block_id, choice_id=None, body=None, score=0):
@@ -125,14 +122,22 @@ def save_block_response(submission_id, block_id, choice_id=None, body=None, scor
             """,
             (submission_id, block_id, choice_id, body, score),
         )
-        db.commit()
+    db.commit()
 
 
 def get_responses_for_submission(submission_id):
     db = get_db()
     return db.execute(
         """
-        SELECT block_responses.*, lesson_blocks.type, lesson_blocks.body as question,
+        SELECT
+            block_responses.id as response_id,
+            block_responses.submission_id,
+            block_responses.block_id,
+            block_responses.choice_id,
+            block_responses.body,
+            block_responses.score,
+            lesson_blocks.type,
+            lesson_blocks.body as question,
             lesson_blocks.points as max_points
         FROM block_responses
         JOIN lesson_blocks ON block_responses.block_id = lesson_blocks.id
@@ -149,19 +154,22 @@ def auto_grade_submission(submission_id):
     total = 0
 
     for r in responses:
-        if r["type"] not in ("multple_choice", "true_false"):
+        if r["type"] not in ("multiple_choice", "true_false"):
             continue
+
         if not r["choice_id"]:
             continue
+
         choice = db.execute(
             "SELECT is_correct FROM block_choices WHERE id = ?", (r["choice_id"],)
         ).fetchone()
+
         if not choice:
             continue
         score = r["max_points"] if choice["is_correct"] else 0
         db.execute(
             "UPDATE block_responses SET score = ? WHERE id = ?",
-            (score, r["id"]),
+            (score, r["response_id"]),
         )
         total += score
 

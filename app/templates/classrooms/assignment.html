@@ -11,182 +11,414 @@
 {% block title %}{{ assignment.title }} — SparK{% endblock %}
 
 {% block content %}
+<style>
+  /* ── Page shell ───────────────────────────────────────── */
+  .asgn-page {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 0 1rem 3rem;
+  }
 
-<div style="margin-bottom: 1rem;">
-  <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}"
-     style="color: var(--muted); font-size: 0.85rem; text-decoration: none;">
+  .asgn-back {
+    display: inline-block;
+    font-size: 0.83rem;
+    color: var(--muted);
+    text-decoration: none;
+    margin-bottom: 1.25rem;
+  }
+  .asgn-back:hover { color: var(--text); }
+
+  /* ── Main card ────────────────────────────────────────── */
+  .asgn-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius, 10px);
+    overflow: hidden;
+  }
+
+  /* ── Card header ──────────────────────────────────────── */
+  .asgn-card-header {
+    padding: 1.5rem 1.75rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .asgn-card-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.35rem;
+  }
+  .asgn-card-header h1 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.2;
+  }
+  .asgn-grade-badge {
+    background: var(--teal);
+    color: #fff;
+    font-size: 0.85rem;
+    font-weight: 800;
+    border-radius: var(--radius-sm, 6px);
+    padding: 4px 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .asgn-meta {
+    font-size: 0.83rem;
+    color: var(--muted);
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+    margin-top: 0.35rem;
+  }
+  .asgn-meta span { display: flex; align-items: center; gap: 0.3rem; }
+
+  /* ── Card body ────────────────────────────────────────── */
+  .asgn-card-body {
+    padding: 1.5rem 1.75rem;
+  }
+
+  /* ── Instructions ─────────────────────────────────────── */
+  .asgn-instructions {
+    font-size: 0.95rem;
+    color: var(--text);
+    margin-bottom: 0;
+    line-height: 1.6;
+  }
+
+  /* ── Section divider ──────────────────────────────────── */
+  .asgn-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 1.75rem;
+  }
+
+  /* ── Question block ───────────────────────────────────── */
+  .asgn-question {
+    padding: 1.5rem 1.75rem 1.25rem;
+  }
+  .asgn-question + .asgn-question {
+    border-top: 1px solid var(--border);
+  }
+  .asgn-question-prompt {
+    font-size: 0.97rem;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 0.9rem;
+    line-height: 1.5;
+  }
+
+  /* ── Choice buttons ───────────────────────────────────── */
+  .asgn-choices {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin-bottom: 0.75rem;
+  }
+  .asgn-choice {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm, 6px);
+    background: transparent;
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .asgn-choice:hover {
+    border-color: var(--teal);
+    background: var(--soft);
+  }
+  .asgn-choice.selected {
+    background: var(--teal);
+    border-color: var(--teal);
+    color: #fff;
+  }
+  /* Radio dot */
+  .asgn-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .asgn-choice.selected .asgn-dot::after {
+    content: '';
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #fff;
+  }
+
+  /* ── Score line ───────────────────────────────────────── */
+  .asgn-score {
+    font-size: 0.82rem;
+    color: var(--teal);
+    font-weight: 700;
+    margin-top: 0.5rem;
+  }
+  .asgn-score.pending {
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  /* ── Short answer ─────────────────────────────────────── */
+  .asgn-short-answer {
+    width: 100%;
+    min-height: 110px;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm, 6px);
+    background: var(--soft);
+    color: var(--text);
+    font-size: 0.9rem;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 0.6rem;
+  }
+  .asgn-short-answer:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+
+  /* ── Teacher feedback footer ──────────────────────────── */
+  .asgn-feedback-footer {
+    border-top: 1px solid var(--border);
+    padding: 1.1rem 1.75rem;
+    background: var(--soft);
+  }
+  .asgn-feedback-footer-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+  }
+  .asgn-feedback-footer-body {
+    font-size: 0.9rem;
+    color: var(--text);
+    line-height: 1.5;
+  }
+
+  /* ── Teacher action bar ───────────────────────────────── */
+  .asgn-teacher-bar {
+    display: flex;
+    gap: 0.5rem;
+    padding: 1rem 1.75rem;
+    border-top: 1px solid var(--border);
+    background: var(--soft);
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+  }
+
+  /* ── Files & resources (below main card) ──────────────── */
+  .asgn-aux-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+  @media (max-width: 600px) { .asgn-aux-grid { grid-template-columns: 1fr; } }
+
+  .asgn-aux-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius, 10px);
+    padding: 1rem 1.25rem;
+  }
+  .asgn-aux-title {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--muted);
+    margin: 0 0 0.65rem;
+  }
+  .asgn-file-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    gap: 0.5rem;
+  }
+  .asgn-file-row + .asgn-file-row {
+    border-top: 1px solid var(--border);
+  }
+  .asgn-file-info {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .asgn-file-actions { display: flex; gap: 0.35rem; flex-shrink: 0; }
+
+  /* ── Submit button area ───────────────────────────────── */
+  .asgn-submit-bar {
+    padding: 1.25rem 1.75rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 1rem;
+  }
+</style>
+
+<div class="asgn-page">
+
+  <!-- Back link -->
+  <a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}" class="asgn-back">
     ← {{ classroom.name }}
   </a>
-</div>
 
-<!-- Assignment header -->
-<div class="card" style="margin-bottom: 1.5rem;">
-  <div class="card-body">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap;">
-      <div>
-        <h1 style="margin: 0 0 0.5rem; font-size: 1.5rem;">{{ assignment.title }}</h1>
+  <!-- ═══════════════════════════════════════
+       MAIN CARD
+  ════════════════════════════════════════ -->
+  <div class="asgn-card">
+
+    <!-- Header -->
+    <div class="asgn-card-header">
+      <div class="asgn-card-header-top">
+        <h1>{{ assignment.title }}</h1>
+        {% if role == 'student' and submission and submission.grade %}
+        <div class="asgn-grade-badge">{{ submission.grade }}</div>
+        {% endif %}
+        {% if role == 'teacher' and submission_count is defined %}
+        <div class="asgn-grade-badge" style="background:var(--soft); color:var(--text); border:1px solid var(--border);">
+          {{ submission_count }} submitted
+        </div>
+        {% endif %}
+      </div>
+      <div class="asgn-meta">
         {% if assignment.due_date %}
-          <div style="font-size: 0.85rem; color: var(--muted);">Due: {{ assignment.due_date }}</div>
+        <span>Due {{ assignment.due_date }}</span>
+        {% endif %}
+        {% if blocks %}
+        <span>{{ blocks | length }} question{{ 's' if blocks | length != 1 }}</span>
         {% endif %}
       </div>
-      {% if role == 'teacher' %}
-        <a href="{{ url_for('classrooms.grade_grid', classroom_id=classroom.id, assignment_id=assignment.id) }}"
-           class="btn btn-primary">
-          Grade Submissions
-          {% if submission_count > 0 %}
-            <span style="background:var(--teal); color:#fff; border-radius:999px; padding:1px 7px; font-size:0.8rem; margin-left:4px;">
-              {{ submission_count }}
-            </span>
-          {% endif %}
-        </a>
-      {% endif %}
     </div>
-    <div class="post-body" style="margin-top: 1.25rem;">
-      {{ assignment.instructions | bbcode }}
-    </div>
-  </div>
-</div>
 
-<!-- Assignment file attachments (teacher-uploaded direct files, visible to all) -->
-{% if assignment_attachments %}
-<div class="card" style="margin-bottom:1.5rem;">
-  <div class="card-body">
-    <h3 style="font-size:0.88rem; font-weight:800; margin-bottom:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">
-      Assignment Files
-    </h3>
-    <div style="display:flex; flex-direction:column; gap:0.5rem;">
-      {% for file in assignment_attachments %}
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span>{{ file_icon(file.mime_type) }}</span>
-          <span style="font-size:0.88rem; color:var(--text);">{{ file.original_filename }}</span>
-          <span style="font-size:0.75rem; color:var(--muted);">({{ (file.file_size / 1024) | round(1) }} KB)</span>
+    <!-- Instructions -->
+    {% if assignment.instructions %}
+    <div class="asgn-card-body">
+      <div class="post-body asgn-instructions">{{ assignment.instructions | bbcode }}</div>
+    </div>
+    {% endif %}
+
+    <!-- ── Lesson blocks ──────────────────────── -->
+    {% if blocks %}
+    {% for block in blocks %}
+
+    {% if block.type == 'text' %}
+    <hr class="asgn-divider">
+    <div style="padding: 1.25rem 1.75rem;">
+      <div class="post-body">{{ block.body | bbcode }}</div>
+    </div>
+
+    {% elif block.type in ('multiple_choice', 'true_false') %}
+    <div class="asgn-question">
+      <p class="asgn-question-prompt">{{ loop.index }}. {{ block.body }}</p>
+      {% set block_choices = choices_map.get(block.id, []) %}
+
+      {# Read-only view (submitted or teacher) #}
+      {% if submission or role == 'teacher' %}
+      {% set student_answer = submission.answers.get(block.id) if submission and submission.answers else none %}
+      <div class="asgn-choices">
+        {% for choice in block_choices %}
+        {% set is_selected = student_answer and student_answer.choice_id == choice.id %}
+        <div class="asgn-choice {% if is_selected %}selected{% endif %}" style="cursor:default;">
+          <div class="asgn-dot"></div>
+          {{ choice.body }}
         </div>
-        <div style="display:flex; gap:0.5rem; align-items:center;">
-          <a href="{{ url_for('classrooms.download_assignment_attachment', classroom_id=classroom.id, assignment_id=assignment.id, attachment_id=file.id) }}"
-             class="btn btn-ghost" style="font-size:0.78rem;">⬇ Download</a>
-          {% if role == 'teacher' %}
-          <form method="POST"
-                action="{{ url_for('classrooms.delete_assignment_attachment_route', classroom_id=classroom.id, assignment_id=assignment.id, attachment_id=file.id) }}"
-                onsubmit="return confirm('Delete this file?')">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-ghost" style="font-size:0.78rem; color:var(--rose);">✕ Delete</button>
-          </form>
-          {% endif %}
-        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-  </div>
-</div>
-{% endif %}
-
-<!-- Resources (from library) — visible to all members -->
-{% if assignment_resources %}
-<div class="card" style="margin-bottom:1.5rem;">
-  <div class="card-body">
-    <h3 style="font-size:0.88rem; font-weight:800; margin-bottom:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">
-      Resources
-    </h3>
-    <div style="display:flex; flex-direction:column; gap:0.4rem;">
-      {% for r in assignment_resources %}
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:0.9rem;">{% if r.type == 'link' %}🔗{% else %}📎{% endif %}</span>
-          <div>
-            <div style="font-size:0.88rem; font-weight:600;">{{ r.title }}</div>
-            {% if r.type == 'link' %}
-              <div style="font-size:0.75rem; color:var(--muted);">{{ r.url }}</div>
-            {% else %}
-              <div style="font-size:0.75rem; color:var(--muted);">{{ r.original_filename }}</div>
-            {% endif %}
-          </div>
-        </div>
-        <div style="display:flex; gap:0.5rem; align-items:center;">
-          {% if r.type == 'link' %}
-            <a href="{{ r.url }}" target="_blank" rel="noopener"
-               class="btn btn-ghost" style="font-size:0.78rem;">Open ↗</a>
+      {% if submission %}
+        {% set ans = submission.answers.get(block.id) if submission.answers else none %}
+        {% if ans %}
+          {% if ans.is_correct %}
+          <div class="asgn-score">Correct · {{ ans.points_earned }}/{{ block.points or 1 }} pt{% if (block.points or 1) != 1 %}s{% endif %}</div>
           {% else %}
-            <a href="{{ url_for('classrooms.download_resources', classroom_id=classroom.id, resource_id=r.id) }}"
-               class="btn btn-ghost" style="font-size:0.78rem;">⬇ Download</a>
+          <div class="asgn-score" style="color:var(--rose);">Incorrect · 0/{{ block.points or 1 }} pt{% if (block.points or 1) != 1 %}s{% endif %}</div>
           {% endif %}
-          {% if role == 'teacher' %}
-          <form method="POST"
-                action="{{ url_for('classrooms.detach_resource_route', classroom_id=classroom.id, assignment_id=assignment.id, resource_id=r.id) }}">
-            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-ghost" style="font-size:0.78rem; color:var(--rose);">✕ Remove</button>
-          </form>
-          {% endif %}
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</div>
-{% endif %}
-
-<!-- Teacher: attach more resources from library -->
-{% if role == 'teacher' %}
-  {% set attached_ids = assignment_resources | map(attribute='id') | list %}
-  {% set available = classroom_resources | rejectattr('id', 'in', attached_ids) | list %}
-  <div class="card" style="margin-bottom:1.5rem;">
-    <div class="card-body">
-      <h3 style="font-size:0.88rem; font-weight:800; margin-bottom:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">
-        Resources
-      </h3>
-    {% if available %}
-<div style="display:flex; flex-direction:column; gap:0.4rem;">
-  {% for r in available %}
-  <form method="POST"
-        action="{{ url_for('classrooms.attach_resource_route', classroom_id=classroom.id, resource_id=r.id) }}"
-        style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--soft); border-radius:var(--radius-sm);">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
-    <span style="font-size:0.85rem;">
-      {% if r.type == 'link' %}🔗{% else %}📎{% endif %} {{ r.title }}
-    </span>
-    <button type="submit" class="btn btn-primary" style="font-size:0.8rem;">Attach</button>
-  </form>
-  {% endfor %}
-</div>
-        </select>
-        <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">Attach</button>
-      </form>
-      {% else %}
-        <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.5rem;">
-          All library resources are already attached.
-        </p>
-      {% endif %}
-      <div style="margin-top:0.6rem; font-size:0.75rem;">
-        <a href="{{ url_for('classrooms.resource_library', classroom_id=classroom.id) }}"
-           style="color:var(--teal);">Manage resource library →</a>
-      </div>
-    </div>
-  </div>
-{% endif %}
-
-<!-- Student submission section -->
-{% if role == 'student' %}
-<div class="card" style="margin-bottom:1.5rem;">
-  <div class="card-body">
-    {% if submission %}
-      <h2 style="margin:0 0 1rem; font-size:1.1rem;">Your Submission</h2>
-
-      {% if submission.grade %}
-      <div style="background: var(--soft); border-radius: 8px; padding:1rem; margin-bottom:1rem;">
-        <div style="font-size:0.8rem; color: var(--muted); margin-bottom:4px;">Grade</div>
-        <div style="font-size:1.25rem; font-weight:800; color: var(--teal);">{{ submission.grade }}</div>
-        {% if submission.feedback %}
-        <div style="margin-top:0.5rem; font-size:0.9rem; color: var(--text);">{{ submission.feedback }}</div>
         {% endif %}
-      </div>
       {% endif %}
 
-      <div class="post-body" style="margin-bottom:1rem;">{{ submission.body | bbcode }}</div>
-      <div style="font-size:0.8rem; color: var(--muted); margin-bottom:1rem;">
+      {# Interactive (student, not yet submitted) #}
+      {% else %}
+      <div class="asgn-choices" id="choices-{{ block.id }}">
+        {% for choice in block_choices %}
+        <button type="button"
+          class="asgn-choice"
+          onclick="selectChoice(this, '{{ block.id }}', '{{ choice.id }}')"
+          data-choice="{{ choice.id }}">
+          <div class="asgn-dot"></div>
+          {{ choice.body }}
+        </button>
+        <input type="hidden" name="block_{{ block.id }}" id="val-{{ block.id }}" form="lesson-form" value="">
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    {% elif block.type == 'short_answer' %}
+    <div class="asgn-question">
+      <p class="asgn-question-prompt">{{ loop.index }}. {{ block.body }}</p>
+
+      {% if submission and submission.answers %}
+        {% set ans = submission.answers.get(block.id) %}
+        {% if ans %}
+        <textarea class="asgn-short-answer" readonly>{{ ans.body }}</textarea>
+        {% if ans.points_earned is not none %}
+        <div class="asgn-score">{{ ans.points_earned }}/{{ block.points or 1 }} pt{% if (block.points or 1) != 1 %}s{% endif %}</div>
+        {% else %}
+        <div class="asgn-score pending">Pending teacher review · {{ block.points or 1 }} pt{% if (block.points or 1) != 1 %}s{% endif %}</div>
+        {% endif %}
+        {% endif %}
+      {% else %}
+      <textarea name="block_{{ block.id }}" form="lesson-form"
+        class="asgn-short-answer" maxlength="5000"
+        placeholder="Your answer..."></textarea>
+      {% endif %}
+    </div>
+
+    {% elif block.type == 'file_upload' %}
+    <div class="asgn-question">
+      <p class="asgn-question-prompt">{{ loop.index }}. {{ block.body }}</p>
+      {% if not submission %}
+      <input type="file" name="block_file_{{ block.id }}" form="lesson-form"
+        style="font-size:0.85rem; color:var(--text);" />
+      {% else %}
+      <p style="font-size:0.85rem; color:var(--muted);">File submitted.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% endfor %}
+    {% endif %}
+
+    <!-- ── Open submission (non-block) ─────────── -->
+    {% if role == 'student' and not blocks %}
+    {% if submission %}
+    <div class="asgn-question">
+      <div class="post-body" style="margin-bottom:0.75rem;">{{ submission.body | bbcode }}</div>
+      <div style="font-size:0.78rem; color:var(--muted); margin-bottom:1rem;">
         Submitted {{ submission.submitted_at | time_ago }}
       </div>
-
       <details>
         <summary style="cursor:pointer; color:var(--muted); font-size:0.85rem;">Edit submission</summary>
         <form method="POST" class="post-form" style="margin-top:1rem; border:none; padding:0;">
@@ -211,15 +443,11 @@
           </div>
         </form>
       </details>
-
+    </div>
     {% else %}
-      <h2 style="margin:0 0 1rem; font-size:1.1rem;">Submit Your Work</h2>
-
-      {% if error %}
-      <div class="flash flash-error">{{ error }}</div>
-      {% endif %}
-
-      <form method="POST" class="post-form" enctype="multipart/form-data">
+    <div class="asgn-question">
+      {% if error %}<div class="flash flash-error">{{ error }}</div>{% endif %}
+      <form method="POST" class="post-form" enctype="multipart/form-data" id="open-submit-form">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="editor-tabs">
           <button type="button" class="editor-tab active" onclick="switchTab(this,'write-pane')">Write</button>
@@ -236,49 +464,88 @@
           <div class="preview-pane" id="preview-output"></div>
         </div>
         <div style="margin-top:0.75rem;">
-          <label style="font-size:0.85rem; color:var(--muted); display:block; margin-bottom:0.4rem;">
-            Attach files (optional)
-          </label>
+          <label style="font-size:0.83rem; color:var(--muted); display:block; margin-bottom:0.35rem;">Attach files (optional)</label>
           <input type="file" name="files" multiple
-                 accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
-                 style="font-size:0.85rem; color:var(--text);">
-          <div style="font-size:0.75rem; color:var(--muted); margin-top:4px;">
-            Max 10MB per file, 20MB total.
-          </div>
-        </div>
-        <div style="margin-top:0.75rem; text-align:right;">
-          <button type="submit" class="btn btn-primary">Submit</button>
+            accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+            style="font-size:0.85rem; color:var(--text);">
+          <div style="font-size:0.72rem; color:var(--muted); margin-top:3px;">Max 10MB per file, 20MB total.</div>
         </div>
       </form>
+    </div>
     {% endif %}
-  </div>
-</div>
+    {% endif %}
 
-<!-- Student file attachments -->
-{% if submission %}
-<div class="card" style="margin-bottom:1.5rem;">
-  <div class="card-body">
-    <h3 style="font-size:0.88rem; font-weight:800; margin-bottom:0.75rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em;">
-      Your Attached Files
-    </h3>
-    {% if submission_attachments %}
-    <div style="display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1rem;">
-      {% for file in submission_attachments %}
-      <div style="display:flex; justify-content:space-between; align-items:center; padding:8px 12px; background:var(--soft); border-radius:var(--radius-sm);">
-        <div style="display:flex; align-items:center; gap:8px;">
+    <!-- ── Submit bar (lesson form) ────────────── -->
+    {% if role == 'student' and not submission %}
+    <div class="asgn-submit-bar">
+      {% if blocks %}
+      <form id="lesson-form" method="POST"
+        action="{{ url_for('classrooms.submit_lesson', classroom_id=classroom.id, assignment_id=assignment.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <button type="submit" class="btn btn-primary">Submit Lesson</button>
+      </form>
+      {% else %}
+      <button type="submit" form="open-submit-form" class="btn btn-primary">Submit</button>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ── Teacher feedback footer ─────────────── -->
+    {% if submission and submission.feedback %}
+    <div class="asgn-feedback-footer">
+      <div class="asgn-feedback-footer-label">Teacher feedback</div>
+      <div class="asgn-feedback-footer-body">{{ submission.feedback }}</div>
+    </div>
+    {% endif %}
+
+    <!-- ── Teacher action bar ──────────────────── -->
+    {% if role == 'teacher' %}
+    <div class="asgn-teacher-bar">
+      <a href="{{ url_for('classrooms.lesson_builder', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+        class="btn btn-ghost" style="font-size:0.85rem;">✏️ Edit Lesson</a>
+      <a href="{{ url_for('classrooms.grade_grid', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+        class="btn btn-primary" style="font-size:0.85rem;">
+        📊 Grade Submissions
+        {% if submission_count > 0 %}
+        <span style="background:rgba(255,255,255,0.25); border-radius:999px; padding:1px 8px; font-size:0.76rem; margin-left:4px;">
+          {{ submission_count }}
+        </span>
+        {% endif %}
+      </a>
+    </div>
+    {% endif %}
+
+  </div>{# end .asgn-card #}
+
+  <!-- ═══════════════════════════════════════
+       FILES & RESOURCES (below main card)
+  ════════════════════════════════════════ -->
+  {% set show_files = assignment_attachments or (role == 'teacher' and true) %}
+  {% set show_resources = assignment_resources or (role == 'teacher') %}
+
+  {% if show_files or show_resources %}
+  <div class="asgn-aux-grid">
+
+    <!-- Assignment files -->
+    {% if assignment_attachments %}
+    <div class="asgn-aux-card">
+      <p class="asgn-aux-title">Assignment Files</p>
+      {% for file in assignment_attachments %}
+      <div class="asgn-file-row">
+        <div class="asgn-file-info">
           <span>{{ file_icon(file.mime_type) }}</span>
-          <span style="font-size:0.88rem; color:var(--text);">{{ file.original_filename }}</span>
-          <span style="font-size:0.75rem; color:var(--muted);">({{ (file.file_size / 1024) | round(1) }} KB)</span>
+          <span>{{ file.original_filename }}</span>
+          <span style="color:var(--muted); font-size:0.72rem;">({{ (file.file_size / 1024) | round(1) }} KB)</span>
         </div>
-        <div style="display:flex; gap:0.5rem; align-items:center;">
-          <a href="{{ url_for('classrooms.download_submission_attachment', classroom_id=classroom.id, assignment_id=assignment.id, attachment_id=file.id) }}"
-             class="btn btn-ghost" style="font-size:0.78rem;">⬇ Download</a>
-            {% if role == 'teacher' %}
-             <form method="POST"
-                action="{{ url_for('classrooms.delete_submission_attachment_route', classroom_id=classroom.id, assignment_id=assignment.id, attachment_id=file.id) }}"
-                onsubmit="return confirm('Delete this file?')">
+        <div class="asgn-file-actions">
+          <a href="{{ url_for('classrooms.download_assignment_attachment', classroom_id=classroom.id, assignment_id=assignment.id, attachment_id=file.id) }}"
+            class="btn btn-ghost" style="font-size:0.76rem;">⬇</a>
+          {% if role == 'teacher' %}
+          <form method="POST"
+            action="{{ url_for('classrooms.delete_assignment_attachment_route', classroom_id=classroom.id, assignment_id=assignment.id, attachment_id=file.id) }}"
+            onsubmit="return confirm('Delete this file?')">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="btn btn-ghost" style="font-size:0.78rem; color:var(--rose);">✕ Delete</button>
+            <button class="btn btn-ghost" style="font-size:0.76rem; color:var(--rose);">✕</button>
           </form>
           {% endif %}
         </div>
@@ -286,51 +553,151 @@
       {% endfor %}
     </div>
     {% endif %}
+
+    <!-- Resources -->
+    {% if assignment_resources %}
+    <div class="asgn-aux-card">
+      <p class="asgn-aux-title">Resources</p>
+      {% for r in assignment_resources %}
+      <div class="asgn-file-row">
+        <div class="asgn-file-info">
+          <span>{% if r.type == 'link' %}🔗{% else %}📎{% endif %}</span>
+          <span style="font-weight:600;">{{ r.title }}</span>
+        </div>
+        <div class="asgn-file-actions">
+          {% if r.type == 'link' %}
+          <a href="{{ r.url }}" target="_blank" rel="noopener" class="btn btn-ghost" style="font-size:0.76rem;">↗</a>
+          {% else %}
+          <a href="{{ url_for('classrooms.download_resources', classroom_id=classroom.id, resource_id=r.id) }}"
+            class="btn btn-ghost" style="font-size:0.76rem;">⬇</a>
+          {% endif %}
+          {% if role == 'teacher' %}
+          <form method="POST"
+            action="{{ url_for('classrooms.detach_resource_route', classroom_id=classroom.id, assignment_id=assignment.id, resource_id=r.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-ghost" style="font-size:0.76rem; color:var(--rose);">✕</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Teacher: attach more resources -->
+    {% if role == 'teacher' %}
+    {% set attached_ids = assignment_resources | map(attribute='id') | list %}
+    {% set available = classroom_resources | rejectattr('id', 'in', attached_ids) | list %}
+    {% if available %}
+    <div class="asgn-aux-card" style="grid-column: 1 / -1;">
+      <p class="asgn-aux-title">Add Resources from Library</p>
+      <div style="display:flex; flex-direction:column; gap:0.35rem;">
+        {% for r in available %}
+        <form method="POST"
+          action="{{ url_for('classrooms.attach_resource_route', classroom_id=classroom.id, resource_id=r.id) }}"
+          style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:var(--soft); border-radius:var(--radius-sm);">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="assignment_id" value="{{ assignment.id }}">
+          <span style="font-size:0.85rem;">{% if r.type == 'link' %}🔗{% else %}📎{% endif %} {{ r.title }}</span>
+          <button type="submit" class="btn btn-primary" style="font-size:0.78rem;">+ Attach</button>
+        </form>
+        {% endfor %}
+      </div>
+      <div style="margin-top:0.65rem; font-size:0.76rem;">
+        <a href="{{ url_for('classrooms.resource_library', classroom_id=classroom.id) }}" style="color:var(--teal);">
+          Manage resource library →
+        </a>
+      </div>
+    </div>
+    {% endif %}
+    {% endif %}
+
+  </div>
+  {% endif %}
+
+  <!-- Student: attached files post-submission -->
+  {% if role == 'student' and submission %}
+  <div class="asgn-aux-card" style="margin-top:1rem;">
+    <p class="asgn-aux-title">Your Attached Files</p>
+    {% if submission_attachments %}
+    {% for file in submission_attachments %}
+    <div class="asgn-file-row">
+      <div class="asgn-file-info">
+        <span>{{ file_icon(file.mime_type) }}</span>
+        <span>{{ file.original_filename }}</span>
+        <span style="color:var(--muted); font-size:0.72rem;">({{ (file.file_size / 1024) | round(1) }} KB)</span>
+      </div>
+      <a href="{{ url_for('classrooms.download_submission_attachment', classroom_id=classroom.id, assignment_id=assignment.id, attachment_id=file.id) }}"
+        class="btn btn-ghost" style="font-size:0.76rem;">⬇</a>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p style="font-size:0.85rem; color:var(--muted); margin:0 0 0.6rem;">No files attached yet.</p>
+    {% endif %}
     <form method="POST"
-          action="{{ url_for('classrooms.upload_submission_attachment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
-          enctype="multipart/form-data"
-          style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap;">
+      action="{{ url_for('classrooms.upload_submission_attachment', classroom_id=classroom.id, assignment_id=assignment.id) }}"
+      enctype="multipart/form-data"
+      style="display:flex; gap:0.6rem; align-items:center; flex-wrap:wrap; margin-top:0.6rem;">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       <input type="file" name="file"
-             accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
-             style="font-size:0.85rem; color:var(--text);" required>
-      <button type="submit" class="btn btn-primary" style="font-size:0.85rem;">Attach File</button>
+        accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+        style="font-size:0.83rem; color:var(--text);" required>
+      <button type="submit" class="btn btn-primary" style="font-size:0.83rem;">Attach File</button>
     </form>
-    <div style="font-size:0.75rem; color:var(--muted); margin-top:6px;">
-      Max 10MB per file, 20MB total.
-    </div>
+    <div style="font-size:0.72rem; color:var(--muted); margin-top:4px;">Max 10MB per file, 20MB total.</div>
   </div>
-</div>
-{% endif %}
+  {% endif %}
 
-{% endif %}
+</div>{# end .asgn-page #}
 
 <script>
-function updateCounter(input,counterId,max){
-  const counter=document.getElementById(counterId);if(!counter)return;
-  const len=input.value.length;counter.textContent=len+' / '+max;
-  counter.className='char-counter';
-  if(len/max>=0.95)counter.classList.add('danger');else if(len/max>=0.8)counter.classList.add('warn');
-}
-const bodyEl=document.getElementById('body');
-if(bodyEl) updateCounter(bodyEl,'body-counter',10000);
+  /* Choice selection */
+  function selectChoice(btn, blockId, choiceId) {
+    const group = btn.closest('.asgn-choices');
+    group.querySelectorAll('.asgn-choice').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    // update hidden input for this block
+    const hidden = document.getElementById('val-' + blockId);
+    if (hidden) hidden.value = choiceId;
+  }
 
-let previewTimer=null;
-function schedulePreview(){clearTimeout(previewTimer);previewTimer=setTimeout(()=>{const pane=document.getElementById('preview-pane');if(pane&&pane.classList.contains('active'))renderPreview();},300);}
-function renderPreview(){
-  const body=document.getElementById('body').value;
-  const output=document.getElementById('preview-output');
-  if(!body.trim()){output.innerHTML='';return;}
-  fetch('/api/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({body})})
-    .then(r=>r.json()).then(data=>{output.innerHTML=data.html||''}).catch(()=>{output.textContent=body;});
-}
-function switchTab(btn,paneId){
-  document.querySelectorAll('.editor-tab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.editor-pane').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(paneId).classList.add('active');
-  if(paneId==='preview-pane') renderPreview();
-}
+  /* Char counter */
+  function updateCounter(input, counterId, max) {
+    const counter = document.getElementById(counterId); if (!counter) return;
+    const len = input.value.length; counter.textContent = len + ' / ' + max;
+    counter.className = 'char-counter';
+    if (len / max >= 0.95) counter.classList.add('danger');
+    else if (len / max >= 0.8) counter.classList.add('warn');
+  }
+  const bodyEl = document.getElementById('body');
+  if (bodyEl) updateCounter(bodyEl, 'body-counter', 10000);
+
+  /* Preview */
+  let previewTimer = null;
+  function schedulePreview() {
+    clearTimeout(previewTimer);
+    previewTimer = setTimeout(() => {
+      const pane = document.getElementById('preview-pane');
+      if (pane && pane.classList.contains('active')) renderPreview();
+    }, 300);
+  }
+  function renderPreview() {
+    const body = document.getElementById('body'); if (!body) return;
+    const output = document.getElementById('preview-output');
+    if (!body.value.trim()) { output.innerHTML = ''; return; }
+    fetch('/api/preview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: body.value })
+    }).then(r => r.json()).then(data => { output.innerHTML = data.html || '' })
+      .catch(() => { output.textContent = body.value; });
+  }
+  function switchTab(btn, paneId) {
+    document.querySelectorAll('.editor-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.editor-pane').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(paneId).classList.add('active');
+    if (paneId === 'preview-pane') renderPreview();
+  }
 </script>
-
-{% endblock %}
+{% endblock %}s

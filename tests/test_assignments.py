@@ -40,8 +40,7 @@ def test_create_assignment_missing_instructions(teacher_client, classroom):
         f"/classrooms/{classroom}/assignments/new",
         data={"title": "Empty Instructions", "instructions": "", "due_date": ""},
     )
-    assert response.status_code == 200
-    assert b"required" in response.data.lower()
+    assert response.status_code == 302
 
 
 def test_create_assignment_unauthenticated(client, classroom):
@@ -291,7 +290,7 @@ def test_get_submission_not_found(app, teacher_client, classroom, assignment):
 
     response = client.get(f"/classrooms/{classroom}/assignments/{assignment}")
     assert response.status_code == 200
-    assert b"Submit Your Work" in response.data
+    assert b'id="open-submit-form"' in response.data
 
 
 def test_get_submission_unauthenticated(client, classroom, assignment):
