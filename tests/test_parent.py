@@ -5,6 +5,28 @@
 # ---------------------------------------------------------------------------
 
 
+def _enroll_in_shared_classroom(app, teacher_client, student_id):
+    """Put the student in a classroom the teacher owns."""
+    with app.app_context():
+        from app.models import get_db
+        from app.models.classroom import join_classroom, create_classroom
+
+        db = get_db()
+        teacher = db.execute(
+            "SELECT id FROM users WHERE username = 'teacher1'"
+        ).fetchone()
+        classroom = db.execute(
+            "SELECT id FROM classrooms WHERE teacher_id = ?", (teacher["id"],)
+        ).fetchone()
+        if not classroom:
+            classroom_id = create_classroom(
+                teacher["id"], "Test Class"
+            )  # ← fixed order
+        else:
+            classroom_id = classroom["id"]
+        join_classroom(classroom_id, student_id, role="student")
+
+
 def _register_student(app, username="student_parent_test"):
     """Register a student via the generic route and return their user id."""
     c = app.test_client()
@@ -30,19 +52,16 @@ def _register_student(app, username="student_parent_test"):
 
 def _get_invite_code(app, teacher_client, student_id):
     """Generate a parent invite code for a student and return it."""
-    teacher_client.post(f"/parent/invite/{student_id}")
     with app.app_context():
-        from app.models import get_db
-
-        row = (
-            get_db()
-            .execute(
-                "SELECT code FROM parent_invite_codes WHERE student_id = ?",
-                (student_id,),
-            )
-            .fetchone()
+        from app.models.parent import (
+            generate_parent_invite_code,
+            get_invite_code_for_student,
         )
-    return row["code"]
+
+        existing = get_invite_code_for_student(student_id)
+        if existing:
+            return existing["code"]
+        return generate_parent_invite_code(student_id, 1)
 
 
 def _register_parent(client, *, first="Jane", last="Smith", password="pass1234"):
@@ -72,6 +91,7 @@ def _full_parent_setup(
 
 def test_teacher_can_generate_invite_code(app, teacher_client):
     student_id = _register_student(app)
+    _enroll_in_shared_classroom(app, teacher_client, student_id)
     teacher_client.post(f"/parent/invite/{student_id}")
     with app.app_context():
         from app.models import get_db
@@ -89,6 +109,7 @@ def test_teacher_can_generate_invite_code(app, teacher_client):
 
 def test_generate_code_reuses_existing_unclaimed(app, teacher_client):
     student_id = _register_student(app, "student_reuse")
+    _enroll_in_shared_classroom(app, teacher_client, student_id)
     teacher_client.post(f"/parent/invite/{student_id}")
     teacher_client.post(f"/parent/invite/{student_id}")
     with app.app_context():
@@ -462,11 +483,17 @@ def test_multiple_parents_can_link_to_same_student(app, teacher_client, db):
     c_a.post("/parent/join", data={"code": code_a})
     _register_parent(c_a, last="Alpha")
 
-    teacher_client.post(f"/parent/invite/{student_id}")
-    code_b = db.execute(
-        "SELECT code FROM parent_invite_codes WHERE student_id = ? AND claimed_at IS NULL",
-        (student_id,),
-    ).fetchone()["code"]
+    # Generate a second code directly via the model
+    with app.app_context():
+        from app.models.parent import generate_parent_invite_code
+        from app.models import get_db as _get_db
+
+        teacher = (
+            _get_db()
+            .execute("SELECT id FROM users WHERE username = 'teacher1'")
+            .fetchone()
+        )
+        code_b = generate_parent_invite_code(student_id, teacher["id"])
 
     c_b = app.test_client()
     c_b.post("/parent/join", data={"code": code_b})

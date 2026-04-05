@@ -13,7 +13,6 @@ def _generate_join_code():
     return "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
 
 
-# --- classroom
 def create_classroom(teacher_id, name, description=""):
     db = get_db()
     join_code = _generate_join_code()

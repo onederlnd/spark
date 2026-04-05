@@ -35,7 +35,7 @@ def register():
         password = request.form["password"]
         bio = sanitize_plain(request.form.get("bio", ""), max_length=300)
         dob = request.form.get("dob")
-        email = request.form.get("email", "").strip() or None  # ← add this
+        email = request.form.get("email", "").strip() or None
 
         if not dob:
             flash("Date of Birth is required.")
@@ -50,19 +50,35 @@ def register():
 
         success, error = create_user(
             username, password, bio, role=role, dob=dob, email=email
-        )  # ← add email
-        if success:
+        )
+
+        if success:  # ← indented inside POST block
             db = get_db()
-            teachers = db.execute(
-                "SELECT id FROM users WHERE role='teacher'"
-            ).fetchall()
-            for teacher in teachers:
-                create_notification(
-                    user_id=teacher["id"],
-                    message=f"{username} has pending COPPA approval",
-                    type="coppa",
-                    link="/auth/coppa/pending",
+
+            from datetime import date
+
+            try:
+                dob_date = datetime.strptime(dob, "%Y-%m-%d").date()
+                today = date.today()
+                age = (
+                    today.year
+                    - dob_date.year
+                    - ((today.month, today.day) < (dob_date.month, dob_date.day))
                 )
+            except ValueError:
+                age = 99
+
+            if role == "student" and age < 13:
+                teachers = db.execute(
+                    "SELECT id FROM users WHERE role='teacher'"
+                ).fetchall()
+                for teacher in teachers:
+                    create_notification(
+                        user_id=teacher["id"],
+                        message=f"{username} has pending COPPA approval",
+                        type="coppa",
+                        link="/auth/coppa/pending",
+                    )
 
             invite_token = request.args.get("invite") or request.form.get("invite")
             if invite_token and email:
@@ -80,13 +96,13 @@ def register():
                     if user:
                         accept_classroom_invite(invite_token, user["id"])
 
-            # Send welcome email if provided
             if email:
                 send_welcome_email(email, username)
 
             flash("Account created! Please log in.", "success")
             return redirect(url_for("auth.login"))
-        if error:
+
+        elif error:  # ← was unreachable before
             flash(error, "error")
 
     return render_template("auth/register.html")

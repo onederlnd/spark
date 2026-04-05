@@ -214,12 +214,12 @@ def auth_client(app):
         "/auth/register",
         data={
             "username": "testuser",
-            "password": "pass123",
+            "password": "password123",
             "bio": "test bio",
             "dob": "2000-01-01",
         },
     )
-    client.post("/auth/login", data={"username": "testuser", "password": "pass123"})
+    client.post("/auth/login", data={"username": "testuser", "password": "password123"})
     return client
 
 
@@ -230,13 +230,13 @@ def teacher_client(app):
         "/auth/register",
         data={
             "username": "teacher1",
-            "password": "pass123",
+            "password": "password123",
             "bio": "test teacher",
             "role": "teacher",
             "dob": "2000-01-01",
         },
     )
-    client.post("/auth/login", data={"username": "teacher1", "password": "pass123"})
+    client.post("/auth/login", data={"username": "teacher1", "password": "password123"})
     return client
 
 
@@ -247,12 +247,12 @@ def student_client(app, teacher_client):
         "/auth/register",
         data={
             "username": "student1",
-            "password": "pass123",
+            "password": "password123",
             "bio": "",
             "dob": "2000-01-01",
         },
     )
-    client.post("/auth/login", data={"username": "student1", "password": "pass123"})
+    client.post("/auth/login", data={"username": "student1", "password": "password123"})
     return client
 
 

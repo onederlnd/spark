@@ -71,7 +71,7 @@ def test_submit_bug_report_invalid_severity_defaults_to_low(teacher_client, app)
     assert row["severity"] == "low"
 
 
-def test_submit_bug_report_blocked_for_student(student_client, app):
+def test_submit_bug_report_as_student(student_client, app):
     student_client.post(
         "/bug-reports/submit",
         data={
@@ -89,7 +89,7 @@ def test_submit_bug_report_blocked_for_student(student_client, app):
             .execute("SELECT * FROM bug_reports WHERE title = 'Student bug'")
             .fetchone()
         )
-    assert row is None
+    assert row is not None
 
 
 def test_submit_bug_report_blocked_for_anonymous(client, app):

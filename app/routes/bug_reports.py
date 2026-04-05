@@ -1,5 +1,5 @@
 from flask import Blueprint, request, session, redirect, url_for, render_template, flash
-from app.utils.auth import login_required, teacher_required
+from app.utils.auth import login_required
 from app.utils.sanitize import sanitize_plain
 from app.models.bug_reports import (
     create_bug_report,
@@ -12,8 +12,11 @@ bug_reports_bp = Blueprint("bug_reports", __name__, url_prefix="/bug-reports")
 
 @bug_reports_bp.route("/submit", methods=["GET", "POST"])
 @login_required
-@teacher_required
 def submit():
+    if session.get("role") == "parent":
+        flash("Parents cannot submit bug reports.", "error")
+        return redirect(url_for("parent.dashboard"))
+
     if request.method == "POST":
         title = sanitize_plain(request.form.get("title", ""), max_length=200)
         description = sanitize_plain(
@@ -36,7 +39,6 @@ def submit():
 
 @bug_reports_bp.route("/my-reports")
 @login_required
-@teacher_required
 def my_reports():
     reports = get_bug_reports_by_user(session["user_id"])
     return render_template("bug_reports/my_reports.html", reports=reports)

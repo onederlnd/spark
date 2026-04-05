@@ -179,17 +179,17 @@ def test_block_user(auth_client):
             "dob": "2000-01-01",
         },
     )
-    response = auth_client.post("/blockme/block")
+    response = auth_client.post("/profile/blockme/block")
     assert response.status_code == 302
 
 
 def test_block_nonexistent_user(auth_client):
-    response = auth_client.post("/ghostuser/block")
+    response = auth_client.post("/profile/ghostuser/block")
     assert response.status_code == 404
 
 
 def test_cannot_block_self(auth_client):
-    response = auth_client.post("/testuser/block")
+    response = auth_client.post("/profile/testuser/block")
     assert response.status_code == 400
 
 
@@ -203,23 +203,23 @@ def test_unblock_user(auth_client):
             "dob": "2000-01-01",
         },
     )
-    auth_client.post("/unblockme/block")
-    response = auth_client.post("/unblockme/unblock")
+    auth_client.post("/profile/unblockme/block")
+    response = auth_client.post("/profile/unblockme/unblock")
     assert response.status_code == 302
 
 
 def test_unblock_nonexistent_user(auth_client):
-    response = auth_client.post("/ghostuser/unblock")
+    response = auth_client.post("/profile/ghostuser/unblock")
     assert response.status_code == 404
 
 
 def test_block_requires_login(client):
-    response = client.post("/someuser/block", follow_redirects=False)
+    response = client.post("/profile/someuser/block", follow_redirects=False)
     assert response.status_code == 302
 
 
 def test_unblock_requires_login(client):
-    response = client.post("/someuser/unblock", follow_redirects=False)
+    response = client.post("/profile/someuser/unblock", follow_redirects=False)
     assert response.status_code == 302
 
 
@@ -234,7 +234,7 @@ def test_blocked_user_profile_still_viewable(auth_client):
             "dob": "2000-01-01",
         },
     )
-    auth_client.post("/blockeduser/block")
+    auth_client.post("/profile/blockeduser/block")
     response = auth_client.get("/profile/blockeduser")
     assert response.status_code == 200
 

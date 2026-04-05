@@ -33,6 +33,26 @@ def _require_teacher():
     return None
 
 
+def _enroll_in_shared_classroom(app, teacher_client, student_id):
+    """Put the student in a classroom the teacher owns."""
+    with app.app_context():
+        from app.models import get_db
+        from app.models.classroom import join_classroom, create_classroom
+
+        db = get_db()
+        teacher = db.execute(
+            "SELECT id FROM users WHERE username = 'teacher1'"
+        ).fetchone()
+        classroom = db.execute(
+            "SELECT id FROM classrooms WHERE teacher_id = ?", (teacher["id"],)
+        ).fetchone()
+        if not classroom:
+            classroom_id = create_classroom("Test Class", teacher["id"])
+        else:
+            classroom_id = classroom["id"]
+        join_classroom(classroom_id, student_id, role="student")
+
+
 @parent_bp.route("/join", methods=["GET", "POST"])
 def join():
     """Parent enters invite code"""
@@ -168,6 +188,18 @@ def generate_code(student_id):
     if not student:
         flash("Student not found", "error")
         return redirect(request.referrer or url_for("classrooms.join"))
+
+    shared_classroom = db.execute(
+        """
+        SELECT 1 FROM classroom_members cm1
+        JOIN classroom_members cm2 ON cm1.classroom_id = cm2.classroom_id
+        WHERE cm1.user_id = ? AND cm2.user_id = ?
+        """,
+        (session["user_id"], student_id),
+    ).fetchone()
+
+    if not shared_classroom:
+        return "Forbidden", 403
 
     existing = get_invite_code_for_student(student_id)
     if existing:

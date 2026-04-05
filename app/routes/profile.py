@@ -29,7 +29,7 @@ def view_profile(username):
     if not user:
         return "User not found", 404
 
-    posts = get_posts_by_user(user["id"])
+    posts = get_posts_by_user(user["id"], viewer_id=session["user_id"])
     bookmarks = get_bookmarks(user["id"]) if session["user_id"] == user["id"] else []
     following = is_following(session["user_id"], user["id"])
     followers_count = get_followers_count(user["id"])
@@ -78,7 +78,7 @@ def follow(username):
     return redirect(url_for("profile.view_profile", username=username))
 
 
-@profile_bp.route("/<username>/block", methods=["POST"])
+@profile_bp.route("/profile/<username>/block", methods=["POST"])
 @login_required
 def block(username):
     target = get_user_by_username(username)
@@ -92,7 +92,7 @@ def block(username):
     return redirect(request.referrer or url_for("feed.index"))
 
 
-@profile_bp.route("/<username>/unblock", methods=["POST"])
+@profile_bp.route("/profile/<username>/unblock", methods=["POST"])
 @login_required
 def unblock(username):
     target = get_user_by_username(username)

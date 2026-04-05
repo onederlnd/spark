@@ -31,10 +31,14 @@ def index():
 
     if feed_type == "following":
         posts, has_next = get_following_feed(
-            session["user_id"], page=page, blocked_ids=blocked
+            user_id=session["user_id"], page=page, blocked_ids=blocked
         )
     else:
-        posts, has_next = get_feed(page=page, blocked_ids=blocked)
+        posts, has_next = get_feed(
+            user_id=session["user_id"],
+            page=page,
+            blocked_ids=blocked,
+        )
     return render_template(
         "feed.html",
         posts=posts,
@@ -54,7 +58,12 @@ def topic(topic_name):
 
     page = request.args.get("page", 1, type=int)
     blocked = get_blocked_ids(session["user_id"])
-    posts, has_next = get_feed(page=page, topic_id=t["id"], blocked_ids=blocked)
+    posts, has_next = get_feed(
+        page=page,
+        topic_id=t["id"],
+        blocked_ids=blocked,
+        user_id=session["user_id"],
+    )
     topics = get_all_topics()
     return render_template(
         "feed.html",
@@ -75,7 +84,9 @@ def following_feed():
     topics = get_all_topics()
     blocked = get_blocked_ids(session["user_id"])
     posts, has_next = get_following_feed(
-        session["user_id"], page=page, blocked_ids=blocked
+        page=page,
+        blocked_ids=blocked,
+        user_id=session["user_id"],
     )
     return render_template(
         "feed.html",

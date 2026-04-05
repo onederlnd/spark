@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, session
 from app.models.post import search_posts
 from app.models.topic import search_topics
 from app.models.user import coppa_required
@@ -23,7 +23,7 @@ def search():
         if search_type == "topics":
             topics = search_topics(query)
         else:
-            posts, has_next = search_posts(query, page=page)
+            posts, has_next = search_posts(query, page=page, user_id=session["user_id"])
 
     return render_template(
         "search.html",

@@ -34,20 +34,25 @@ def api_login_required(f):
 
 
 @api_bp.route("/posts")
+@api_login_required
 def get_posts():
-    """Retrieve posts with optional pagination and topic filter"""
     page = request.args.get("page", 1, type=int)
-    rows = get_feed(page=page)
+    rows, has_next = get_feed(page=page, user_id=session.get("user_id"))
     return jsonify([dict(row) for row in rows])
 
 
-# --- GET /api/posts/<id>
 @api_bp.route("/posts/<int:post_id>")
+@api_login_required
 def get_single_post(post_id):
-    """Retrieve a single post by ID, including its replies"""
     post = get_post(post_id)
     if not post:
         return jsonify({"error": "not found"}), 404
+    if post["classroom_id"]:
+        from app.models.classroom import get_member_role
+
+        role = get_member_role(post["classroom_id"], session["user_id"])
+        if not role:
+            return jsonify({"error": "Forbidden"}), 403
     replies = get_replies(post_id)
     return jsonify({"post": dict(post), "replies": [dict(r) for r in replies]})
 
@@ -84,13 +89,14 @@ def get_topics():
 
 # --- GET /api/profile/<username>
 @api_bp.route("/profile/<username>")
+@api_login_required
 def get_profile(username):
     """Retrieve user profile and their posts"""
     user = get_user_by_username(username)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    posts = get_posts_by_user(user["id"])
+    posts = get_posts_by_user(user["id"], viewer_id=session["user_id"])
     return jsonify(
         {
             "username": user["username"],
@@ -126,6 +132,7 @@ def search_users():
         SELECT username FROM users
         WHERE username LIKE ?
         AND coppa_status = 'approved'
+        AND provisional = 0
         LIMIT 8
         """,
         (f"{q}%",),

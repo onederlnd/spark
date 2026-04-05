@@ -649,7 +649,7 @@ def seed_users(db):
             """,
             (
                 u["username"],
-                bcrypt.hashpw("pass123".encode(), bcrypt.gensalt()).decode(),
+                bcrypt.hashpw("password123".encode(), bcrypt.gensalt()).decode(),
                 u["role"],
                 u["display_name"],
                 f"{u['role']} in Python program",

@@ -319,17 +319,3 @@ def update_bug(report_id):
         flash("Report updated.", "success")
 
     return redirect(url_for("admin.dashboard") + "#bugs")
-
-
-@admin_bp.route("/alpha/debug-waitlist")
-def debug_waitlist():
-    guard = _require_auth()
-    if guard is not None:
-        return guard
-    try:
-        from app.models.waitlist import get_waitlist_all
-
-        rows = get_waitlist_all()
-        return "<br>".join(str(dict(r)) for r in rows) if rows else "EMPTY"
-    except Exception as e:
-        return f"ERROR: {e}"

@@ -52,6 +52,10 @@ def update_password():
         flash("Current password is incorrect", "error")
         return redirect(url_for("settings.show_settings"))
 
+    if len(new_password) < 8:
+        flash("Password must be at least 8 characters.", "error")
+        return redirect(url_for("settings.show_settings"))
+
     update_user_password(session["user_id"], new_password)
     flash("Password updated", "success")
     return redirect(url_for("settings.show_settings"))

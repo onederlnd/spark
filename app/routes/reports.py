@@ -31,6 +31,11 @@ def submit_report():
         flash("Invalid post.", "error")
         return redirect(request.referrer or url_for("feed.index"))
 
+    post = get_post(post_id)
+    if not post:
+        flash("Post not found.", "error")
+        return redirect(request.referrer or url_for("feed.index"))
+
     reason = sanitize_plain(request.form.get("reason", ""), max_length=REASON_MAX)
 
     if not reason:
@@ -49,8 +54,7 @@ def submit_report():
     else:
         flash("Report submitted successfully.", "success")
 
-    post = get_post(post_id)
-    if post and post["classroom_id"]:
+    if post["classroom_id"]:
         classroom = get_classroom(post["classroom_id"])
         if classroom:
             create_notification(

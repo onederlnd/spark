@@ -6,10 +6,21 @@ PER_PAGE = 20
 
 
 # --- feed
-def get_feed(page=1, topic_id=None, blocked_ids=None):
+def get_feed(page=1, topic_id=None, blocked_ids=None, user_id=None):
     offset = (page - 1) * PER_PAGE
     db = get_db()
     blocked_ids = blocked_ids or []
+
+    membership_filter = """
+        AND (
+            posts.classroom_id IS NULL
+            OR EXISTS (
+                SELECT 1 FROM classroom_members cm
+                WHERE cm.classroom_id = posts.classroom_id
+                AND cm.user_id = ?
+            )
+        )
+    """
 
     if topic_id:
         if blocked_ids:
@@ -25,14 +36,16 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                     AND (posts.post_type = 'post' OR posts.post_type IS NULL)
                     AND posts.is_hidden = 0
                     AND posts.user_id NOT IN ({placeholders})
+                    AND posts.topic_id = ?
+                    {membership_filter}
                 ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
-        """,
-                (*blocked_ids, PER_PAGE + 1, offset),
+                """,
+                (*blocked_ids, topic_id, user_id, PER_PAGE + 1, offset),
             ).fetchall()
         else:
             rows = db.execute(
-                """
+                f"""
                 SELECT posts.*, users.username, topics.name as topic_name,
                     (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
                 FROM posts
@@ -42,10 +55,11 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                     AND (posts.post_type = 'post' OR posts.post_type IS NULL)
                     AND posts.is_hidden = 0
                     AND posts.topic_id = ?
+                    {membership_filter}
                 ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
-            """,
-                (topic_id, PER_PAGE + 1, offset),
+                """,
+                (topic_id, user_id, PER_PAGE + 1, offset),
             ).fetchall()
     else:
         if blocked_ids:
@@ -61,14 +75,15 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                     AND (posts.post_type = 'post' OR posts.post_type IS NULL)
                     AND posts.is_hidden = 0
                     AND posts.user_id NOT IN ({placeholder})
+                    {membership_filter}
                 ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
                 """,
-                (*blocked_ids, PER_PAGE + 1, offset),
+                (*blocked_ids, user_id, PER_PAGE + 1, offset),
             ).fetchall()
         else:
             rows = db.execute(
-                """
+                f"""
                 SELECT posts.*, users.username, topics.name as topic_name,
                     (SELECT COUNT(*) FROM reactions WHERE reactions.post_id = posts.id) as reaction_count
                 FROM posts
@@ -77,10 +92,11 @@ def get_feed(page=1, topic_id=None, blocked_ids=None):
                 WHERE posts.parent_id IS NULL
                   AND (posts.post_type = 'post' OR posts.post_type IS NULL)
                   AND posts.is_hidden = 0
+                  {membership_filter}
                 ORDER BY posts.reply_count DESC
                 LIMIT ? OFFSET ?
                 """,
-                (PER_PAGE + 1, offset),
+                (user_id, PER_PAGE + 1, offset),
             ).fetchall()
 
     has_next = len(rows) > PER_PAGE
@@ -147,7 +163,7 @@ def get_post(post_id):
     ).fetchone()
 
 
-def get_posts_by_user(user_id):
+def get_posts_by_user(user_id, viewer_id=None):
     db = get_db()
     return db.execute(
         """
@@ -158,9 +174,17 @@ def get_posts_by_user(user_id):
         LEFT JOIN topics ON posts.topic_id = topics.id
         WHERE posts.user_id = ?
         AND posts.parent_id IS NULL
+        AND (
+            posts.classroom_id IS NULL
+            OR EXISTS (
+                SELECT 1 FROM classroom_members cm
+                WHERE cm.classroom_id = posts.classroom_id
+                AND cm.user_id = ?
+            )
+        )
         ORDER BY posts.created_at DESC
-    """,
-        (user_id,),
+        """,
+        (user_id, viewer_id),
     ).fetchall()
 
 
@@ -197,11 +221,10 @@ def unhide_post(post_id):
 
 
 # --- search
-def search_posts(query, page=1):
+def search_posts(query, page=1, user_id=None):
     if not query or not query.strip():
         return [], False
 
-    # strip characters that break FTS5 syntax
     query = query.strip().replace('"', "").replace("(", "").replace(")", "")
     if not query:
         return [], False
@@ -219,10 +242,18 @@ def search_posts(query, page=1):
         LEFT JOIN topics on posts.topic_id = topics.id
         WHERE posts_fts MATCH ?
         AND posts.parent_id IS NULL
+        AND (
+            posts.classroom_id IS NULL
+            OR EXISTS (
+                SELECT 1 FROM classroom_members cm
+                WHERE cm.classroom_id = posts.classroom_id
+                AND cm.user_id = ?
+            )
+        )
         ORDER BY rank
         LIMIT ? OFFSET ?
         """,
-        (query, PER_PAGE + 1, offset),
+        (query, user_id, PER_PAGE + 1, offset),
     ).fetchall()
     has_next = len(rows) > PER_PAGE
     return rows[:PER_PAGE], has_next
@@ -328,8 +359,8 @@ def get_following_feed(user_id, page=1, blocked_ids=None):
             LEFT JOIN topics ON posts.topic_id = topics.id
             WHERE posts.user_id IN (
                 SELECT followed_id FROM follows WHERE follower_id = ?
-                AND (posts.post_type = 'post' OR posts.post_type IS NULL)
             )
+            AND (posts.post_type = 'post' OR posts.post_type IS NULL)
             AND posts.parent_id IS NULL
             AND posts.is_hidden = 0
             ORDER BY posts.created_at DESC

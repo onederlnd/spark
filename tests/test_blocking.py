@@ -86,7 +86,7 @@ def test_block_route(client):
         sess["user_id"] = blocker["id"]
         sess["coppa_status"] = "approved"
 
-    response = client.post("/target/block", follow_redirects=True)
+    response = client.post("/profile/target/block", follow_redirects=True)
     assert response.status_code == 200
     assert b"blocked" in response.data
 
@@ -103,7 +103,7 @@ def test_cannot_block_yourself(client):
         sess["user_id"] = user["id"]
         sess["coppa_status"] = "approved"
 
-    response = client.post("/user/block")
+    response = client.post("/profile/user/block")
     assert response.status_code == 400
 
 
@@ -116,7 +116,7 @@ def test_block_nonexistent_user(client):
         sess["user_id"] = user["id"]
         sess["coppa_status"] = "approved"
 
-    response = client.post("/nobody/block")
+    response = client.post("/profile/nobody/block")
     assert response.status_code == 404
 
 
@@ -133,7 +133,7 @@ def test_unblock_route(client):
         sess["user_id"] = blocker["id"]
         sess["coppa_status"] = "approved"
 
-    response = client.post("/target/unblock", follow_redirects=True)
+    response = client.post("/profile/target/unblock", follow_redirects=True)
     assert response.status_code == 200
     assert not is_blocked(blocker["id"], target["id"])
 
@@ -141,7 +141,7 @@ def test_unblock_route(client):
 def test_block_requires_login(client):
     """BLock route requires login"""
     create_user("target", "pass123", dob="2000-01-01")
-    response = client.post("/target/block")
+    response = client.post("/profile/target/block")
     assert response.status_code == 302
     assert "/auth/login" in response.headers["Location"]
 
@@ -164,7 +164,7 @@ def test_blocked_user_hidden_from_feed(auth_client, app):
         data={"title": "Blocked Post", "body": "Should be hidden", "topic_id": ""},
     )
 
-    auth_client.post("/blockeduser/block")
+    auth_client.post("/profile/blockeduser/block")
 
     response = auth_client.get("/feed/")
     assert b"Blocked Post" not in response.data
@@ -203,7 +203,7 @@ def test_non_blocked_posts_still_visible(auth_client, app):
             "dob": "2000-01-01",
         },
     )
-    auth_client.post("/blocked2/block")
+    auth_client.post("/profiles/blocked2/block")
 
     # a different user posts
     other = app.test_client(use_cookies=True)
@@ -246,8 +246,8 @@ def test_blocked_user_hidden_from_following_feed(auth_client, app):
         data={"title": "Followed But Blocked", "body": "Hidden post", "topic_id": ""},
     )
 
-    auth_client.post("/profile/blockedfollowed/follow")
-    auth_client.post("/blockedfollowed/block")
+    auth_client.post("/profile/blocked/followed/follow")
+    auth_client.post("/blocked/followed/block")
 
     response = auth_client.get("/feed/following")
     assert b"Followed But Blocked" not in response.data

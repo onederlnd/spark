@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.models.topic import get_all_topics_with_counts, create_topic
 from app.models.user import coppa_required
-from app.routes.feed import login_required
+from app.utils.auth import login_required
 from app.utils.sanitize import sanitize_plain
 
 topics_bp = Blueprint("topics", __name__, url_prefix="/topics")

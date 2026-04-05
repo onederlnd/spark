@@ -1230,12 +1230,7 @@ def upload_submission_attachment(classroom_id, assignment_id):
         submission = get_submission(assignment_id, session["user_id"])
 
     file = request.files.get("file")
-    import sys
 
-    print(
-        f"DEBUG upload: session user_id={session['user_id']}, submission={submission}",
-        file=sys.stderr,
-    )
     try:
         add_submission_attachment(
             submission["id"],
@@ -1517,9 +1512,7 @@ def export_grades(classroom_id):
         return "Forbidden", 403
 
     assignments = get_assignments_for_classroom(classroom_id)
-    print(f"DEBUG: {len(assignments)} assignments found")
     members = get_classroom_members(classroom_id)
-    print(f"DEBUG: {len(members)} members found")
     students = [m for m in members if m["role"] == "student"]
 
     grade_map = {}

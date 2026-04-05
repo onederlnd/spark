@@ -28,7 +28,7 @@ def test_update_password_success(auth_client):  # 302
     """POST /profile/settings/password with correct current password updates it"""
     response = auth_client.post(
         "/profile/settings/password",
-        data={"current_password": "pass123", "new_password": "newpass123"},
+        data={"current_password": "password123", "new_password": "newpass123"},
     )
     assert response.status_code == 302
 
@@ -37,7 +37,7 @@ def test_update_password_wrong_current(auth_client):
     """POST /profile/settings/password with wrong current password returns error"""
     response = auth_client.post(
         "/profile/settings/password",
-        data={"current_password": "wrongpassword", "new_password": "newpass"},
+        data={"current_password": "wrongpassword", "new_password": "newpass123"},
         follow_redirects=True,
     )
     assert response.status_code == 200
@@ -49,10 +49,10 @@ def test_updated_password_can_login(auth_client, client):
 
     auth_client.post(
         "/profile/settings/password",
-        data={"current_password": "pass123", "new_password": "newpass"},
+        data={"current_password": "password123", "new_password": "newpass123"},
     )
     response = client.post(
-        "/auth/login", data={"username": "testuser", "password": "newpass"}
+        "/auth/login", data={"username": "testuser", "password": "newpass123"}
     )
     assert response.status_code == 302
 

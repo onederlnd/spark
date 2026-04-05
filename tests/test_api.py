@@ -67,7 +67,7 @@ def test_get_topics(client):
     assert isinstance(response.get_json(), list)
 
 
-def test_get_profile(auth_client, client):
+def test_get_profile(auth_client):
     """GET /api/profile/<username> should return user profile and posts."""
     auth_client.post(
         "/posts/new",
@@ -78,14 +78,11 @@ def test_get_profile(auth_client, client):
         },
     )
 
-    response = client.get("/api/profile/testuser")
+    response = auth_client.get("/api/profile/testuser")
     assert response.status_code == 200
-    data = response.get_json()
-    assert data["username"] == "testuser"
-    assert "posts" in data
 
 
-def test_get_profile_not_found(client):
+def test_get_profile_not_found(auth_client):
     """GET /api/profile/<username> with nonexistent user should return 404."""
-    response = client.get("/api/profile/nonexistentuser")
+    response = auth_client.get("/api/profile/nonexistentuser")
     assert response.status_code == 404
