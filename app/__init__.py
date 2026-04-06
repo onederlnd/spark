@@ -99,6 +99,7 @@ def create_app(config=None):
     from app.routes.feedback import feedback_bp
     from app.routes.bug_reports import bug_reports_bp
     from app.routes.parent import parent_bp
+    from app.routes.messaging import messaging_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -118,6 +119,7 @@ def create_app(config=None):
     app.register_blueprint(feedback_bp)
     app.register_blueprint(bug_reports_bp)
     app.register_blueprint(parent_bp)
+    app.register_blueprint(messaging_bp)
 
     app.jinja_env.filters["time_ago"] = time_ago
 
@@ -162,16 +164,20 @@ def create_app(config=None):
 
     @app.context_processor
     def inject_unread_count():
-        """Inject unread notification count into all templates."""
+        """Inject unread notification count and current user into all templates."""
         from flask import session
         from app.models.notifications import get_unread_count
+        from app.models.user import get_user_by_id
+
+        user = None
+        unread_count = 0
 
         if "user_id" in session:
+            user = get_user_by_id(session["user_id"])
             unread_count = get_unread_count(session["user_id"])
-        else:
-            unread_count = 0
 
         return {
+            "current_user": user,
             "unread_count": unread_count,
             "registration_open": os.environ.get("REGISTERATION_OPEN", "true").lower()
             == "true",

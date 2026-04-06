@@ -174,6 +174,7 @@ def init_db(app):
                 name TEXT NOT NULL,
                 description TEXT DEFAULT '',
                 join_code TEXT UNIQUE NOT NULL,
+                messaging_enabled INTEGER NOT NULL DEFAULT 0,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (teacher_id) REFERENCES users(id)
             );
@@ -362,6 +363,27 @@ def init_db(app):
                 choice_id INTEGER REFERENCES block_choices(id),
                 body TEXT,
                 score INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS conversations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                classroom_id INTEGER NOT NULL REFERENCES classrooms(id),
+                created_by INTEGER NOT NULL REFERENCES user(id),
+                title TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS conversation_members (
+                conversation_id INTEGER NOT NULL REFERENCES conversations(id),
+                user_id INTEGER NOT NULL REFERENCES users(id),
+                last_read_at TIMESTAMP,
+                PRIMARY KEY (conversation_id, user_id)
+            );
+            CREATE TABLE IF NOT EXISTS messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                conversation_id INTEGER NOT NULL REFERENCES conversations(id),
+                sender_id INTEGER NOT NULL REFERENCES users(id),
+                body TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                is_hidden INTEGER NOT NULL DEFAULT 0
             );
         """),
         )

@@ -546,6 +546,126 @@ BUG_REPORTS = [
     }
 ]
 
+# Conversations to seed. Each entry creates one conversation.
+CONVERSATIONS = [
+    # --- DMs: student <-> teacher ---
+    {
+        "type": "dm",
+        "participants": ["student", "teacher"],
+        "messages": [
+            {
+                "role": "student",
+                "body": "Hey, I'm stuck on the FizzBuzz assignment — can you help?",
+            },
+            {"role": "teacher", "body": "Of course! Where are you getting stuck?"},
+            {
+                "role": "student",
+                "body": "I don't know how to check for both 3 and 5 at the same time.",
+            },
+            {
+                "role": "teacher",
+                "body": "Try checking i % 15 == 0 first, before the individual checks.",
+            },
+            {"role": "student", "body": "Oh that worked! Thank you so much!"},
+        ],
+    },
+    {
+        "type": "dm",
+        "participants": ["student", "teacher"],
+        "messages": [
+            {
+                "role": "teacher",
+                "body": "Just wanted to check in — how is the text adventure going?",
+            },
+            {
+                "role": "student",
+                "body": "Pretty good! I have 4 rooms done, just need one more.",
+            },
+            {
+                "role": "teacher",
+                "body": "Great progress! Don't forget the win/lose conditions.",
+            },
+        ],
+    },
+    {
+        "type": "dm",
+        "participants": ["student", "teacher"],
+        "messages": [
+            {
+                "role": "student",
+                "body": "Can I get an extension on the File I/O assignment?",
+            },
+            {
+                "role": "teacher",
+                "body": "I can give you one extra day. Submit by tomorrow night.",
+            },
+            {"role": "student", "body": "Thank you, I really appreciate it!"},
+        ],
+    },
+    # --- Group conversations ---
+    {
+        "type": "group",
+        "title": "FizzBuzz Study Group",
+        "participant_roles": ["student", "student", "student", "teacher"],
+        "messages": [
+            {
+                "role": "student",
+                "body": "Anyone else confused about Part 2 of the FizzBuzz assignment?",
+            },
+            {
+                "role": "student",
+                "body": "Yeah I have no idea how to make the divisors a parameter.",
+            },
+            {
+                "role": "teacher",
+                "body": "Think about it like this — instead of hardcoding 3 and 5, what if your function accepted them as arguments?",
+            },
+            {"role": "student", "body": "Ohhhh so like def fizzbuzz(d1, d2)?"},
+            {"role": "teacher", "body": "Exactly! Give it a try."},
+            {"role": "student", "body": "Got it working! This is way cleaner."},
+        ],
+    },
+    {
+        "type": "group",
+        "title": "Project Showcase Planning",
+        "participant_roles": ["student", "student", "student"],
+        "messages": [
+            {
+                "role": "student",
+                "body": "Should we do a group demo day for our projects?",
+            },
+            {
+                "role": "student",
+                "body": "That would be so fun, I want to show my mad libs game.",
+            },
+            {
+                "role": "student",
+                "body": "I'll ask the teacher if we can do it next week.",
+            },
+        ],
+    },
+    # --- Under-13 COPPA conversation (for oversight testing) ---
+    {
+        "type": "dm",
+        "participants": ["student", "teacher"],
+        "coppa": True,  # marks the student as under 13
+        "messages": [
+            {
+                "role": "student",
+                "body": "I don't understand the recursion assignment at all.",
+            },
+            {
+                "role": "teacher",
+                "body": "No worries! Let's go through factorial together. What does factorial(3) mean to you?",
+            },
+            {"role": "student", "body": "Um… 3 times 2 times 1?"},
+            {
+                "role": "teacher",
+                "body": "Exactly! Now imagine writing a function that calls itself with n-1 each time. Try writing that out.",
+            },
+        ],
+    },
+]
 # =========================================================
 # 👥 USER GENERATION
 # =========================================================
@@ -851,6 +971,96 @@ def seed_bug_reports(db, users):
         )
 
 
+def seed_conversations(db, users, classroom_id):
+    from app.models.messaging import get_or_create_dm, create_conversation, send_message
+
+    students = [u for u in users.values() if u["role"] == "student"]
+    teachers = [u for u in users.values() if u["role"] == "teacher"]
+
+    used_dm_pairs = set()
+
+    for conv in CONVERSATIONS:
+        is_coppa = conv.get("coppa", False)
+
+        if conv["type"] == "dm":
+            # Pick a unique student/teacher pair
+            student = None
+            for s in random.sample(students, len(students)):
+                for t in random.sample(teachers, len(teachers)):
+                    pair = (s["id"], t["id"])
+                    if pair not in used_dm_pairs:
+                        student, teacher = s, t
+                        used_dm_pairs.add(pair)
+                        break
+                if student:
+                    break
+
+            if not student:
+                continue
+
+            # Mark student as under-13 for COPPA test conversations
+            if is_coppa:
+                from datetime import date
+
+                dob = date(date.today().year - 11, 6, 15).isoformat()
+                db.execute(
+                    "UPDATE users SET dob = ?, coppa_status = 'pending' WHERE id = ?",
+                    (dob, student["id"]),
+                )
+
+            conv_id = get_or_create_dm(classroom_id, student["id"], teacher["id"])
+            role_map = {"student": student["id"], "teacher": teacher["id"]}
+
+        else:  # group
+            participant_roles = conv.get(
+                "participant_roles", ["student", "student", "teacher"]
+            )
+            available_students = random.sample(
+                students, min(len(students), participant_roles.count("student"))
+            )
+            available_teachers = random.sample(
+                teachers, min(len(teachers), participant_roles.count("teacher"))
+            )
+
+            members = []
+            si, ti = 0, 0
+            for role in participant_roles:
+                if role == "student" and si < len(available_students):
+                    members.append(available_students[si])
+                    si += 1
+                elif role == "teacher" and ti < len(available_teachers):
+                    members.append(available_teachers[ti])
+                    ti += 1
+
+            if len(members) < 2:
+                continue
+
+            member_ids = [m["id"] for m in members]
+            conv_id = create_conversation(
+                classroom_id, member_ids[0], member_ids[1:], title=conv.get("title")
+            )
+            role_map = {
+                "student": [m["id"] for m in members if m["role"] == "student"],
+                "teacher": [m["id"] for m in members if m["role"] == "teacher"],
+            }
+
+        # Insert messages
+        student_idx = teacher_idx = 0
+        for msg in conv.get("messages", []):
+            if conv["type"] == "dm":
+                sender_id = role_map[msg["role"]]
+            else:
+                pool = role_map[msg["role"]]
+                if msg["role"] == "student":
+                    sender_id = pool[student_idx % len(pool)]
+                    student_idx += 1
+                else:
+                    sender_id = pool[teacher_idx % len(pool)]
+                    teacher_idx += 1
+
+            send_message(conv_id, sender_id, msg["body"])
+
+
 # =========================================================
 # 🚀 MAIN
 # =========================================================
@@ -877,6 +1087,7 @@ def main():
         seed_assignments(db, users, classroom_id)
         seed_filtered_words(db)
         seed_bug_reports(db, users)
+        seed_conversations(db, users, classroom_id)
 
         db.commit()
         print("✅ Demo seed complete!")

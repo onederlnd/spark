@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Message Oversight — SparK{% endblock %}
+
+{% block left_sidebar %}
+<div class="sidebar-title">Moderation</div>
+<ul class="sidebar-nav">
+  <li><a href="{{ url_for('classrooms.classroom_home', classroom_id=classroom.id) }}">
+    <span class="icon">←</span> Back to Classroom
+  </a></li>
+  <li><a href="{{ url_for('messaging.index') }}">
+    <span class="icon">💬</span> My Messages
+  </a></li>
+</ul>
+
+<div class="sidebar-divider"></div>
+
+<div class="sidebar-title">Student Messaging</div>
+<div style="padding:4px 0;">
+  <form method="POST" action="{{ url_for('messaging.toggle_student_messaging', classroom_id=classroom.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if classroom.messaging_enabled %}
+    <input type="hidden" name="enabled" value="0">
+    <button type="submit" class="btn btn-ghost btn-sm" style="width:100%;justify-content:center;"
+            onclick="return confirm('Disable student messaging in this classroom?')">
+      🔴 Disable Student Messaging
+    </button>
+    {% else %}
+    <input type="hidden" name="enabled" value="1">
+    <button type="submit" class="btn btn-primary btn-sm" style="width:100%;justify-content:center;">
+      🟢 Enable Student Messaging
+    </button>
+    {% endif %}
+  </form>
+  <p style="font-size:0.75rem;color:var(--muted);margin-top:8px;line-height:1.4;">
+    {% if classroom.messaging_enabled %}
+    Students can currently message each other in this classroom.
+    {% else %}
+    Students cannot message each other. Teachers can still message students.
+    {% endif %}
+  </p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="feed-header">
+  <div>
+    <h1 class="feed-title">Message Oversight</h1>
+    <p style="font-size:0.85rem;color:var(--muted);margin:0;">
+      🏫 {{ classroom.name }} · Showing conversations with under-13 students
+    </p>
+  </div>
+</div>
+
+<div style="background:rgba(242,107,107,0.08);border:1px solid rgba(242,107,107,0.25);border-radius:var(--radius);padding:12px 16px;margin-bottom:1.5rem;font-size:0.85rem;color:var(--text);">
+  <strong>⚠️ COPPA Oversight</strong> — You can view messages from students under 13 in your classroom.
+  This visibility is automatic and required by your school's COPPA compliance policy.
+</div>
+
+{% if conversations %}
+<div class="post-list">
+  {% for conv in conversations %}
+  <a href="{{ url_for('messaging.conversation', conversation_id=conv.id) }}" style="text-decoration:none;">
+    <div class="post-card">
+      <div class="post-body">
+        <div class="post-meta">
+          <span class="post-topic">👁 Oversight</span>
+          <span class="post-time">· {{ conv.created_at | time_ago }}</span>
+        </div>
+        <div class="post-title" style="font-size:1rem;">
+          {% if conv.title %}{{ conv.title }}{% else %}Conversation #{{ conv.id }}{% endif %}
+        </div>
+        <p class="post-preview">Started by {{ conv.created_by_username }}</p>
+      </div>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
+    <circle cx="36" cy="36" r="22" stroke="currentColor" stroke-width="2"/>
+    <path d="M28 36l6 6 10-10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div class="empty-state-title">No conversations to review</div>
+  <div class="empty-state-desc">
+    There are no active conversations involving students under 13 in this classroom.
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

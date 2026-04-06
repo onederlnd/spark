@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+{% set self_initials = session.get('username', '')[:2].upper() %}
+
+<div style="
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  height: calc(100vh - 116px);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+">
+
+  {# ── LEFT: conversation list ── #}
+  <div style="
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  ">
+
+    <div style="
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    ">
+      <span class="msg-panel-title">Messages</span>
+      <a href="{{ url_for('messaging.new_conversation') }}" class="msg-icon-btn" title="New conversation">✏️</a>
+    </div>
+
+    <div class="msg-conv-list">
+      {% if not threads %}
+      <div class="msg-empty">
+        <div class="msg-empty-icon">💬</div>
+        <div class="msg-empty-text">No conversations yet</div>
+      </div>
+      {% endif %}
+
+      {% for thread in threads %}
+      
+        <a href="{{ url_for('messaging.index') }}?thread={{ thread.id }}"
+           class="msg-conv-item{{ ' unread' if thread.unread_count > 0 else '' }}{{ ' active' if thread.id == active_thread else '' }}"
+        >
+        <div class="msg-conv-avatar">
+          {{ (thread.title or thread.classroom_name or 'DM')[:2].upper() }}
+        </div>
+        <div class="msg-conv-info">
+          <div class="msg-conv-name">
+            {{ thread.title or thread.classroom_name or 'Direct Message' }}
+          </div>
+          <div class="msg-conv-preview">
+            {{ thread.last_message_body | truncate(40, True, '…') if thread.last_message_body else 'No messages yet' }}
+          </div>
+        </div>
+        <div class="msg-conv-meta">
+          {% if thread.last_message_at %}
+          <div class="msg-conv-time">{{ thread.last_message_at | time_ago }}</div>
+          {% endif %}
+          {% if thread.unread_count > 0 %}
+          <div class="msg-unread-dot"></div>
+          {% endif %}
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  {# ── RIGHT: chat panel ── #}
+  <div style="display: flex; flex-direction: column; overflow: hidden;">
+
+    {% if active_thread %}
+
+    <div class="msg-chat-header" style="cursor: default;">
+      {% for thread in threads %}{% if thread.id == active_thread %}
+      <div class="msg-chat-avatar">
+        {{ (thread.title or thread.classroom_name or 'DM')[:2].upper() }}
+      </div>
+      <div>
+        <div class="msg-chat-name">{{ thread.title or thread.classroom_name or 'Direct Message' }}</div>
+        <div class="msg-chat-classroom">{{ thread.classroom_name }}</div>
+      </div>
+      {% endif %}{% endfor %}
+    </div>
+
+    <div class="msg-chat-body" id="msg-chat-body" data-thread-id="{{ active_thread }}">
+      <div class="msg-chat-loading" id="msg-loading">Loading messages…</div>
+    </div>
+
+    <div class="msg-compose">
+      <textarea
+        class="msg-compose-input"
+        id="msg-compose-input"
+        placeholder="Type a message…"
+        rows="1"
+      ></textarea>
+      <button class="msg-send-btn" id="msg-send-btn" aria-label="Send">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="white">
+          <path d="M2 8L14 2 10 8 14 14z"/>
+        </svg>
+      </button>
+    </div>
+
+    {% else %}
+
+    <div class="msg-empty" style="flex: 1;">
+      <div class="msg-empty-icon">💬</div>
+      <div class="msg-empty-text">Select a conversation to start messaging</div>
+    </div>
+
+    {% endif %}
+
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const threadId = parseInt("{{ active_thread or 'null' }}") || null;
+  if (!threadId) return;
+
+  const body    = document.getElementById('msg-chat-body');
+  const input   = document.getElementById('msg-compose-input');
+  const sendBtn = document.getElementById('msg-send-btn');
+const selfId   = parseInt("{{ session.get('user_id') or 'null' }}") || null;
+  const csrf    = document.querySelector('meta[name="csrf-token"]').content;
+
+  let lastId = 0;
+
+  function formatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts.replace(' ', 'T') + 'Z');
+    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function buildBubble(msg) {
+    const mine = msg.sender_id === selfId;
+    const wrap = document.createElement('div');
+    wrap.className = 'msg-bubble-wrap ' + (mine ? 'mine' : 'theirs');
+
+    if (!mine) {
+      const name = document.createElement('div');
+      name.className = 'msg-sender-name';
+      name.textContent = msg.display_name || msg.username;
+      wrap.appendChild(name);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = 'msg-bubble ' + (mine ? 'mine' : 'theirs');
+    bubble.textContent = msg.body;
+    wrap.appendChild(bubble);
+
+    const time = document.createElement('div');
+    time.className = 'msg-bubble-time';
+    time.textContent = formatTime(msg.created_at);
+    wrap.appendChild(time);
+
+    return wrap;
+  }
+
+  function scrollBottom() {
+    body.scrollTop = body.scrollHeight;
+  }
+
+  async function loadMessages() {
+    try {
+      const resp = await fetch(`/messages/${threadId}/messages`);
+      const msgs = await resp.json();
+      document.getElementById('msg-loading').remove();
+      msgs.forEach(m => {
+        body.appendChild(buildBubble(m));
+        if (m.id > lastId) lastId = m.id;
+      });
+      scrollBottom();
+      // mark read
+      fetch(`/messages/${threadId}/mark-read`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': csrf }
+      });
+    } catch (e) {
+      console.error('Failed to load messages', e);
+    }
+  }
+
+  async function poll() {
+    try {
+      const resp = await fetch(`/messages/${threadId}/messages?after_id=${lastId}`);
+      const msgs = await resp.json();
+      if (msgs.length) {
+        const atBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 60;
+        msgs.forEach(m => {
+          body.appendChild(buildBubble(m));
+          if (m.id > lastId) lastId = m.id;
+        });
+        if (atBottom) scrollBottom();
+        fetch(`/messages/${threadId}/mark-read`, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': csrf }
+        });
+      }
+    } catch (e) { /* silently ignore poll errors */ }
+  }
+
+  async function sendMessage() {
+    const body_text = input.value.trim();
+    if (!body_text) return;
+
+    input.value = '';
+    input.style.height = 'auto';
+    sendBtn.disabled = true;
+
+    try {
+      const fd = new FormData();
+      fd.append('body', body_text);
+      fd.append('csrf_token', csrf);
+      await fetch(`/messages/${threadId}/send`, { method: 'POST', body: fd });
+      await poll();
+    } catch (e) {
+      console.error('Send failed', e);
+    } finally {
+      sendBtn.disabled = false;
+    }
+  }
+
+  // auto-grow textarea
+  input.addEventListener('input', function () {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 96) + 'px';
+  });
+
+  // send on Enter (Shift+Enter for newline)
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  sendBtn.addEventListener('click', sendMessage);
+
+  loadMessages();
+  setInterval(poll, 3000);
+})();
+</script>
+{% endblock %}

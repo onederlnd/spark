@@ -263,7 +263,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Landing page
 - [x] Co-Teachers
 - [x] User mentions
-- [ ] Direct messages (teacher ↔ student)
+- [i] Direct messages (teacher ↔ student)
 - [ ] Data export
 - [ ] Trending algorithm
 
@@ -271,7 +271,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Spark reactions (replaces votes)
 - [ ] Achievement badges
 - [ ] Rubric grading
-- [ ] Multiple choice assignment types
+- [x] Multiple choice assignment types
 - [ ] Homeschool mode
 - [ ] Penpals
 - [ ] PWA support

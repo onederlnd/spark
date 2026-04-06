@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}New Message — SparK{% endblock %}
+
+{% block content %}
+<div style="max-width:600px;margin:0 auto;">
+  <div class="feed-header" style="margin-bottom:1.5rem;">
+    <div>
+      <h1 class="feed-title">New Message</h1>
+      {% if classroom %}
+      <p style="font-size:0.85rem;color:var(--muted);margin:0;">in <strong>{{ classroom.name }}</strong></p>
+      {% endif %}
+    </div>
+    <a href="{{ url_for('messaging.index') }}" class="btn btn-ghost btn-sm">← Back</a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="post-card">
+    <div class="post-body">
+      <form method="POST" action="{{ url_for('messaging.new_conversation') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="classroom_id" value="{{ classroom.id if classroom else '' }}">
+
+        {% if not classroom %}
+        <div style="margin-bottom:1rem;">
+          <label style="font-size:0.85rem;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;">Classroom</label>
+            <select name="classroom_id" required
+                    style="width:100%;padding:10px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--soft);color:var(--text);font-size:0.9rem;"
+                    data-base-url="{{ url_for('messaging.new_conversation') }}"
+                    onchange="window.location=this.dataset.baseUrl+'?classroom_id='+this.value">
+              <option value="">Select a classroom…</option>
+              {% for cl in user_classrooms %}
+              <option value="{{ cl.id }}" {% if classroom and cl.id == classroom.id %}selected{% endif %}>
+                {{ cl.name }}
+              </option>
+              {% endfor %}
+            </select>
+          <p style="font-size:0.78rem;color:var(--muted);margin-top:4px;">Select a classroom to load recipients.</p>
+        </div>
+        {% endif %}
+
+        {% if eligible %}
+        <div style="margin-bottom:1rem;">
+          <label style="font-size:0.85rem;font-weight:700;color:var(--muted);display:block;margin-bottom:8px;">
+            To <span style="font-weight:500;font-size:0.8rem;">(select one or more)</span>
+          </label>
+          <div style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow-y:auto;padding:4px 0;">
+            {% for member in eligible %}
+            <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:var(--radius);border:1px solid var(--border);cursor:pointer;background:var(--soft);">
+              <input type="checkbox" name="recipient_ids" value="{{ member.id }}"
+                     {% if preselect_user and preselect_user | int == member.id %}checked{% endif %}
+                     onchange="updateGroupTitle()"
+                     style="accent-color:var(--teal);width:16px;height:16px;">
+              <span style="font-size:1.2rem;">{{ member.avatar_emoji or '👤' }}</span>
+              <div>
+                <div style="font-weight:700;font-size:0.9rem;">{{ member.username }}</div>
+                <div style="font-size:0.75rem;color:var(--muted);text-transform:capitalize;">{{ member.role }}</div>
+              </div>
+            </label>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div id="group-title-field" style="display:none;margin-bottom:1rem;">
+          <label style="font-size:0.85rem;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;">
+            Group Name <span style="font-weight:500;">(optional)</span>
+          </label>
+          <input type="text" name="title" maxlength="100"
+                 placeholder="e.g. Study Group, Project Team…"
+                 style="width:100%;padding:10px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--soft);color:var(--text);font-size:0.9rem;">
+        </div>
+
+        <div style="margin-bottom:1.25rem;">
+          <label style="font-size:0.85rem;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;">Message</label>
+          <textarea name="body" required rows="4" maxlength="2000"
+                    placeholder="Write your message…"
+                    style="width:100%;padding:10px 12px;border-radius:var(--radius);border:1px solid var(--border);background:var(--soft);color:var(--text);font-size:0.9rem;resize:vertical;font-family:inherit;"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;">
+          Send Message →
+        </button>
+
+        {% else %}
+        <div class="empty-state" style="padding:32px 0;">
+          <div class="empty-state-title">No one to message</div>
+          <div class="empty-state-desc">
+            {% if classroom %}
+              {% if session.get('role') == 'student' and not classroom.messaging_enabled %}
+              Student messaging hasn't been enabled in this classroom yet.
+              {% else %}
+              No eligible recipients found in this classroom.
+              {% endif %}
+            {% else %}
+              Select a classroom above to see who you can message.
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function updateGroupTitle() {
+    var checked = document.querySelectorAll('input[name="recipient_ids"]:checked');
+    var groupField = document.getElementById('group-title-field');
+    groupField.style.display = checked.length > 1 ? 'block' : 'none';
+  }
+  updateGroupTitle();
+</script>
+{% endblock %}

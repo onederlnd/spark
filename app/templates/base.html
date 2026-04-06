@@ -10,6 +10,7 @@
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="{{ url_for('static', filename='messenger.css') }}">
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='style.css') }}?v=6"
@@ -23,7 +24,7 @@
   })();
 </script>
   </head>
-  <body>
+  <body data-user-id="{{ session.get('user_id', '') }}" data-username="{{ session.get('username', '') }}">
     <!-- ============ DRAWER OVERLAY ============ -->
     <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
 
@@ -246,7 +247,7 @@
 
     {% if session.get("role") == "teacher" %}
     <a href="{{ url_for('bug_reports.submit') }}"
-      style="position:fixed; bottom:4.5rem; right:1.25rem; z-index:900; background:var(--card); border:1px solid var(--border); border-radius:999px; padding:6px 14px; font-size:0.78rem; font-weight:800; color:var(--text); text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
+      style="position:fixed; bottom:4.5rem; left:1.25rem; z-index:900; background:var(--card); border:1px solid var(--border); border-radius:999px; padding:6px 14px; font-size:0.78rem; font-weight:800; color:var(--text); text-decoration:none; box-shadow:0 2px 8px rgba(0,0,0,0.15);">
       🐛 Report Bug
     </a>
     {% endif %}
@@ -299,6 +300,7 @@
         <button class="fp-btn-cancel" onclick="closeFeedback()" style="margin-top:1rem;">Close</button>
       </div>
     
+      
     </div>
 
     <footer style="text-align: center; padding: 24px; margin-top: 48px; border-top: 1px solid var(--border); font-size: 0.78rem; color: var(--muted); font-weight: 600;">
@@ -310,5 +312,8 @@
     </footer>
 
     <script src="{{ url_for('static', filename='app.js') }}"></script>
+  {% if session.get("username") %}
+<script src="{{ url_for('static', filename='messenger.js') }}"></script>
+{% endif %}
   </body>
 </html>
