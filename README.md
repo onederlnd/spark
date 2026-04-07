@@ -278,7 +278,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 
 ### v2.0 — Ops & Hardening
 - [ ] Full audit log
-- [ ] Dependency vulnerability scanning
+- [x] Dependency vulnerability scanning
 - [ ] Feature flags
 - [ ] PostgreSQL migration
 
