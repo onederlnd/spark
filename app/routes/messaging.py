@@ -170,7 +170,7 @@ def conversation(conversation_id):
 @login_required
 def send(conversation_id):
     if not can_read_conversation(_current_user_id(), conversation_id):
-        return jsonify({"error", "Forbidden"}), 403
+        return jsonify({"error": "Forbidden"}), 403
 
     members = get_conversation_members(conversation_id)
     is_member = any(m["id"] == _current_user_id() for m in members)
@@ -230,7 +230,7 @@ def hide(message_id):
 
     db = get_db()
     db_msg = db.execute(
-        "SELECT m.*, c.classroom_id FROM messages m JOIN conversation c ON m.conversation_id = c.id WHERE m.id = ?",
+        "SELECT m.*, c.classroom_id FROM messages m JOIN conversations c ON m.conversation_id = c.id WHERE m.id = ?",
         (message_id,),
     ).fetchone()
 

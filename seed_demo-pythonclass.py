@@ -1088,7 +1088,6 @@ def main():
         seed_filtered_words(db)
         seed_bug_reports(db, users)
         seed_conversations(db, users, classroom_id)
-
         db.commit()
         print("✅ Demo seed complete!")
 
