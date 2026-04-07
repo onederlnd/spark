@@ -267,7 +267,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Landing page
 - [x] Student signup with join code
 - [x] User mentions
-- [i] Direct messages (teacher ↔ student). Allow all communication between students for the
+- [x] Direct messages (teacher ↔ student). Allow all communication between students for the
 - [ ] Data export
 - [ ] Trending algorithm
 - [x] Co-teachers
@@ -282,7 +282,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [ ] PWA support
 
 ### v2.0 — Ops & Hardening
-- [ ] Full audit log
+- [i] Full audit logd
 - [ ] Dependency vulnerability scanning
 - [ ] Feature flags
 - [ ] PostgreSQL migration
