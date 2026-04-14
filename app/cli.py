@@ -1,3 +1,4 @@
+# app/cli.py
 import click
 from app.models import get_db
 import bcrypt
@@ -106,7 +107,7 @@ def _wipe_demo(db):
 
 
 def _seed(db):
-    pw = _hash("demo123")
+    pw = _hash("password123")
 
     # ── users ────────────────────────────────────────────────────────────
 
@@ -161,6 +162,38 @@ def _seed(db):
     student_id = db.execute(
         "SELECT id FROM users WHERE username = 'demo-student'"
     ).fetchone()["id"]
+
+    db.execute(
+        """
+        INSERT INTO users (username, email, display_name, password_hash, dob,
+        bio, role, tour_seen, coppa_status, onboarded,
+        avatar_emoji, avatar_bg)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            "demo-parent",
+            "demo-parent@go-spark.app",
+            "Parent Demo",
+            pw,
+            "1980-01-01",
+            "Parent of Alex Kim.",
+            "parent",
+            1,
+            "approved",
+            1,
+            "👨‍👩‍👧",
+            "#FFF8E7",
+        ),
+    )
+
+    parent_id = db.execute(
+        "SELECT id FROM users WHERE username = 'demo-parent'"
+    ).fetchone()["id"]
+
+    db.execute(
+        "INSERT INTO parent_student (parent_id, student_id) VALUES (?, ?)",
+        (parent_id, student_id),
+    )
 
     # ghost students — realistic classroom population, no login needed
     ghosts = [
@@ -671,7 +704,7 @@ def _seed(db):
     db.execute(
         """
         INSERT INTO lesson_blocks (assignment_id, type, body, position, points, required)
-        VALUES (?, 'code', ?, 4, 5, 1)
+        VALUES (?, short_answer', ?, 4, 5, 1)
     """,
         (a3, "Write a for loop that prints FizzBuzz for numbers 1 to 20."),
     )
@@ -724,8 +757,8 @@ def _seed(db):
     db.commit()
     click.echo("")
     click.echo("  Demo accounts ready:")
-    click.echo("    Teacher  →  demo-teacher / demo123")
-    click.echo("    Student  →  demo-student / demo123")
+    click.echo("    Teacher  →  demo-teacher / password123")
+    click.echo("    Student  →  demo-student / password123")
     click.echo("    Classroom join code: DEMO01")
 
 
