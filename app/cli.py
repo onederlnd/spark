@@ -704,7 +704,7 @@ def _seed(db):
     db.execute(
         """
         INSERT INTO lesson_blocks (assignment_id, type, body, position, points, required)
-        VALUES (?, short_answer', ?, 4, 5, 1)
+        VALUES (?, 'short_answer', ?, 4, 5, 1)
     """,
         (a3, "Write a for loop that prints FizzBuzz for numbers 1 to 20."),
     )
