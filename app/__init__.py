@@ -48,7 +48,6 @@ def create_app(config=None):
     app = Flask(__name__)
 
     init_socketio(app)
-    register_commands(app)
 
     app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "2ejfof2jf2ojwfxasf")
     app.config["DATABASE_URL"] = os.environ.get("DATABASE_URL", "spark-database.db")
@@ -80,6 +79,7 @@ def create_app(config=None):
 
     init_db(app)
     csrf.init_app(app)
+    register_commands(app)
 
     # import blueprints
     from app.routes.auth import auth_bp
@@ -100,6 +100,8 @@ def create_app(config=None):
     from app.routes.bug_reports import bug_reports_bp
     from app.routes.parent import parent_bp
     from app.routes.messaging import messaging_bp
+    from app.routes.onboarding import onboarding_bp
+    from app.routes.redirects import redirects_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -120,6 +122,8 @@ def create_app(config=None):
     app.register_blueprint(bug_reports_bp)
     app.register_blueprint(parent_bp)
     app.register_blueprint(messaging_bp)
+    app.register_blueprint(onboarding_bp)
+    app.register_blueprint(redirects_bp)
 
     app.jinja_env.filters["time_ago"] = time_ago
 

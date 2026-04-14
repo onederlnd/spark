@@ -1,6 +1,5 @@
 # tests/test_attachments.py
 import io
-import os
 import pytest
 
 

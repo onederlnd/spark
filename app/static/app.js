@@ -231,10 +231,10 @@ function setPostType(type) {
   function getCaretCoords(textarea, position) {
     const mirror = document.createElement('div');
     const style = window.getComputedStyle(textarea);
-    ['fontFamily','fontSize','fontWeight','lineHeight','padding',
-     'border','boxSizing','width','whiteSpace','wordWrap'].forEach(p => {
-      mirror.style[p] = style[p];
-    });
+    ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'padding',
+      'border', 'boxSizing', 'width', 'whiteSpace', 'wordWrap'].forEach(p => {
+        mirror.style[p] = style[p];
+      });
     mirror.style.position = 'absolute';
     mirror.style.visibility = 'hidden';
     mirror.style.whiteSpace = 'pre-wrap';
@@ -389,16 +389,16 @@ document.querySelectorAll('textarea').forEach(initMentionHighlight);
 (function () {
   const FIELDS = [
     { key: "classroom_experience", name: "Classroom experience" },
-    { key: "student_engagement",   name: "Student engagement" },
-    { key: "ease_of_use",          name: "Ease of use" },
-    { key: "assignment_workflow",  name: "Assignment workflow" },
-    { key: "safety_moderation",    name: "Safety & moderation" },
+    { key: "student_engagement", name: "Student engagement" },
+    { key: "ease_of_use", name: "Ease of use" },
+    { key: "assignment_workflow", name: "Assignment workflow" },
+    { key: "safety_moderation", name: "Safety & moderation" },
   ];
 
   const ratings = {};
 
   function starSVG(filled) {
-    const fill   = filled ? "var(--teal, #1d9e75)" : "none";
+    const fill = filled ? "var(--teal, #1d9e75)" : "none";
     const stroke = filled ? "var(--teal, #1d9e75)" : "var(--muted)";
     return `<svg viewBox="0 0 22 22" fill="${fill}" stroke="${stroke}" style="pointer-events:none;" stroke-width="1.8" xmlns="http://www.w3.org/2000/svg">
       <polygon points="11,2 13.9,8.1 20.5,8.7 15.5,13.4 17.1,19.8 11,16.3 4.9,19.8 6.5,13.4 1.5,8.7 8.1,8.1"/>
@@ -520,17 +520,17 @@ document.querySelectorAll('textarea').forEach(initMentionHighlight);
   "use strict";
 
   // ─── Config ───────────────────────────────────────────────────────────────
-  const POLL_INBOX_MS  = 20_000;   // refresh inbox list
-  const POLL_CHAT_MS   = 4_000;    // poll for new messages in open chats
+  const POLL_INBOX_MS = 20_000;   // refresh inbox list
+  const POLL_CHAT_MS = 4_000;    // poll for new messages in open chats
   const MAX_OPEN_CHATS = 2;        // how many chat panels can be open at once
 
   // ─── State ────────────────────────────────────────────────────────────────
-  let inboxOpen      = false;
-  let conversations  = [];          // [{id, title, classroom_name, unread_count, last_message_body, members}]
-  let openChats      = [];          // [{convId, el, pollTimer, lastMsgId, memberMap}]
-  let totalUnread    = 0;
+  let inboxOpen = false;
+  let conversations = [];          // [{id, title, classroom_name, unread_count, last_message_body, members}]
+  let openChats = [];          // [{convId, el, pollTimer, lastMsgId, memberMap}]
+  let totalUnread = 0;
   let inboxPollTimer = null;
-  let csrfToken      = document.querySelector('meta[name="csrf-token"]')?.content || "";
+  let csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || "";
 
   // ─── Bootstrap ────────────────────────────────────────────────────────────
   function init() {
@@ -565,10 +565,10 @@ document.querySelectorAll('textarea').forEach(initMentionHighlight);
     const d = new Date(iso.endsWith("Z") ? iso : iso + "Z");
     const now = new Date();
     const diff = (now - d) / 1000;
-    if (diff < 60)       return "now";
-    if (diff < 3600)     return Math.floor(diff / 60) + "m";
-    if (diff < 86400)    return Math.floor(diff / 3600) + "h";
-    if (diff < 604800)   return Math.floor(diff / 86400) + "d";
+    if (diff < 60) return "now";
+    if (diff < 3600) return Math.floor(diff / 60) + "m";
+    if (diff < 86400) return Math.floor(diff / 3600) + "h";
+    if (diff < 604800) return Math.floor(diff / 86400) + "d";
     return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   }
 
@@ -648,7 +648,7 @@ document.querySelectorAll('textarea').forEach(initMentionHighlight);
     inboxPanelEl = el("div", "msg-panel msg-inbox-panel");
 
     const header = el("div", "msg-panel-header");
-    const title  = el("span", "msg-panel-title", { text: "Messages" });
+    const title = el("span", "msg-panel-title", { text: "Messages" });
     const actions = el("div", "msg-panel-actions");
 
     const newBtn = el("button", "msg-icon-btn", { title: "New message", "aria-label": "New message" });
@@ -959,7 +959,7 @@ document.querySelectorAll('textarea').forEach(initMentionHighlight);
       }
 
       const bubble = el("div", `msg-bubble ${isMine ? "mine" : "theirs"}`, { text: m.body });
-      const timeEl  = el("div", "msg-bubble-time", { text: fmtClock(m.created_at) });
+      const timeEl = el("div", "msg-bubble-time", { text: fmtClock(m.created_at) });
 
       wrap.append(bubble, timeEl);
       chat.body.appendChild(wrap);
@@ -1050,4 +1050,19 @@ document.querySelectorAll('textarea').forEach(initMentionHighlight);
   } else {
     init();
   }
+
 })();
+
+function toggleCreateMenu() {
+  const menu = document.getElementById('create-menu');
+  if (!menu) return;
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+document.addEventListener('click', function(e) {
+  const wrap = document.getElementById('create-menu-wrap');
+  if (wrap && !wrap.contains(e.target)) {
+    const menu = document.getElementById('create-menu');
+    if (menu) menu.style.display = 'none';
+  }
+});

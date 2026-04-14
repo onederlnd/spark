@@ -1360,7 +1360,7 @@
 
       /* replay pill */
       #spark-tour-btn {
-        position:fixed;bottom:1.25rem;left:1.25rem;z-index:9000;
+        position:fixed;bottom:1rem;left:1.25rem;z-index:9000;
         background:var(--card);border:1px solid var(--border);
         border-radius:999px;padding:6px 14px;
         font-size:0.78rem;font-weight:800;color:var(--text);
@@ -1748,7 +1748,8 @@
     const key = getTourKey();
     if (!key) return;
     try { if (localStorage.getItem('spark_tour_seen_' + key)) return; } catch(e) {}
-    if (u.show_tour) setTimeout(() => openTour(key), 600);
+    const tourSeen = document.body.dataset.tourSeen === 'true';
+    if (!tourSeen) setTimeout(() => openTour(key), 600);
   }
 
   // --------------------------------------------------
@@ -1767,4 +1768,12 @@
     maybeAutoLaunch();
   }
 
+
+  function getTourKey() {
+  const body = document.body;
+  const role = body.dataset.role;
+  if (role === 'teacher' || role === 'admin') return 'teacher';
+  if (role === 'student') return 'student';
+  return null;
+}
 })();

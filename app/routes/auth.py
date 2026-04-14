@@ -157,7 +157,11 @@ def login():
                         f"You've been added to {invite['classroom_name']}!", "success"
                     )
 
+            if user["role"] in ("teacher", "admin") and not user["tour_seen"]:
+                return redirect(url_for("onboarding.welcome"))
+
             return redirect(url_for("feed.index"))
+
         else:
             record_failure(username_or_email, ip)
             flash("Invalid username or password", "error")
@@ -304,6 +308,9 @@ def qr_login():
         "INSERT INTO login_events (user_id, method) VALUES (?, ?)", (user["id"], "qr")
     )
     db.commit()
+
+    if user["role"] in ("teacher", "admin") and not user["tour_seen"]:
+        return redirect(url_for("onboarding.welcome"))
     return redirect(url_for("feed.index"))
 
 

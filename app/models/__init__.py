@@ -81,6 +81,7 @@ def init_db(app):
                 bio TEXT DEFAULT '',
                 role TEXT NOT NULL DEFAULT 'student',
                 coppa_status TEXT NOT NULL DEFAULT 'approved',
+                tour_seen INTEGER NOT NULL DEFAULT 0,
                 provisional INTEGER NOT NULL DEFAULT 0,
                 onboarded INTEGER NOT NULL DEFAULT 0,
                 avatar_emoji TEXT DEFAULT '🌱',

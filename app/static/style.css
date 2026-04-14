@@ -2474,7 +2474,7 @@ a:hover {
 .feedback-trigger {
   position: fixed;
   bottom: 24px;
-  left: 24px;
+  right: 24px;
   z-index: 1099;
   display: flex;
   align-items: center;
@@ -2518,7 +2518,7 @@ a:hover {
 .feedback-panel {
   position: fixed;
   bottom: 72px;
-  left: 24px;
+  right: 24px;
   width: 360px;
   max-width: calc(100vw - 48px);
   max-height: 80vh;
@@ -3446,4 +3446,17 @@ body:has(.feedback-trigger) .msg-stack {
     align-items: flex-end;
     right: 12px;
   }
+}
+.create-menu-item {
+  display: block;
+  padding: 10px 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.1s;
+}
+.create-menu-item:hover {
+  background: var(--sky);
+  color: var(--blue);
 }

@@ -1,9 +1,6 @@
 # tests/test_socket.py
 import pytest
-<<<<<<< HEAD
 from datetime import datetime, timezone, timedelta
-=======
->>>>>>> feat/session-stability-confirmation
 from app.sockets import socketio
 from app.models.notifications import create_notification
 
@@ -180,7 +177,6 @@ def test_notification_for_nonexistent_user_does_not_crash(app):
     try:
         create_notification(user_id=99999, type="follow", message="ghost", link="/")
     except Exception as e:
-<<<<<<< HEAD
         pytest.fail(f"create_notification raised unexpectedly: {e}")
 
 
@@ -206,95 +202,6 @@ def test_notification_not_received_by_other_user(app):
 def test_notification_room_isolated_per_user(app):
     sc1, _ = make_socket_client(app, user_id=1)
     sc2, _ = make_socket_client(app, user_id=2)
-=======
-        assert False, f"create_notification raised unexpectedly: {e}"
-
-
-# --- websocket session stability ---
-
-
-def test_socket_session_survives_multiple_requests(app):
-    """Socket stays connected across multiple HTTP requests on same session."""
-    with app.test_client() as http_client:
-        with http_client.session_transaction() as sess:
-            sess["user_id"] = 1
-        sc = socketio.test_client(app, flask_test_client=http_client)
-        assert sc.is_connected()
-        http_client.get("/", follow_redirects=True)
-        http_client.get("/", follow_redirects=True)
-        assert sc.is_connected()
-        sc.disconnect()
-
-
-def test_socket_disconnects_cleanly_after_logout(app):
-    """Socket client can disconnect without error after logout."""
-    with app.test_client() as http_client:
-        with http_client.session_transaction() as sess:
-            sess["user_id"] = 1
-        sc = socketio.test_client(app, flask_test_client=http_client)
-        assert sc.is_connected()
-        http_client.get("/auth/logout", follow_redirects=True)
-        sc.disconnect()
-        assert not sc.is_connected()
-
-
-@pytest.mark.xfail(reason="Socket rooms are not cleared on HTTP sessons - known gap")
-def test_socket_no_notification_after_session_expiry(app):
-    """Expired session user should not receive notifications in their room."""
-    with app.test_client() as http_client:
-        with http_client.session_transaction() as sess:
-            sess["user_id"] = 1
-        sc = socketio.test_client(app, flask_test_client=http_client)
-
-        # expire the session
-        timeout = app.config["SESSION_TIMEOUT_MINUTES"]
-        expired = datetime.now(timezone.utc) - timedelta(minutes=timeout + 1)
-        with http_client.session_transaction() as sess:
-            sess["last_active"] = expired.isoformat()
-
-        # trigger timeout via HTTP request
-        http_client.get("/", follow_redirects=True)
-
-        # session is cleared — any new notification should not reach them
-        sc.get_received()  # clear buffer
-        create_notification(user_id=1, type="follow", message="post-expiry", link="/")
-        received = sc.get_received()
-
-        # they may still be connected at socket level but room delivery
-        # depends on whether handle_connect re-joined — this confirms no new delivery
-        notifs = [e for e in received if e["name"] == "notification"]
-        assert len(notifs) == 0
-
-        sc.disconnect()
-
-
-def test_socket_unauthenticated_receives_no_notifications(app):
-    """Client with no session should never receive user-targeted notifications."""
-    sc = socketio.test_client(app)
-    assert sc.is_connected()
-    sc.get_received()  # clear any connect events
-
-    create_notification(
-        user_id=1, type="mention", message="should not arrive", link="/"
-    )
-    received = sc.get_received()
-    assert not any(e["name"] == "notification" for e in received)
-    sc.disconnect()
-
-
-def test_socket_room_isolated_per_user(app):
-    """Two authenticated users only receive their own notifications."""
-    with app.test_client() as hc1:
-        with hc1.session_transaction() as sess:
-            sess["user_id"] = 1
-        sc1 = socketio.test_client(app, flask_test_client=hc1)
-
-    with app.test_client() as hc2:
-        with hc2.session_transaction() as sess:
-            sess["user_id"] = 2
-        sc2 = socketio.test_client(app, flask_test_client=hc2)
-
->>>>>>> feat/session-stability-confirmation
     sc1.get_received()
     sc2.get_received()
 
@@ -302,15 +209,10 @@ def test_socket_room_isolated_per_user(app):
 
     assert not any(e["name"] == "notification" for e in sc1.get_received())
     assert any(e["name"] == "notification" for e in sc2.get_received())
-<<<<<<< HEAD
-=======
-
->>>>>>> feat/session-stability-confirmation
     sc1.disconnect()
     sc2.disconnect()
 
 
-<<<<<<< HEAD
 def test_no_notification_before_room_join(app):
     sc, _ = make_socket_client(app)  # no user_id — no room joined
     create_notification(user_id=1, type="follow", message="too early", link="/")
@@ -368,38 +270,3 @@ def test_no_notification_after_session_expiry(app):
     events = [e for e in sc.get_received() if e["name"] == "notification"]
     assert len(events) == 0
     sc.disconnect()
-=======
-def test_socket_reconnect_rejoins_room(app):
-    """Client that reconnects should re-enter their user room and receive notifications."""
-    with app.test_client() as http_client:
-        with http_client.session_transaction() as sess:
-            sess["user_id"] = 1
-        sc = socketio.test_client(app, flask_test_client=http_client)
-        sc.disconnect()
-        sc.connect()
-        assert sc.is_connected()
-
-        sc.get_received()  # clear
-        socketio.emit(
-            "notification",
-            {"message": "after reconnect", "type": "follow", "link": "/"},
-            room="user_1",
-        )
-        received = sc.get_received()
-        assert any(e["name"] == "notification" for e in received)
-        sc.disconnect()
-
-
-def test_expired_session_http_redirects_to_login(app):
-    """Confirm HTTP side of session expiry still redirects — sanity check alongside socket tests."""
-    with app.test_client() as http_client:
-        with http_client.session_transaction() as sess:
-            sess["user_id"] = 1
-            timeout = app.config["SESSION_TIMEOUT_MINUTES"]
-            expired = datetime.now(timezone.utc) - timedelta(minutes=timeout + 1)
-            sess["last_active"] = expired.isoformat()
-
-        res = http_client.get("/", follow_redirects=False)
-        assert res.status_code == 302
-        assert "login" in res.headers["Location"]
->>>>>>> feat/session-stability-confirmation

@@ -1,0 +1,1297 @@
+{% extends "base.html" %}
+{% block title %}Welcome to SparK{% endblock %}
+
+{% block content %}
+<div id="spark-welcome">
+
+  <!-- ── CHOICE SCREEN ─────────────────────────── -->
+  <div class="sw-screen" id="sw-choice">
+    <div class="sw-card sw-choice-card">
+      <div class="sw-hex">⚡</div>
+      <h1 class="sw-title">Welcome to SparK</h1>
+      <p class="sw-sub">You're all set up. What would you like to do first?</p>
+      <div class="sw-choice-grid">
+        <button class="sw-choice-btn sw-choice-primary" onclick="swGoto()">
+          <span class="sw-choice-icon">🚀</span>
+          <div>
+            <span class="sw-choice-label">Set up my classroom</span>
+            <span class="sw-choice-desc">Create a class, add students, and get ready for day one — takes about 3
+              minutes.</span>
+          </div>
+        </button>
+        <button class="sw-choice-btn" onclick="swStartTour()">
+          <span class="sw-choice-icon">🎯</span>
+          <div>
+            <span class="sw-choice-label">Take the platform tour</span>
+            <span class="sw-choice-desc">See everything SparK can do — great if you want the full picture first.</span>
+          </div>
+        </button>
+        <button class="sw-choice-btn sw-choice-muted" onclick="swSkipAll()">
+          <span class="sw-choice-icon">⏭</span>
+          <div>
+            <span class="sw-choice-label">Skip for now</span>
+            <span class="sw-choice-desc">Jump straight to SparK. You can always come back to /welcome.</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SETUP WRAPPER ─────────────────────────── -->
+  <div class="sw-screen" id="sw-setup" style="display:none;">
+
+    <div class="sw-progress-wrap">
+      <div class="sw-progress-bar">
+        <div class="sw-progress-fill" id="sw-progress-fill"></div>
+      </div>
+      <div class="sw-progress-steps">
+        <span class="sw-prog-step active" data-step="0">Classroom</span>
+        <span class="sw-prog-step" data-step="1">Students</span>
+        <span class="sw-prog-step" data-step="2">Topics</span>
+        <span class="sw-prog-step" data-step="3">Parents</span>
+        <span class="sw-prog-step" data-step="4">Ready!</span>
+      </div>
+    </div>
+
+    <!-- ── STEP 0: Create classroom ── -->
+    <div class="sw-step" id="sw-step-0">
+      <div class="sw-card">
+        <div class="sw-step-badge">Step 1 of 4</div>
+        <h2 class="sw-step-title">Create your first classroom</h2>
+        <p class="sw-step-desc">Give your classroom a name your students will recognize. You can create more classrooms
+          any time from the Classrooms page.</p>
+
+        <div id="sw-classroom-form">
+          <div class="sw-field">
+            <label class="sw-label" for="sw-cls-name">Classroom name <span class="sw-required">*</span></label>
+            <input type="text" id="sw-cls-name" class="sw-input" placeholder="e.g. Period 3 · Python Basics"
+              maxlength="80">
+          </div>
+          <div class="sw-field">
+            <label class="sw-label" for="sw-cls-desc">Description <span class="sw-optional">(optional)</span></label>
+            <textarea id="sw-cls-desc" class="sw-input sw-textarea" placeholder="A short description for your students…"
+              maxlength="300" rows="2"></textarea>
+          </div>
+          <div id="sw-cls-error" class="sw-error" style="display:none;"></div>
+          <div class="sw-actions">
+            <button class="sw-btn sw-btn-primary" onclick="swCreateClassroom()">
+              <span id="sw-cls-btn-label">Create classroom →</span>
+            </button>
+            <button class="sw-btn sw-btn-ghost" onclick="swNext()">I'll do this later</button>
+          </div>
+        </div>
+
+        <!-- Success state (shown after creation) -->
+        <div id="sw-classroom-success" style="display:none;">
+          <div class="sw-success-banner">
+            <span class="sw-success-icon">✅</span>
+            <div>
+              <div class="sw-success-label">Classroom created!</div>
+              <div id="sw-cls-success-name" class="sw-success-sub"></div>
+            </div>
+          </div>
+          <div class="sw-callout" style="margin-top:1rem;">
+            <span class="sw-callout-icon">🔑</span>
+            <div>
+              <div style="font-size:0.82rem;font-weight:800;color:var(--text);margin-bottom:2px;">Join Code</div>
+              <div id="sw-cls-join-code"
+                style="font-size:1.4rem;font-weight:900;color:var(--teal);letter-spacing:0.2em;"></div>
+              <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;">Share this with students who will
+                self-register</div>
+            </div>
+          </div>
+          <div class="sw-actions" style="margin-top:1.25rem;">
+            <button class="sw-btn sw-btn-primary" onclick="swNext()">Next: Add students →</button>
+            <button class="sw-btn sw-btn-ghost" onclick="swResetClassroom()">Create a different classroom</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 1: Add students ── -->
+    <div class="sw-step" id="sw-step-1" style="display:none;">
+      <div class="sw-card">
+        <div class="sw-step-badge">Step 2 of 4</div>
+        <h2 class="sw-step-title">Add your students</h2>
+        <p class="sw-step-desc">Choose how you'd like to add students. You can use both methods — mix and match to suit
+          your class.</p>
+
+        <!-- Method tabs -->
+        <div class="sw-tabs">
+          <button class="sw-tab active" onclick="swTab('provision')">👤 Create accounts for them</button>
+          <button class="sw-tab" onclick="swTab('joincode')">🔑 They join with a code</button>
+        </div>
+
+        <!-- Provision tab -->
+        <!-- Provision tab -->
+        <div id="sw-tab-provision">
+          <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.6;">
+            Create accounts directly — students get a username and temporary password to log in. Best for younger
+            learners or managed devices.
+          </p>
+
+          <!-- CSV bulk upload -->
+          <div class="sw-callout sw-callout-muted" style="flex-direction:column;align-items:stretch;gap:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span class="sw-callout-icon">📄</span>
+              <span style="font-size:0.82rem;font-weight:800;color:var(--text);">Bulk upload via CSV</span>
+            </div>
+            <p style="font-size:0.78rem;color:var(--muted);margin:0;">
+              Columns: <code>first_name</code>, <code>last_name</code>, <code>dob</code> (YYYY-MM-DD),
+              <code>join_codes</code> (optional).
+            </p>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <input type="file" id="sw-csv-file" accept=".csv"
+                style="font-size:0.82rem;color:var(--text);flex:1;min-width:0;">
+              <button class="sw-btn sw-btn-primary" style="padding:7px 14px;" onclick="swUploadCSV()">
+                <span id="sw-csv-btn-label">Upload →</span>
+              </button>
+            </div>
+            <div id="sw-csv-error" class="sw-error" style="display:none;"></div>
+          </div>
+
+          {% if classrooms %}
+          <div class="sw-field">
+            <label class="sw-label" for="sw-stu-joincode">Enroll in classroom <span
+                class="sw-optional">(optional)</span></label>
+            <select id="sw-stu-joincode" class="sw-input sw-select">
+              <option value="">— don't enroll yet —</option>
+              {% for c in classrooms %}
+              <option value="{{ c.join_code }}">{{ c.name }} ({{ c.join_code }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          {% endif %}
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="sw-field">
+              <label class="sw-label" for="sw-stu-first">First name <span class="sw-required">*</span></label>
+              <input type="text" id="sw-stu-first" class="sw-input" placeholder="Jane" maxlength="50">
+            </div>
+            <div class="sw-field">
+              <label class="sw-label" for="sw-stu-last">Last name <span class="sw-required">*</span></label>
+              <input type="text" id="sw-stu-last" class="sw-input" placeholder="Smith" maxlength="50">
+            </div>
+          </div>
+          <div class="sw-field">
+            <label class="sw-label" for="sw-stu-dob">Date of birth <span class="sw-required">*</span></label>
+            <input type="date" id="sw-stu-dob" class="sw-input">
+          </div>
+
+          <div id="sw-stu-error" class="sw-error" style="display:none;"></div>
+
+          <div class="sw-actions">
+            <button class="sw-btn sw-btn-primary" onclick="swProvisionStudent()">
+              <span id="sw-stu-btn-label">Add student →</span>
+            </button>
+          </div>
+
+          <!-- Provisioned students list -->
+          <div id="sw-students-list" style="display:none;margin-top:1.25rem;">
+            <div style="font-size:0.75rem;font-weight:800;color:var(--muted);letter-spacing:0.8px;margin-bottom:6px;">
+              ADDED THIS SESSION</div>
+            <div id="sw-students-rows"></div>
+            <div class="sw-callout sw-callout-muted" style="margin-top:8px;">
+              <span class="sw-callout-icon">💡</span>
+              <span>Credentials are shown once. Print or copy them before leaving this page.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Join code tab -->
+        <div id="sw-tab-joincode" style="display:none;">
+          <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.6;">
+            Students sign up on their own at <strong>/register</strong> and enter your classroom's join code. Great for
+            older or tech-comfortable learners.
+          </p>
+
+          {% if classrooms %}
+          <!-- Existing classrooms from server -->
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem;">
+            {% for c in classrooms %}
+            <div class="sw-callout" style="margin-bottom:0;">
+              <span class="sw-callout-icon">🏫</span>
+              <div>
+                <div style="font-size:0.82rem;font-weight:800;color:var(--text);">{{ c.name }}</div>
+                <div style="font-size:1.3rem;font-weight:900;color:var(--teal);letter-spacing:0.2em;">{{ c.join_code }}
+                </div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+          <!-- Also show any classroom created this session via JS -->
+          <div class="sw-callout" id="sw-tab-jc-mirror-wrap" style="display:none;margin-bottom:1rem;">
+            <span class="sw-callout-icon">🔑</span>
+            <div>
+              <div style="font-size:0.82rem;font-weight:800;color:var(--text);margin-bottom:2px;">New classroom (this
+                session)</div>
+              <div id="sw-tab-jc-mirror"
+                style="font-size:1.4rem;font-weight:900;color:var(--teal);letter-spacing:0.2em;"></div>
+            </div>
+          </div>
+          {% else %}
+          <!-- No pre-existing classrooms — show join code if one was just created via JS -->
+          <div class="sw-callout" id="sw-tab-jc-mirror-wrap" style="display:none;margin-bottom:1rem;">
+            <span class="sw-callout-icon">🔑</span>
+            <div>
+              <div style="font-size:0.82rem;font-weight:800;color:var(--text);margin-bottom:2px;">Join Code</div>
+              <div id="sw-tab-jc-mirror"
+                style="font-size:1.4rem;font-weight:900;color:var(--teal);letter-spacing:0.2em;"></div>
+            </div>
+          </div>
+          <div class="sw-callout sw-callout-muted" id="sw-tab-jc-no-classroom">
+            <span class="sw-callout-icon">ℹ️</span>
+            <span>Create a classroom first (Step 1) to get your join code.</span>
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="sw-actions" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem;">
+          <button class="sw-btn sw-btn-primary" onclick="swNext()">Next: Add topics →</button>
+          <button class="sw-btn sw-btn-ghost" onclick="swNext()">Skip this step</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 2: Add topics ── -->
+    <div class="sw-step" id="sw-step-2" style="display:none;">
+      <div class="sw-card">
+        <div class="sw-step-badge">Step 3 of 4</div>
+        <h2 class="sw-step-title">Add discussion topics</h2>
+        <p class="sw-step-desc">Topics help organise posts and discussions in your classroom. Add a few to get started —
+          you can always add more from the Topics page.</p>
+
+        <div class="sw-field">
+          <label class="sw-label" for="sw-topic-name">Topic name <span class="sw-required">*</span></label>
+          <input type="text" id="sw-topic-name" class="sw-input" placeholder="e.g. Python Basics" maxlength="80">
+        </div>
+        <div class="sw-field">
+          <label class="sw-label" for="sw-topic-desc">Description <span class="sw-optional">(optional)</span></label>
+          <textarea id="sw-topic-desc" class="sw-input sw-textarea" placeholder="A short description of this topic…"
+            maxlength="300" rows="2"></textarea>
+        </div>
+
+        <div id="sw-topic-error" class="sw-error" style="display:none;"></div>
+
+        <div class="sw-actions">
+          <button class="sw-btn sw-btn-primary" onclick="swCreateTopic()">
+            <span id="sw-topic-btn-label">Add topic →</span>
+          </button>
+        </div>
+
+        <!-- Topics added this session -->
+        <div id="sw-topics-list" style="display:none;margin-top:1.25rem;">
+          <div style="font-size:0.75rem;font-weight:800;color:var(--muted);letter-spacing:0.8px;margin-bottom:6px;">
+            ADDED THIS SESSION</div>
+          <div id="sw-topics-rows"></div>
+        </div>
+
+        <div class="sw-actions" style="margin-top:1.5rem;border-top:1px solid var(--border);padding-top:1rem;">
+          <button class="sw-btn sw-btn-primary" onclick="swNext()">Next: Parent setup →</button>
+          <button class="sw-btn sw-btn-ghost" onclick="swNext()">Skip this step</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 3: Parent setup ── -->
+    <div class="sw-step" id="sw-step-3" style="display:none;">
+      <div class="sw-card">
+        <div class="sw-step-badge">Step 4 of 4</div>
+        <h2 class="sw-step-title">Connect parents &amp; guardians</h2>
+        <p class="sw-step-desc">Parents get a read-only view of their child's activity, grades, and messages. They join
+          using a parent code tied to their child's account.</p>
+
+        <div class="sw-callout">
+          <span class="sw-callout-icon">📬</span>
+          <span>Each student has a unique parent code. Find it on their profile page — share it directly, print it, or
+            include it in your welcome letter home.</span>
+        </div>
+        <div class="sw-callout sw-callout-muted">
+          <span class="sw-callout-icon">ℹ️</span>
+          <span>Parent accounts are optional. You can set this up any time from a student's profile.</span>
+        </div>
+
+        <div class="sw-actions" style="margin-top:1.5rem;">
+          <button class="sw-btn sw-btn-primary" onclick="swNext()">Next: Finish setup →</button>
+          <button class="sw-btn sw-btn-ghost" onclick="swNext()">Skip for now</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── STEP 4: Done ── -->
+    <div class="sw-step" id="sw-step-4" style="display:none;">
+      <div class="sw-card sw-done-card">
+        <div class="sw-done-icon">🎉</div>
+        <h2 class="sw-step-title">You're ready for day one.</h2>
+        <p class="sw-step-desc">Here's a quick checklist to keep you on track:</p>
+        <div class="sw-checklist">
+          <div class="sw-check-item"><span class="sw-check-box">🏫</span>
+            <div>
+              <div class="sw-check-label">Create a classroom</div>
+              <div class="sw-check-sub">Your class's home base for posts, assignments, and grades</div>
+            </div>
+          </div>
+          <div class="sw-check-item"><span class="sw-check-box">👥</span>
+            <div>
+              <div class="sw-check-label">Add your students</div>
+              <div class="sw-check-sub">Via join code or provisioned accounts</div>
+            </div>
+          </div>
+          <div class="sw-check-item"><span class="sw-check-box">📌</span>
+            <div>
+              <div class="sw-check-label">Set up discussion topics</div>
+              <div class="sw-check-sub">Keeps posts organised from day one</div>
+            </div>
+          </div>
+          <div class="sw-check-item"><span class="sw-check-box">📝</span>
+            <div>
+              <div class="sw-check-label">Post your first announcement</div>
+              <div class="sw-check-sub">Say hello — set the tone for your classroom community</div>
+            </div>
+          </div>
+          <div class="sw-check-item"><span class="sw-check-box">📚</span>
+            <div>
+              <div class="sw-check-label">Create an assignment or quiz</div>
+              <div class="sw-check-sub">When you're ready — no rush</div>
+            </div>
+          </div>
+        </div>
+        <div class="sw-done-actions">
+          <form method="POST" action="{{ url_for('onboarding.complete') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="sw-btn sw-btn-primary sw-btn-large">Let's go ⚡</button>
+          </form>
+          <button class="sw-btn sw-btn-ghost" onclick="swStartTour()">Take the platform tour first</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sw-footer">
+      <button class="sw-skip-all" onclick="swSkipAll()">Skip setup entirely →</button>
+    </div>
+
+  </div><!-- /sw-setup -->
+</div><!-- /spark-welcome -->
+
+<style>
+  .main-content {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+
+  #spark-welcome {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background: var(--soft);
+  }
+
+  .sw-screen {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .sw-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 620px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  /* Choice screen */
+  .sw-hex {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, var(--blue), var(--teal));
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.4rem;
+    margin: 0 auto 1.25rem;
+  }
+
+  .sw-title {
+    font-size: 1.9rem;
+    font-weight: 900;
+    color: var(--text);
+    text-align: center;
+    letter-spacing: -0.4px;
+    margin-bottom: 0.4rem;
+  }
+
+  .sw-sub {
+    font-size: 1rem;
+    color: var(--muted);
+    text-align: center;
+    margin-bottom: 2rem;
+    line-height: 1.6;
+  }
+
+  .sw-choice-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .sw-choice-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px 18px;
+    background: var(--soft);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    font-family: var(--font);
+    width: 100%;
+  }
+
+  .sw-choice-btn:hover {
+    border-color: var(--teal);
+    background: rgba(58, 188, 177, 0.05);
+    transform: translateX(3px);
+  }
+
+  .sw-choice-primary {
+    border-color: var(--teal);
+    background: rgba(58, 188, 177, 0.06);
+  }
+
+  .sw-choice-muted {
+    opacity: 0.75;
+  }
+
+  .sw-choice-muted:hover {
+    opacity: 1;
+  }
+
+  .sw-choice-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .sw-choice-label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .sw-choice-desc {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Progress */
+  .sw-progress-wrap {
+    width: 100%;
+    max-width: 620px;
+    margin-bottom: 1.25rem;
+  }
+
+  .sw-progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+
+  .sw-progress-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 2px;
+    transition: width 0.35s ease;
+    width: 0%;
+  }
+
+  .sw-progress-steps {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .sw-prog-step {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--muted);
+    transition: color 0.2s;
+  }
+
+  .sw-prog-step.active {
+    color: var(--teal);
+  }
+
+  .sw-prog-step.done {
+    color: var(--blue);
+  }
+
+  /* Step card */
+  .sw-step-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--sky);
+    color: var(--blue);
+    margin-bottom: 1rem;
+  }
+
+  .sw-step-title {
+    font-size: 1.45rem;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.3px;
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+  }
+
+  .sw-step-desc {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+  }
+
+  /* Form fields */
+  .sw-field {
+    margin-bottom: 1rem;
+  }
+
+  .sw-label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 5px;
+  }
+
+  .sw-required {
+    color: var(--rose);
+  }
+
+  .sw-optional {
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .sw-input {
+    width: 100%;
+    padding: 9px 12px;
+    background: var(--soft);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 0.9rem;
+    transition: border-color 0.15s;
+    box-sizing: border-box;
+  }
+
+  .sw-input:focus {
+    outline: none;
+    border-color: var(--teal);
+  }
+
+  .sw-textarea {
+    resize: vertical;
+    min-height: 60px;
+  }
+
+  .sw-select {
+    appearance: none;
+    cursor: pointer;
+  }
+
+  /* Tabs */
+  .sw-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 1.25rem;
+  }
+
+  .sw-tab {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--soft);
+    font-family: var(--font);
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .sw-tab.active {
+    border-color: var(--teal);
+    background: rgba(58, 188, 177, 0.08);
+    color: var(--teal);
+  }
+
+  /* Callout */
+  .sw-callout {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: rgba(58, 188, 177, 0.07);
+    border: 1px solid rgba(58, 188, 177, 0.25);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+
+  .sw-callout-muted {
+    background: var(--soft);
+    border-color: var(--border);
+    color: var(--muted);
+  }
+
+  .sw-callout-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* Error */
+  .sw-error {
+    background: rgba(242, 107, 107, 0.1);
+    border: 1px solid var(--rose);
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    color: var(--rose);
+    margin-top: 8px;
+    font-weight: 700;
+  }
+
+  /* Success banner */
+  .sw-success-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(76, 175, 130, 0.1);
+    border: 1px solid var(--green);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+  }
+
+  .sw-success-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+  }
+
+  .sw-success-label {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: var(--green);
+  }
+
+  .sw-success-sub {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Students list */
+  .sw-student-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 5px;
+    gap: 8px;
+  }
+
+  .sw-student-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .sw-student-creds {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .sw-student-badge {
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: var(--sky);
+    color: var(--blue);
+    white-space: nowrap;
+  }
+
+  /* Topics list */
+  .sw-topic-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 5px;
+  }
+
+  .sw-topic-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--teal);
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .sw-topic-name {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .sw-topic-desc-text {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 1px;
+  }
+
+  /* Actions */
+  .sw-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 1.25rem;
+  }
+
+  /* Buttons */
+  .sw-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 20px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font);
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-decoration: none;
+    border: 1.5px solid transparent;
+  }
+
+  .sw-btn-primary {
+    background: var(--teal);
+    color: #fff;
+    border-color: var(--teal);
+  }
+
+  .sw-btn-primary:hover {
+    opacity: 0.88;
+    transform: scale(1.02);
+    color: #fff;
+  }
+
+  .sw-btn-primary:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .sw-btn-ghost {
+    background: none;
+    color: var(--muted);
+    border-color: var(--border);
+  }
+
+  .sw-btn-ghost:hover {
+    border-color: var(--blue);
+    color: var(--blue);
+  }
+
+  .sw-btn-large {
+    padding: 13px 32px;
+    font-size: 1rem;
+  }
+
+  /* Done */
+  .sw-done-card {
+    text-align: center;
+  }
+
+  .sw-done-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .sw-checklist {
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 1.25rem 0;
+  }
+
+  .sw-check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    background: var(--soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+
+  .sw-check-box {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .sw-check-label {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+
+  .sw-check-sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .sw-done-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 1.5rem;
+  }
+
+  /* Footer */
+  .sw-footer {
+    margin-top: 1rem;
+    text-align: center;
+  }
+
+  .sw-skip-all {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: var(--font);
+    font-weight: 600;
+    text-decoration: underline;
+    transition: color 0.15s;
+  }
+
+  .sw-skip-all:hover {
+    color: var(--text);
+  }
+
+  @media (max-width: 600px) {
+    .sw-card {
+      padding: 1.5rem;
+    }
+
+    .sw-title {
+      font-size: 1.4rem;
+    }
+
+    .sw-tabs {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script>
+  const SW_LAST_STEP = 4;
+  let swCurrentStep = 0;
+  const CSRF = document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+  // ── Navigation ──────────────────────────────────
+  function swGoto() {
+    document.getElementById('sw-choice').style.display = 'none';
+    document.getElementById('sw-setup').style.display = '';
+    swShowStep(0);
+  }
+
+  function swShowStep(idx) {
+    document.querySelectorAll('.sw-step').forEach(el => el.style.display = 'none');
+    const el = document.getElementById('sw-step-' + idx);
+    if (el) {
+      el.style.display = '';
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = 'swSlideIn 0.18s ease';
+    }
+    swCurrentStep = idx;
+    swUpdateProgress(idx);
+  }
+
+  function swNext() {
+    // Mirror the join code from Step 0 into Step 1's joincode tab
+    const src = document.getElementById('sw-cls-join-code');
+    const dest = document.getElementById('sw-tab-jc-mirror');
+    const wrap = document.getElementById('sw-tab-jc-mirror-wrap');
+    const noClassroom = document.getElementById('sw-tab-jc-no-classroom');
+    if (src && src.textContent.trim() && dest) {
+      dest.textContent = src.textContent.trim();
+      if (wrap) wrap.style.display = '';
+      if (noClassroom) noClassroom.style.display = 'none';
+    }
+    const next = swCurrentStep + 1;
+    if (next > SW_LAST_STEP) return;
+    swShowStep(next);
+  }
+
+  function swUpdateProgress(idx) {
+    const pct = idx >= SW_LAST_STEP ? 100 : Math.round((idx / SW_LAST_STEP) * 100);
+    document.getElementById('sw-progress-fill').style.width = pct + '%';
+    document.querySelectorAll('.sw-prog-step').forEach(el => {
+      const s = parseInt(el.dataset.step);
+      el.classList.remove('active', 'done');
+      if (s === idx) el.classList.add('active');
+      else if (s < idx) el.classList.add('done');
+    });
+  }
+
+  // ── Tabs ────────────────────────────────────────
+  function swTab(tab) {
+    document.getElementById('sw-tab-provision').style.display = tab === 'provision' ? '' : 'none';
+    document.getElementById('sw-tab-joincode').style.display = tab === 'joincode' ? '' : 'none';
+    document.querySelectorAll('.sw-tab').forEach((t, i) => {
+      t.classList.toggle('active', (i === 0 && tab === 'provision') || (i === 1 && tab === 'joincode'));
+    });
+  }
+
+  // ── Create classroom (AJAX) ──────────────────────
+  async function swCreateClassroom() {
+    const name = document.getElementById('sw-cls-name').value.trim();
+    const desc = document.getElementById('sw-cls-desc').value.trim();
+    const errEl = document.getElementById('sw-cls-error');
+    const btn = document.getElementById('sw-cls-btn-label');
+
+    errEl.style.display = 'none';
+    if (!name) { swShowError('sw-cls-error', 'Classroom name is required.'); return; }
+
+    btn.textContent = 'Creating…';
+    document.querySelector('#sw-classroom-form .sw-btn-primary').disabled = true;
+
+    try {
+      const fd = new FormData();
+      fd.append('name', name);
+      fd.append('description', desc);
+      fd.append('csrf_token', CSRF);
+
+      const res = await fetch("{{ url_for('onboarding.create_classroom_inline') }}", {
+        method: 'POST', body: fd
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        swShowError('sw-cls-error', data.error || 'Something went wrong.');
+        btn.textContent = 'Create classroom →';
+        document.querySelector('#sw-classroom-form .sw-btn-primary').disabled = false;
+        return;
+      }
+
+      document.getElementById('sw-classroom-form').style.display = 'none';
+      document.getElementById('sw-classroom-success').style.display = '';
+      document.getElementById('sw-cls-success-name').textContent = data.name;
+      document.getElementById('sw-cls-join-code').textContent = data.join_code;
+
+      const sel = document.getElementById('sw-stu-joincode');
+      if (sel) {
+        const opt = document.createElement('option');
+        opt.value = data.join_code;
+        opt.textContent = `${data.name} (${data.join_code})`;
+        opt.selected = true;
+        sel.appendChild(opt);
+      }
+
+    } catch (e) {
+      swShowError('sw-cls-error', 'Network error — please try again.');
+      btn.textContent = 'Create classroom →';
+      document.querySelector('#sw-classroom-form .sw-btn-primary').disabled = false;
+    }
+  }
+
+  function swResetClassroom() {
+    document.getElementById('sw-classroom-form').style.display = '';
+    document.getElementById('sw-classroom-success').style.display = 'none';
+    document.getElementById('sw-cls-name').value = '';
+    document.getElementById('sw-cls-desc').value = '';
+    document.getElementById('sw-cls-btn-label').textContent = 'Create classroom →';
+    document.querySelector('#sw-classroom-form .sw-btn-primary').disabled = false;
+  }
+
+  // ── Provision student (AJAX) ─────────────────────
+  const swProvisionedStudents = [];
+
+  async function swProvisionStudent() {
+    const first = document.getElementById('sw-stu-first').value.trim();
+    const last = document.getElementById('sw-stu-last').value.trim();
+    const dob = document.getElementById('sw-stu-dob').value.trim();
+    const sel = document.getElementById('sw-stu-joincode');
+    const joinCode = sel ? sel.value : '';
+    const btn = document.getElementById('sw-stu-btn-label');
+
+    document.getElementById('sw-stu-error').style.display = 'none';
+    if (!first || !last || !dob) {
+      swShowError('sw-stu-error', 'First name, last name, and date of birth are required.');
+      return;
+    }
+
+    btn.textContent = 'Adding…';
+    document.querySelector('#sw-tab-provision .sw-btn-primary').disabled = true;
+
+    try {
+      const fd = new FormData();
+      fd.append('first_name', first);
+      fd.append('last_name', last);
+      fd.append('dob', dob);
+      fd.append('join_codes', joinCode);
+      fd.append('csrf_token', CSRF);
+
+      const res = await fetch("{{ url_for('onboarding.provision_student_inline') }}", {
+        method: 'POST', body: fd
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        swShowError('sw-stu-error', data.error || 'Something went wrong.');
+        btn.textContent = 'Add student →';
+        document.querySelector('#sw-tab-provision .sw-btn-primary').disabled = false;
+        return;
+      }
+
+      swProvisionedStudents.push(data);
+      swRenderStudentRow(data);
+
+      document.getElementById('sw-stu-first').value = '';
+      document.getElementById('sw-stu-last').value = '';
+      document.getElementById('sw-stu-dob').value = '';
+      btn.textContent = 'Add another student →';
+      document.querySelector('#sw-tab-provision .sw-btn-primary').disabled = false;
+      document.getElementById('sw-stu-first').focus();
+
+    } catch (e) {
+      swShowError('sw-stu-error', 'Network error — please try again.');
+      btn.textContent = 'Add student →';
+      document.querySelector('#sw-tab-provision .sw-btn-primary').disabled = false;
+    }
+  }
+
+  function swRenderStudentRow(s) {
+    const list = document.getElementById('sw-students-list');
+    const rows = document.getElementById('sw-students-rows');
+    list.style.display = '';
+    const row = document.createElement('div');
+    row.className = 'sw-student-row';
+    row.innerHTML = `
+      <div>
+        <div class="sw-student-name">${s.first_name} ${s.last_name}</div>
+        <div class="sw-student-creds">Username: <strong>${s.username}</strong> · Password: <strong>${s.password}</strong></div>
+      </div>
+      <span class="sw-student-badge">✓ Added</span>
+    `;
+    rows.appendChild(row);
+  }
+
+  // ── Create topic (AJAX) ──────────────────────────
+  const swAddedTopics = [];
+
+  async function swCreateTopic() {
+    const nameEl = document.getElementById('sw-topic-name');
+    const descEl = document.getElementById('sw-topic-desc');
+    const errEl = document.getElementById('sw-topic-error');
+    const btnLbl = document.getElementById('sw-topic-btn-label');
+    const name = nameEl.value.trim();
+    const desc = descEl.value.trim();
+
+    errEl.style.display = 'none';
+
+    if (!name) {
+      swShowError('sw-topic-error', 'Topic name is required.');
+      nameEl.focus();
+      return;
+    }
+
+    const dupe = swAddedTopics.find(t => t.toLowerCase() === name.toLowerCase());
+    if (dupe) {
+      swShowError('sw-topic-error', `"${name}" has already been added this session.`);
+      return;
+    }
+
+    btnLbl.textContent = 'Adding…';
+    document.querySelector('#sw-step-2 .sw-actions:first-of-type .sw-btn-primary').disabled = true;
+
+    try {
+      const fd = new FormData();
+      fd.append('name', name);
+      fd.append('description', desc);
+      fd.append('csrf_token', CSRF);
+
+      const res = await fetch("{{ url_for('onboarding.create_topic_inline') }}", {
+        method: 'POST', body: fd
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        swShowError('sw-topic-error', data.error || 'Something went wrong.');
+        btnLbl.textContent = 'Add topic →';
+        document.querySelector('#sw-step-2 .sw-actions:first-of-type .sw-btn-primary').disabled = false;
+        return;
+      }
+
+      swAddedTopics.push(name);
+      swRenderTopicRow(data.name, data.description);
+
+      nameEl.value = '';
+      descEl.value = '';
+      btnLbl.textContent = 'Add another →';
+      document.querySelector('#sw-step-2 .sw-actions:first-of-type .sw-btn-primary').disabled = false;
+      nameEl.focus();
+
+    } catch (e) {
+      swShowError('sw-topic-error', 'Network error — please try again.');
+      btnLbl.textContent = 'Add topic →';
+      document.querySelector('#sw-step-2 .sw-actions:first-of-type .sw-btn-primary').disabled = false;
+    }
+  }
+
+  function swRenderTopicRow(name, desc) {
+    const list = document.getElementById('sw-topics-list');
+    const rows = document.getElementById('sw-topics-rows');
+    list.style.display = '';
+    const row = document.createElement('div');
+    row.className = 'sw-topic-row';
+    row.innerHTML = `
+      <div class="sw-topic-dot"></div>
+      <div>
+        <div class="sw-topic-name">${swEscHtml(name)}</div>
+        ${desc ? `<div class="sw-topic-desc-text">${swEscHtml(desc)}</div>` : ''}
+      </div>
+    `;
+    rows.appendChild(row);
+  }
+
+  // ── Helpers ──────────────────────────────────────
+  function swShowError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = '';
+  }
+
+  function swEscHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function swStartTour() {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = "{{ url_for('onboarding.complete') }}?tour=1";
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden'; csrf.name = 'csrf_token'; csrf.value = CSRF;
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  function swSkipAll() {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = "{{ url_for('onboarding.complete') }}";
+    const csrf = document.createElement('input');
+    csrf.type = 'hidden'; csrf.name = 'csrf_token'; csrf.value = CSRF;
+    form.appendChild(csrf);
+    document.body.appendChild(form);
+    form.submit();
+  }
+
+  // Enter key shortcut on topic name field
+  document.addEventListener('DOMContentLoaded', function () {
+    document.getElementById('sw-topic-name').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); swCreateTopic(); }
+    });
+  });
+
+  // Animation
+  const swStyle = document.createElement('style');
+  swStyle.textContent = `@keyframes swSlideIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }`;
+  document.head.appendChild(swStyle);
+
+
+  async function swUploadCSV() {
+  const fileInput = document.getElementById('sw-csv-file');
+  const btn = document.getElementById('sw-csv-btn-label');
+  const errEl = document.getElementById('sw-csv-error');
+  errEl.style.display = 'none';
+
+  if (!fileInput.files.length) {
+    swShowError('sw-csv-error', 'Please select a CSV file first.');
+    return;
+  }
+
+  btn.textContent = 'Uploading…';
+  fileInput.disabled = true;
+
+  const fd = new FormData();
+  fd.append('csv_file', fileInput.files[0]);
+  fd.append('csrf_token', CSRF);
+
+  try {
+    const res = await fetch("{{ url_for('onboarding.provision_students_bulk_inline') }}", {
+      method: 'POST', body: fd
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      const msg = Array.isArray(data.error)
+        ? data.error.join(' · ')
+        : (data.error || 'Something went wrong.');
+      swShowError('sw-csv-error', msg);
+      btn.textContent = 'Upload →';
+      fileInput.disabled = false;
+      return;
+    }
+
+    data.students.forEach(s => swRenderStudentRow(s));
+    fileInput.value = '';
+    btn.textContent = `Upload → (${data.students.length} added)`;
+    fileInput.disabled = false;
+
+  } catch(e) {
+    swShowError('sw-csv-error', 'Network error — please try again.');
+    btn.textContent = 'Upload →';
+    fileInput.disabled = false;
+  }
+}
+</script>
+{% endblock %}

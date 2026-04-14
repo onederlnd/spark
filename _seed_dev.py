@@ -1071,11 +1071,12 @@ def seed_users(db):
     users = {}
 
     for u in USERS:
+        provisional = "1" if u["role"] == "student" else 0
         db.execute(
             """
             INSERT OR IGNORE INTO users
-            (username, password_hash, role, display_name, bio, dob, coppa_status, onboarded, tour_seen)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (username, password_hash, role, display_name, bio, dob, coppa_status, onboarded, tour_seen, provisional)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)
             """,
             (
                 u["username"],
@@ -1087,6 +1088,7 @@ def seed_users(db):
                 "approved",
                 1,
                 0,
+                provisional,
             ),
         )
 
