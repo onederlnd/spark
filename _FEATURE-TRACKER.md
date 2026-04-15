@@ -261,7 +261,8 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Parent dashboard
 - [ ] Safety visibility modes
 - [ ] Topic moderators
-- [ ] School / district accounts
+- [ ] Admin (Org) accounts
+- [ ] Staff (SparK) accounts
 
 ### v1.2 — Public Launch
 - [x] Landing page
@@ -274,18 +275,21 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 
 ### v1.3 — Growth & Engagement
 - [x] Spark reactions
+- [ ] Payment System (via Stripe)
 - [ ] Achievement badges
 - [ ] Rubric grading
 - [x] Multiple choice assignment types
 - [ ] Homeschool mode
-- [ ] Penpals
 - [ ] PWA support
 
 ### v2.0 — Ops & Hardening
-- [i] Full audit logd
-- [ ] Dependency vulnerability scanning
+- [ ] Full audit log
+- [x] Dependency vulnerability scanning
 - [ ] Feature flags
 - [ ] PostgreSQL migration
+
+### Backlog
+- [ ] Penpals
 
 ---
 

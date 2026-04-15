@@ -4,6 +4,7 @@
 //  Companion to tour.js — zero collision
 //  Exposes: window.SparkAdminTour
 // ============================================
+
 (function () {
   'use strict';
 
@@ -294,7 +295,7 @@
         },
         {
           title: 'Grade grid & feedback',
-          desc: 'The Grade Grid gives instructors a spreadsheet view of every learner\'s submission status. Click any cell to open that submission, leave a letter grade, and write personalized feedback. Export to CSV for any external gradebook.',
+          desc: 'The Grade Grid gives instructors a spreadsheet view of every learner\'s submission status. Click any cell to open that submission, leave a grade, and write personalized feedback. Export to CSV for an extrnal gradebook.',
           mockup: () => `
             <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);">
               ${M.topbar('Classrooms')}
@@ -805,7 +806,7 @@
     el.id = TOUR_ID;
     el.innerHTML = `
       <div id="sat-top">
-        <div id="sat-logo"><div id="sat-hex">⚡</div>SparK <span id="sat-tag">Investor Tour</span></div>
+        <div id="sat-logo"><div id="sat-hex">⚡</div>SparK <span id="sat-tag">Platform Tour</span></div>
         <div id="sat-prog-wrap"><div id="sat-prog" style="width:0%"></div></div>
         <span id="sat-counter"></span>
         <button id="sat-exit">✕ Exit</button>

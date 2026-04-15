@@ -183,7 +183,7 @@ def create_app(config=None):
         return {
             "current_user": user,
             "unread_count": unread_count,
-            "registration_open": os.environ.get("REGISTERATION_OPEN", "true").lower()
+            "registration_open": os.environ.get("REGISTRATION_OPEN", "true").lower()
             == "true",
         }
 

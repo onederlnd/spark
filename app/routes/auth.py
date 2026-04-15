@@ -25,7 +25,7 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 @auth_bp.route("/register", methods=["GET", "POST"])
 @rate_limit(max_requests=35, window_seconds=60)
 def register():
-    if os.environ.get("REGISTERATON_OPEN", "true").lower() == "false":
+    if os.environ.get("REGISTERATION_OPEN", "true").lower() == "false":
         return redirect(url_for("landing.index"))
 
     from app.utils.sanitize import sanitize_username, sanitize_plain
@@ -125,7 +125,6 @@ def login():
                 "error",
             )
             return render_template("auth/login.html")
-
         user = check_password(username_or_email, password)
         if user:
             record_success(user["username"])
