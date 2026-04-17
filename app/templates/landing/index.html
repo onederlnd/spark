@@ -724,6 +724,17 @@
             <a href="/login" class="lp-btn-login">Log in</a>
         </div>
     </nav>
+    
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="padding: 16px 28px 0;">
+          {% for category, message in messages %}
+            <div class="lp-flash lp-flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
 
     <!-- HERO -->
     <section class="lp-hero">
@@ -1011,7 +1022,7 @@
             <div class="lp-section-label" style="text-align:center">Early access</div>
             <h2 class="lp-cta-heading">Ready to bring SparK<br>to your classroom?</h2>
             <p class="lp-cta-sub">We're onboarding pilot classrooms now — free, with full setup support. Schools, bootcamps, co-ops, and training teams all welcome.</p>
-            <form class="lp-form" method="POST" action="/waitlist">
+            <form class="lp-form" method="POST" action="{{ url_for('landing.waitlist')}}">
                 <input type="hidden" name="csrf_token" value="" />
                 <input class="lp-input" type="email" name="email" placeholder="your@institution.edu" required />
                 <button type="submit" class="lp-btn-cta">Request access →</button>

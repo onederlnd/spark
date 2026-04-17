@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}Classrooms — {{ org.name }} — SparK{% endblock %}
+
+{% block left_sidebar %}
+<div class="sidebar-title">{{ org.name }}</div>
+<ul class="sidebar-nav">
+  <li><a href="{{ url_for('org_admin.dashboard') }}"><span class="icon">🏠</span> Overview</a></li>
+  <li><a href="{{ url_for('org_admin.teachers') }}"><span class="icon">👩‍🏫</span> Teachers</a></li>
+  <li>
+    <a href="{{ url_for('org_admin.classrooms') }}" class="active">
+      <span class="icon">🏫</span> Classrooms
+    </a>
+  </li>
+  <li><a href="{{ url_for('org_admin.coppa_pending') }}"><span class="icon">🔒</span> COPPA Approvals</a></li>
+  <li><a href="{{ url_for('org_admin.billing') }}"><span class="icon">💳</span> Billing</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div class="feed-header">
+  <div>
+    <h1 class="feed-title">Classrooms</h1>
+    <p class="feed-desc">{{ classrooms | length }} classroom{{ 's' if classrooms | length != 1 }} across {{ org.name }}</p>
+  </div>
+</div>
+
+{% if classrooms %}
+<div class="post-list">
+  {% for classroom in classrooms %}
+  <div class="card" style="margin-bottom:0.75rem;">
+    <div class="card-body">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:1rem;">
+        <div style="flex:1; min-width:0;">
+          <div style="font-size:1rem; font-weight:800; color:var(--text); margin-bottom:4px;">{{ classroom.name }}</div>
+          {% if classroom.description %}
+          <div style="font-size:0.82rem; color:var(--muted); margin-bottom:8px;">{{ classroom.description }}</div>
+          {% endif %}
+          <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+            <span style="font-size:0.78rem; color:var(--muted);">
+              👩‍🏫 <strong style="color:var(--text);">{{ classroom.teacher_name }}</strong>
+            </span>
+            <span style="font-size:0.78rem; color:var(--muted);">
+              👤 {{ classroom.student_count }} student{{ 's' if classroom.student_count != 1 }}
+            </span>
+            <span style="font-size:0.78rem; color:var(--muted);">
+              📅 Created {{ classroom.created_at[:10] if classroom.created_at else '—' }}
+            </span>
+          </div>
+        </div>
+        <div style="font-size:0.78rem; color:var(--muted); flex-shrink:0; text-align:right;">
+          <div style="font-family:monospace; font-size:0.85rem; font-weight:800; color:var(--teal); letter-spacing:0.1em;">{{ classroom.join_code }}</div>
+          <div style="margin-top:2px;">join code</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
+    <rect x="8" y="20" width="56" height="40" rx="4" stroke="currentColor" stroke-width="2"/>
+    <path d="M24 20V16a4 4 0 018 0v4M40 20V16a4 4 0 018 0v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    <path d="M20 36h32M20 44h20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <div class="empty-state-title">No classrooms yet</div>
+  <div class="empty-state-desc">Classrooms will appear here once teachers create them.</div>
+</div>
+{% endif %}
+{% endblock %}

@@ -17,17 +17,21 @@ def test_mail_extension_is_configured(app):
 
 def test_waitlist_signup_attempts_confirmation_email(client, app):
     with patch("app.routes.landing.send_waitlist_confirmation") as mock_confirm:
-        with patch("app.routes.landing.add_to_waitlist", return_value=True):
+        with patch(
+            "app.routes.landing.add_to_waitlist", return_value=(True, "fake-token")
+        ):
             client.post("/waitlist", data={"email": "emailtest@example.com"})
-
             assert mock_confirm.called
 
 
 def test_waitlist_signup_attempts_admin_notification(client, app):
     app.config["ADMIN_EMAIL"] = "admin@example.com"
     with patch("app.routes.landing.send_waitlist_admin_notification") as mock_admin:
-        with patch("app.routes.landing.add_to_waitlist", return_value=True):
-            client.post("/waitlist", data={"email": "notify@example.com"})
+        with patch(
+            "app.routes.landing.verify_waitlist_email",
+            return_value="notify@example.com",
+        ):
+            client.get("/waitlist/verify/fake-token")
             assert mock_admin.called
 
 
@@ -35,10 +39,10 @@ def test_waitlist_signup_attempts_admin_notification(client, app):
 
 
 def test_no_email_sent_for_duplicate(client):
-    client.post("/waitlist", data={"email": "dupe@example.com"})
-    with patch("app.routes.landing.send_waitlist_confirmation") as mock_confirm:
-        client.post("/waitlist", data={"email": "dupe@example.com"})
-        assert not mock_confirm.called
+    with patch("app.routes.landing.add_to_waitlist", return_value=(False, None)):
+        with patch("app.routes.landing.send_waitlist_confirmation") as mock_confirm:
+            client.post("/waitlist", data={"email": "dupe@example.com"})
+            assert not mock_confirm.called
 
 
 # --- no email sent for invalid input ---

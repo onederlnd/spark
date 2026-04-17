@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Teachers — {{ org.name }} — SparK{% endblock %}
+
+{% block left_sidebar %}
+<div class="sidebar-title">{{ org.name }}</div>
+<ul class="sidebar-nav">
+  <li><a href="{{ url_for('org_admin.dashboard') }}"><span class="icon">🏠</span> Overview</a></li>
+  <li>
+    <a href="{{ url_for('org_admin.teachers') }}" class="active">
+      <span class="icon">👩‍🏫</span> Teachers
+    </a>
+  </li>
+  <li><a href="{{ url_for('org_admin.classrooms') }}"><span class="icon">🏫</span> Classrooms</a></li>
+  <li>
+    <a href="{{ url_for('org_admin.coppa_pending') }}">
+      <span class="icon">🔒</span> COPPA Approvals
+    </a>
+  </li>
+  <li><a href="{{ url_for('org_admin.billing') }}"><span class="icon">💳</span> Billing</a></li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div class="feed-header">
+  <div>
+    <h1 class="feed-title">Teachers</h1>
+    <p class="feed-desc">{{ teachers | length }} teacher{{ 's' if teachers | length != 1 }} in {{ org.name }}</p>
+  </div>
+  <a href="{{ url_for('org_admin.create_teacher') }}" class="btn btn-primary">+ Add Teacher</a>
+</div>
+
+{% if teachers %}
+<div class="card">
+  <div class="card-body" style="padding:0;">
+    <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Name</th>
+          <th style="text-align:left; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Email</th>
+          <th style="text-align:left; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Joined</th>
+          <th style="text-align:left; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Status</th>
+          <th style="text-align:right; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for teacher in teachers %}
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:12px 16px; font-weight:700; color:var(--text);">
+            {{ teacher.display_name or teacher.username }}
+            <div style="font-size:0.75rem; color:var(--muted); font-weight:400;">{{ teacher.username }}</div>
+          </td>
+          <td style="padding:12px 16px; color:var(--muted);">{{ teacher.email or '—' }}</td>
+          <td style="padding:12px 16px; color:var(--muted); font-size:0.82rem;">{{ teacher.created_at[:10] if teacher.created_at else '—' }}</td>
+          <td style="padding:12px 16px;">
+            {% if teacher.is_active %}
+            <span style="font-size:0.72rem; background:#1a3a2a; color:#4ade80; border-radius:999px; padding:2px 10px; font-weight:700;">Active</span>
+            {% else %}
+            <span style="font-size:0.72rem; background:var(--soft); color:var(--muted); border:1px solid var(--border); border-radius:999px; padding:2px 10px; font-weight:700;">Deactivated</span>
+            {% endif %}
+          </td>
+          <td style="padding:12px 16px; text-align:right;">
+            {% if teacher.is_active %}
+            <form method="POST" action="{{ url_for('org_admin.deactivate', user_id=teacher.id) }}"
+              onsubmit="return confirm('Deactivate {{ teacher.display_name or teacher.username }}? They will no longer be able to log in.')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-ghost" style="font-size:0.78rem; color:var(--rose);">Deactivate</button>
+            </form>
+            {% else %}
+            <form method="POST" action="{{ url_for('org_admin.reactivate', user_id=teacher.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-ghost" style="font-size:0.78rem;">Reactivate</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% else %}
+<div class="empty-state">
+  <svg class="empty-state-icon" width="72" height="72" viewBox="0 0 72 72" fill="none">
+    <circle cx="36" cy="28" r="12" stroke="currentColor" stroke-width="2"/>
+    <path d="M12 60c0-13.255 10.745-24 24-24s24 10.745 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <div class="empty-state-title">No teachers yet</div>
+  <div class="empty-state-desc">Add your first teacher to get started.</div>
+  <a href="{{ url_for('org_admin.create_teacher') }}" class="btn btn-primary">+ Add Teacher</a>
+</div>
+{% endif %}
+{% endblock %}

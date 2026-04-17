@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Organizations — SparK Staff</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css?v=6"/>
+  <script>
+    (function () {
+      const t = localStorage.getItem("spark-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin:0; padding:0; background:var(--soft); color:var(--text); font-family:'Nunito', sans-serif; }
+    .dash-header {
+      height:52px; background:var(--card); border-bottom:1px solid var(--border);
+      padding:0 1.5rem; display:flex; align-items:center; gap:1.5rem; position:sticky; top:0; z-index:10;
+    }
+    .dash-header-brand { display:flex; align-items:center; gap:0.6rem; }
+    .dash-header-brand-title { font-weight:900; font-size:0.95rem; }
+    .dash-header-brand-sub { font-size:0.68rem; color:var(--muted); }
+    .dash-header-actions { margin-left:auto; display:flex; gap:0.6rem; align-items:center; }
+    .page-content { max-width:900px; margin:0 auto; padding:2rem 1.5rem; }
+    .page-title { font-size:1.4rem; font-weight:900; margin:0 0 4px; }
+    .page-desc { font-size:0.88rem; color:var(--muted); margin:0 0 1.5rem; }
+    .stat-card { background:var(--card); border:1px solid var(--border); border-radius:var(--radius); padding:0.75rem 1rem; }
+    .stat-value { font-size:1.5rem; font-weight:900; color:var(--teal); line-height:1; margin-bottom:2px; }
+    .stat-label { font-size:0.72rem; color:var(--muted); font-weight:600; }
+    .badge { display:inline-block; padding:1px 8px; border-radius:999px; font-size:0.72rem; font-weight:700; }
+    .badge-teal { background:var(--teal); color:#fff; }
+    .badge-muted { background:var(--soft); color:var(--muted); border:1px solid var(--border); }
+  </style>
+</head>
+<body>
+
+<div class="dash-header">
+  <div class="dash-header-brand">
+    <span style="font-size:1.1rem;">⚡</span>
+    <div>
+      <div class="dash-header-brand-title">SparK Staff</div>
+      <div class="dash-header-brand-sub">Internal — do not share</div>
+    </div>
+  </div>
+  <div class="dash-header-actions">
+    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-ghost" style="font-size:0.78rem;">← Dashboard</a>
+    <a href="{{ url_for('admin.create_org') }}" class="btn btn-primary" style="font-size:0.78rem;">+ New Org</a>
+    <a href="{{ url_for('auth.logout') }}" class="btn btn-ghost" style="font-size:0.78rem;">Sign Out</a>
+  </div>
+</div>
+
+<div class="page-content">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div style="padding:10px 14px; border-radius:var(--radius-sm); margin-bottom:1rem;
+      background:{% if category == 'error' %}#3a1a1a{% elif category == 'success' %}#1a3a2a{% else %}var(--soft){% endif %};
+      color:{% if category == 'error' %}var(--rose){% elif category == 'success' %}#4ade80{% else %}var(--muted){% endif %};
+      border:1px solid {% if category == 'error' %}var(--rose){% elif category == 'success' %}#4ade80{% else %}var(--border){% endif %};
+      font-size:0.88rem;">
+      {{ message }}
+    </div>
+    {% endfor %}
+  {% endwith %}
+
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.5rem;">
+    <div>
+      <div class="page-title">Organizations</div>
+      <div class="page-desc">{{ orgs | length }} organization{{ 's' if orgs | length != 1 }} on SparK</div>
+    </div>
+    <a href="{{ url_for('admin.create_org') }}" class="btn btn-primary">+ New Organization</a>
+  </div>
+
+  <!-- Stats -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:0.75rem; margin-bottom:1.5rem;">
+    <div class="stat-card">
+      <div class="stat-value">{{ orgs | length }}</div>
+      <div class="stat-label">Total Orgs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ orgs | sum(attribute='teacher_count') }}</div>
+      <div class="stat-label">Teachers</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">{{ orgs | sum(attribute='student_count') }}</div>
+      <div class="stat-label">Students</div>
+    </div>
+  </div>
+
+  {% if orgs %}
+  <div style="background:var(--card); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden;">
+    <table style="width:100%; border-collapse:collapse; font-size:0.88rem;">
+      <thead>
+        <tr style="border-bottom:2px solid var(--border);">
+          <th style="text-align:left; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Organization</th>
+          <th style="text-align:left; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Billing Email</th>
+          <th style="text-align:center; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Admins</th>
+          <th style="text-align:center; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Teachers</th>
+          <th style="text-align:center; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Students</th>
+          <th style="text-align:left; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Created</th>
+          <th style="text-align:right; padding:12px 16px; font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for org in orgs %}
+        <tr style="border-bottom:1px solid var(--border);">
+          <td style="padding:12px 16px;">
+            <div style="font-weight:800; color:var(--text);">{{ org.name }}</div>
+          </td>
+          <td style="padding:12px 16px; color:var(--muted); font-size:0.82rem;">{{ org.billing_email }}</td>
+          <td style="padding:12px 16px; text-align:center;">
+            <span class="badge {{ 'badge-teal' if org.admin_count > 0 else 'badge-muted' }}">{{ org.admin_count }}</span>
+          </td>
+          <td style="padding:12px 16px; text-align:center; color:var(--text); font-weight:700;">{{ org.teacher_count }}</td>
+          <td style="padding:12px 16px; text-align:center; color:var(--text); font-weight:700;">{{ org.student_count }}</td>
+          <td style="padding:12px 16px; color:var(--muted); font-size:0.82rem;">{{ org.created_at[:10] if org.created_at else '—' }}</td>
+          <td style="padding:12px 16px; text-align:right;">
+            <a href="{{ url_for('admin.create_org_admin', org_id=org.id) }}" class="btn btn-ghost" style="font-size:0.78rem;">+ Admin</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+  <div style="text-align:center; padding:4rem 2rem; background:var(--card); border:1px solid var(--border); border-radius:var(--radius);">
+    <div style="font-size:2.5rem; margin-bottom:1rem;">🏫</div>
+    <div style="font-size:1rem; font-weight:800; margin-bottom:0.5rem;">No organizations yet</div>
+    <div style="font-size:0.88rem; color:var(--muted); margin-bottom:1.5rem;">Create your first organization to get started.</div>
+    <a href="{{ url_for('admin.create_org') }}" class="btn btn-primary">+ New Organization</a>
+  </div>
+  {% endif %}
+</div>
+
+</body>
+</html>

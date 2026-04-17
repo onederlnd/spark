@@ -101,7 +101,7 @@ The core social platform and classroom system are complete. SparK is preparing f
 - Docker + Docker Compose
 - GitHub Actions CI pipeline
 - Admin CLI for user, post, and topic management
-- Pytest test suite (300+ tests)
+- Pytest test suite (1,000+ tests)
 
 ---
 
@@ -160,8 +160,6 @@ sudo docker-compose up
 ### Seeding Test Data
 ```bash
 python seed_demo.py
-# select option 15 — seed data
-# choose dev seed or a grade-specific demo seed (3rd, 5th, 7th, 8th grade)
 ```
 
 ---
@@ -257,7 +255,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Email verification
 - [x] Admin dashboard
 - [x] Parent dashboard
-- [ ] School / district accounts
+- [x] School / district accounts
 
 ### v1.2 — Public Launch
 - [x] Landing page

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Billing — {{ org.name }} — SparK{% endblock %}
+
+{% block left_sidebar %}
+<div class="sidebar-title">{{ org.name }}</div>
+<ul class="sidebar-nav">
+  <li><a href="{{ url_for('org_admin.dashboard') }}"><span class="icon">🏠</span> Overview</a></li>
+  <li><a href="{{ url_for('org_admin.teachers') }}"><span class="icon">👩‍🏫</span> Teachers</a></li>
+  <li><a href="{{ url_for('org_admin.classrooms') }}"><span class="icon">🏫</span> Classrooms</a></li>
+  <li><a href="{{ url_for('org_admin.coppa_pending') }}"><span class="icon">🔒</span> COPPA Approvals</a></li>
+  <li>
+    <a href="{{ url_for('org_admin.billing') }}" class="active">
+      <span class="icon">💳</span> Billing
+    </a>
+  </li>
+</ul>
+{% endblock %}
+
+{% block content %}
+<div class="feed-header">
+  <div>
+    <h1 class="feed-title">Billing</h1>
+    <p class="feed-desc">Manage your subscription and billing details</p>
+  </div>
+</div>
+
+<div class="card" style="max-width:600px; margin-bottom:1.5rem;">
+  <div class="card-body">
+    <h2 style="font-size:1rem; font-weight:800; margin:0 0 1rem;">Organization Details</h2>
+    <div style="display:flex; flex-direction:column; gap:0.75rem;">
+      <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
+        <span style="font-size:0.85rem; color:var(--muted);">Organization Name</span>
+        <span style="font-size:0.85rem; font-weight:700; color:var(--text);">{{ org.name }}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
+        <span style="font-size:0.85rem; color:var(--muted);">Billing Email</span>
+        <span style="font-size:0.85rem; font-weight:700; color:var(--text);">{{ org.billing_email }}</span>
+      </div>
+      <div style="display:flex; justify-content:space-between; padding:10px 0;">
+        <span style="font-size:0.85rem; color:var(--muted);">Member Since</span>
+        <span style="font-size:0.85rem; font-weight:700; color:var(--text);">{{ org.created_at[:10] if org.created_at else '—' }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card" style="max-width:600px;">
+  <div class="card-body" style="text-align:center; padding:3rem 2rem;">
+    <div style="font-size:2.5rem; margin-bottom:1rem;">💳</div>
+    <h2 style="font-size:1.1rem; font-weight:800; margin:0 0 0.5rem;">Billing Management Coming Soon</h2>
+    <p style="color:var(--muted); font-size:0.88rem; line-height:1.6; margin:0 0 1.5rem;">
+      Full billing management will be available here. For now, please contact your SparK representative for any billing changes or questions.
+    </p>
+    <a href="mailto:hello@go-spark.app?subject=Billing inquiry — {{ org.name }}" class="btn btn-primary">
+      Contact SparK
+    </a>
+  </div>
+</div>
+{% endblock %}

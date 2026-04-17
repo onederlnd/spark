@@ -70,7 +70,15 @@ def init_db(app):
     with app.app_context():
         db = get_db()
         (
-            db.executescript("""
+            db.executescript(
+                """
+            CREATE TABLE IF NOT EXISTS organizations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                billing_email TEXT,
+                created_by INTEGER REFERENCES users(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
@@ -84,6 +92,8 @@ def init_db(app):
                 tour_seen INTEGER NOT NULL DEFAULT 0,
                 provisional INTEGER NOT NULL DEFAULT 0,
                 onboarded INTEGER NOT NULL DEFAULT 0,
+                org_id INTEGER REFERENCES organizations(id) DEFAULT NULL,
+                is_active INTEGER NOT NULL DEFAULT 1,
                 avatar_emoji TEXT DEFAULT '🌱',
                 avatar_bg TEXT DEFAULT '#E1F5EE',
                 qr_token TEXT DEFAULT NULL,
@@ -303,7 +313,9 @@ def init_db(app):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 email TEXT NOT NULL UNIQUE,
                 joined_at TEXT NOT NULL,
-                invited_at TEXT DEFAULT NULL
+                invited_at TEXT DEFAULT NULL,
+                verified INTEGER NOT NULL DEFAULT 0,
+                verify_token TEXT
             );
             CREATE TABLE IF NOT EXISTS classroom_invites (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -386,6 +398,7 @@ def init_db(app):
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 is_hidden INTEGER NOT NULL DEFAULT 0
             );
-        """),
+            """
+            )
         )
         db.commit()

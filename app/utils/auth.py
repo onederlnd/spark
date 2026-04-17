@@ -46,3 +46,45 @@ def teacher_required(f):
         return f(*args, **kwargs)
 
     return decorated
+
+
+def teacher_or_admin_required(f):
+    """
+    Restricts route to users with role='teacher' or role='org_admin'.
+    Uses for shared routes such as COPPA approval
+    """
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user = current_user()
+        if not user or user["role"] not in ("teacher", "org_admin"):
+            abort(403)
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def org_admin_required(f):
+    """Restricts routes to organizational admins with role='org_admin'"""
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user = current_user()
+        if not user or user["role"] != "org_admin":
+            abort(403)
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def staff_required(f):
+    """Restricts routes to SparK staff with role = 'spark_staff'"""
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user = current_user()
+        if not user or user["role"] != "spark_staff":
+            abort(403)
+        return f(*args, **kwargs)
+
+    return decorated

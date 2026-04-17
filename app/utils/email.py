@@ -35,11 +35,17 @@ def send_acceptance_email(email):
         current_app.logger.error(f"Acceptance email failed: {e}")
 
 
-def send_waitlist_confirmation(to_email):
+def send_waitlist_confirmation(to_email, verify_token):
+    verify_url = url_for("landing.verify_waitlist", token=verify_token, _external=True)
+
     msg = Message(
         subject="You're on the SparK waitlist!",
         recipients=[to_email],
-        html=render_template("email/waitlist_confirmation.html", email=to_email),
+        html=render_template(
+            "email/waitlist_confirmation.html",
+            email=to_email,
+            verify_url=verify_url,
+        ),
         sender=current_app.config["MAIL_DEFAULT_SENDER"],
     )
     mail.send(msg)
@@ -118,3 +124,20 @@ def send_password_reset_email(to_email, username, reset_url):
         f"-- The SparK Team"
     )
     mail.send(msg)
+
+
+def send_org_admin_welcome_email(email, display_name, org_name, setup_url):
+    try:
+        msg = Message(
+            subject=f"Your SparK admin account for {org_name} ",
+            recipients=[email],
+            html=render_template(
+                "email/org_admin_welcome.html",
+                display_name=display_name,
+                org_name=org_name,
+                setup_url=setup_url,
+            ),
+        )
+        mail.send(msg)
+    except Exception as e:
+        current_app.logger.error(f"Org admin welcome email failed: {e}")

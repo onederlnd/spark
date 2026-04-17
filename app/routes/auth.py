@@ -14,7 +14,11 @@ from app.models.notifications import create_notification
 from app.routes.settings import update_user_password
 from app.utils.brute_force import is_locked_out, record_failure, record_success
 from app.utils.rate_limit import rate_limit
-from app.utils.auth import current_user, login_required, teacher_required
+from app.utils.auth import (
+    current_user,
+    login_required,
+    teacher_or_admin_required,
+)
 from app.utils.email import send_welcome_email, send_password_reset_email
 from app.utils.password_reset import generate_reset_token, verify_reset_token
 
@@ -196,7 +200,7 @@ def coppa_notice():
 
 @auth_bp.route("/coppa/approve/<int:user_id>", methods=["POST"])
 @login_required
-@teacher_required
+@teacher_or_admin_required
 def coppa_approve(user_id):
     """Teacher approves a student under COPPA"""
     user = current_user()
@@ -223,7 +227,7 @@ def coppa_approve(user_id):
 
 @auth_bp.route("/coppa/pending")
 @login_required
-@teacher_required
+@teacher_or_admin_required
 def coppa_pending():
     """Teacher dashboard for approving students under 13."""
 
@@ -238,7 +242,7 @@ def coppa_pending():
 
 @auth_bp.route("/coppa/deny/<int:user_id>", methods=["POST"])
 @login_required
-@teacher_required
+@teacher_or_admin_required
 def coppa_deny(user_id):
 
     db = get_db()

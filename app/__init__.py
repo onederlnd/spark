@@ -102,6 +102,7 @@ def create_app(config=None):
     from app.routes.messaging import messaging_bp
     from app.routes.onboarding import onboarding_bp
     from app.routes.redirects import redirects_bp
+    from app.routes.org_admin import org_admin_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -124,6 +125,7 @@ def create_app(config=None):
     app.register_blueprint(messaging_bp)
     app.register_blueprint(onboarding_bp)
     app.register_blueprint(redirects_bp)
+    app.register_blueprint(org_admin_bp)
 
     app.jinja_env.filters["time_ago"] = time_ago
 

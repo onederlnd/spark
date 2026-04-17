@@ -1,19 +1,33 @@
+# app/models/waitlist.py
 import sqlite3
+import secrets
 from app.models import get_db
 from datetime import datetime, timezone
 
 
 def add_to_waitlist(email):
+    if not email or "@" not in email or "." not in email:
+        return False, "Please enter a valid email address."
     db = get_db()
+    email = email.lower()
+    existing = db.execute(
+        "SELECT verify_token FROM waitlist WHERE email = ?",
+        (email,),
+    ).fetchone()
+    if existing and "verify_token" in existing.keys():
+        return True, existing["verify_token"]
+
+    token = secrets.token_urlsafe(32)
+
     try:
         db.execute(
-            "INSERT INTO waitlist (email, joined_at) VALUES (?,?)",
-            (email.lower(), datetime.now(timezone.utc).isoformat()),
+            "INSERT INTO waitlist (email, joined_at, verified, verify_token) VALUES (?,?,?,?)",
+            (email.lower(), datetime.now(timezone.utc).isoformat(), 0, token),
         )
         db.commit()
-        return True
+        return True, token
     except sqlite3.IntegrityError:
-        return False
+        return False, None
 
 
 def get_waitlist_summary():
@@ -68,3 +82,20 @@ def get_waitlist_daily(days=14):
         """,
         (f"-{days}",),
     ).fetchall()
+
+
+def verify_waitlist_email(token):
+    """Mark the waitlist entery verified"""
+    db = get_db()
+    row = db.execute(
+        "SELECT id, email FROM waitlist WHERE verify_token = ? AND verified = 0",
+        (token,),
+    ).fetchone()
+    if not row:
+        return None
+    db.execute(
+        "UPDATE waitlist SET verified = 1, verify_token = NULL WHERE id = ?",
+        (row["id"],),
+    )
+    db.commit()
+    return row["email"]

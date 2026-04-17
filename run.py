@@ -15,6 +15,4 @@ if __name__ == "__main__":
     log.info("Config loaded:")
     log.info(f"    DATABASE_URL = {app.config.get('DATABASE_URL')}")
     log.info(f"    SECRET_KEY set = {bool(app.config.get('SECRET_KEY'))}")
-    socketio.run(
-        app, host="0.0.0.0", port=5000, debug=False, allow_unsafe_werkzeug=True
-    )
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True, allow_unsafe_werkzeug=True)

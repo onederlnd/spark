@@ -1,297 +1,196 @@
-# ⚡ SparK
+# ⚡ SparK — Development Tracker
 
-Where curiosity meets community. SparK is a safe, moderated platform for students, kids, and educators to learn, share, and grow together. Built with Flask, SQLite, and Docker.
-
-> Built for the classroom. Designed for kids. Trusted by educators.
+**Current Goal:** Ship a fully working in-classroom version for live alpha testing with a single trusted classroom.
 
 ---
 
-## Vision
-
-Most social platforms are engineered for engagement at any cost. SparK is built around a different idea — that young people deserve a space where they can express themselves, ask questions, and connect with peers and teachers without being exposed to the dangers of the open internet.
-
-Safety isn't a feature on SparK. It's the entire point.
-
----
-
-## Current Status
-
-**Phase 2 — Alpha Classroom Ready: in progress**
-
-The core social platform and classroom system are complete. SparK is preparing for closed beta with a single trusted classroom.
-
-| Area | Status |
-|------|--------|
-| Core social loop | ✅ Complete |
-| Authentication & COPPA enforcement | ✅ Complete |
-| Input sanitization / XSS prevention | ✅ Complete |
-| Brute force protection | ✅ Complete |
-| Rate limiting | ✅ Complete |
-| CSRF protection | ✅ Complete |
-| Session timeout | ✅ Complete |
-| Report system | ✅ Complete |
-| Content moderation queue | ✅ Complete |
-| Age-appropriate content filtering | ✅ Complete |
-| Classroom system (assignments + grading) | ✅ Complete |
-| Teacher onboarding | ✅ Complete |
-| Teacher-provisioned student accounts | ✅ Complete |
-| QR code login sheets | ✅ Complete |
-| Student onboarding | ✅ Complete |
-| Closed beta (single classroom) | 🔲 Planned |
-
----
-
-## What's Built
-
-### Social Platform
-- Post, reply, react, and bookmark in topic channels
-- Four emoji reactions per post (🔥 💡 🤔 ❤️) — low-lift engagement designed for kids
-- Follow other users and get a personalized feed
-- Full-text search across posts and topics
-- Real-time notifications via WebSockets
-- Trending posts widget
-- Pagination
-- Dark and light theme
-- Mobile-responsive with hamburger drawer
-
-### Classroom System
-- Teacher-owned classrooms with student enrollment via join code
-- Copy-to-clipboard join code sharing
-- Assignment status dashboard — pending grades visible at a glance
-- Assignments with due dates and student submission workflow
-- Grading with inline feedback and submission grid
-- Role gating — teacher / student enforcement across all classroom routes
-- Teacher onboarding modal on first login
-- Custom content filter — teachers add words to the moderation queue
-
-### Student Provisioning
-- Teachers provision student accounts by CSV upload or manual entry
-- Usernames auto-generated as `firstname.lastname` with collision resolution
-- Temporary passwords generated as two words + two digits (e.g. `sunnybird42`)
-- Students optionally auto-enrolled in classrooms via join codes at provisioning
-- Printable credentials sheet with Print and CSV download
-- QR code login sheet — one card per student with a scannable login QR code
-- QR codes encode a secure persistent token — no password in the URL
-- "Scan QR Code" button on login page opens device camera via jsQR
-- Teachers can regenerate a student's QR token if their sheet is lost
-
-### COPPA Compliance
-- Age gate on registration — students under 13 require teacher approval
-- Teacher COPPA approval dashboard
-- Provisioned students set to `approved` under the school official exception — no parent consent flow required for teacher-created accounts
-- Self-registered students under 13 go through the standard pending approval flow
-- Provisional flag distinguishes teacher-created accounts from self-registered ones
-- Terms of Service and Privacy Policy pages
-
-### Safety & Security
-- Input sanitization and XSS prevention on all user input
-- BBCode rendering — safe rich formatting without raw HTML
-- Brute force login protection with automatic lockout
-- Rate limiting on all routes including QR login
-- CSRF protection on all forms
-- Bcrypt password hashing
-- Role-based access (teacher, student)
-- Report system — students flag posts for moderation review
-- Content moderation queue — teacher reviews flagged content
-- Auto-hide after 3+ reports pending teacher review
-- Age-appropriate keyword content filter
-
-### Platform
-- REST API
-- Docker + Docker Compose
-- GitHub Actions CI pipeline
-- Admin CLI for user, post, and topic management
-- Pytest test suite (800+ tests)
-
----
-
-## Who It's For
-
-- **Students** — a structured space to ask questions, share ideas, and learn from peers
-- **Kids / minors** — a safer alternative to unmoderated social platforms
-- **Teachers & educators** — visibility and moderation tools, fast grading, and organized classroom content
-- **Parents** — a platform designed with their kids' safety as the first priority
-
----
-
-## Tech Stack
-
-- **Backend:** Python, Flask
-- **Database:** SQLite with FTS5 full-text search
-- **Frontend:** Jinja2, Vanilla JS
-- **Real-time:** Flask-SocketIO (WebSockets)
-- **DevOps:** Docker, GitHub Actions CI
-
----
-
-## Getting Started
-
-### Prerequisites
-- Python 3.13+
-- Docker & Docker Compose
-
-### Local Setup
-```bash
-# clone the repo
-git clone https://github.com/onederlnd/spark.git
-cd spark
-
-# create and activate virtual environment
-python -m venv .venv
-source .venv/bin/activate  # on Windows: .venv\Scripts\activate
-
-# install dependencies
-pip install -r requirements-dev.txt
-
-# create .env file
-cp .env.example .env
-
-# run the app
-python run.py
-```
-
-App runs at `http://localhost:5000`
-
-### Running with Docker
-```bash
-sudo docker-compose up
-```
-
-### Seeding Test Data
-```bash
-python seed_demo.py
-# select option 15 — seed data
-# choose dev seed or a grade-specific demo seed (3rd, 5th, 7th, 8th grade)
-```
-
----
-
-## Development
-
-### Running Tests
-```bash
-pytest tests/ -v
-```
-
-### Dev Scripts
-
-| Command | Description |
-|---------|-------------|
-| `./scripts/feature.sh` | Start a new feature branch |
-| `./scripts/ship.sh` | Run tests, lint, commit, and push |
-| `./scripts/done.sh` | Clean up after a PR is merged |
-| `./scripts/help.sh` | Print workflow reference |
-
-### Branching Workflow
-1. `./scripts/feature.sh` — create a feature branch
-2. Write code and tests
-3. `./scripts/ship.sh` — commit and push
-4. Open a PR on GitHub
-5. Review and merge
-6. `./scripts/done.sh` — return to main and clean up
-
----
-
-## Project Structure
-```
-spark/
-├── app/
-│   ├── __init__.py        # app factory
-│   ├── models/            # database access
-│   ├── routes/            # flask blueprints
-│   ├── templates/         # jinja2 templates
-│   ├── utils/             # sanitization, rate limiting, brute force protection
-│   └── static/            # css, js
-├── tests/                 # pytest test suite (300+ tests)
-├── scripts/               # dev workflow scripts and admin CLI
-├── Dockerfile
-├── docker-compose.yml
-└── run.py
-```
-
----
-
-## CI
-
-GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.yml`.
-
----
-
-## Roadmap
-
-### 🏁 Milestones
+## 🏁 Milestones
 
 | Milestone | Version | Status |
 |-----------|---------|--------|
 | Core platform complete | v0.1 | ✅ Done |
-| Safety core complete | v0.2 | ✅ Done |
-| Alpha classroom ready | v0.3 | 🔧 In Progress |
+| Safety core complete | v0.2 | 🔧 In Progress |
+| Alpha classroom ready | v0.3 | 🔲 Blocked on v0.2 |
 | Closed beta (single classroom live) | v1.0 | 🔲 Planned |
 | Trust & verification | v1.1 | 🔲 Planned |
 | Public launch | v1.2 | 🔲 Planned |
 | Growth & engagement | v1.3 | 🔲 Planned |
 | Ops & hardening | v2.0 | 🔲 Planned |
 
-### 🔧 v0.3 — Alpha Classroom Ready (current)
-- [x] Teacher onboarding modal
-- [x] Copy-to-clipboard join code
-- [x] Assignment status dashboard
-- [x] Teacher-provisioned student accounts (CSV + manual)
-- [x] QR code login sheets
-- [x] Student onboarding
-- [x] Submission confirmation
-- [x] Grade notification
-- [x] Structured logging
-- [x] Health check endpoint
-- [x] Rate limit / lockout recovery UX
-- [x] Smoke test / manual QA pass
-- [ ] Live classroom deployment
+---
 
-### v1.0 — Closed Beta
-- [ ] Live classroom deployment
-- [x] Teacher feedback loop
-- [ ] Safety incident review
-- [ ] Database backups
-- [x] Announcements tab
-- [x] Assignments feed tab
+## ✅ v0.1 — Core Platform
+> **Status: Complete**
+> Everything needed for a functioning social + classroom platform.
 
-### v1.1 — Trust & Verification
-- [x] Email verification
-- [x] Admin dashboard
-- [x] Parent dashboard
-- [ ] Safety visibility modes
-- [ ] Topic moderators
-- [ ] Admin (Org) accounts
-- [ ] Staff (SparK) accounts
+### Social
+- [x] User auth — register / login / logout
+- [x] Posts, replies, voting
+- [x] Topics
+- [x] Bookmarks
+- [x] User profiles
+- [x] Post editing & deletion
+- [x] Feed pagination
+- [x] Full-text search (FTS5)
+- [x] User following & personalized feed
+- [x] Notifications (real-time via WebSockets)
+- [x] Dark / light theme toggle
+- [x] Mobile sidebar hamburger menu
+- [x] BBCode preview while typing
+- [x] Character counters on title, bio, topic name fields
+- [x] Empty state illustrations
 
-### v1.2 — Public Launch
-- [x] Landing page
-- [x] Student signup with join code
-- [x] User mentions
-- [x] Direct messages (teacher ↔ student). Allow all communication between students for the
-- [ ] Data export
-- [ ] Trending algorithm
-- [x] Co-teachers
+### Classroom System
+- [x] Classroom DB models — `classrooms`, `classroom_members`, `lessons`, `assignments`, `submissions`
+- [x] Classroom dashboard — teacher overview of all classes
+- [x] Create / join classroom — teacher creates, students join via code
+- [x] Lessons — rich BBCode content pages with auto-created discussion thread
+- [x] Assignments — instructions + due date + submissions + auto-created discussion thread
+- [x] Student submissions — one per student per assignment, editable
+- [x] Grading UI — inline feedback per submission
+- [x] Submission grid — teacher sees all students and status at a glance
+- [x] Role gating — teacher / student / parent enforcement across all classroom routes
+- [x] Global Resources - teachers can upload and add static resources to multiple assignments
 
-### v1.3 — Growth & Engagement
-- [x] Spark reactions
-- [ ] Payment System (via Stripe)
-- [ ] Achievement badges
-- [ ] Rubric grading
-- [x] Multiple choice assignment types
-- [ ] Homeschool mode
-- [ ] PWA support
-
-### v2.0 — Ops & Hardening
-- [ ] Full audit log
-- [x] Dependency vulnerability scanning
-- [ ] Feature flags
-- [ ] PostgreSQL migration
-
-### Backlog
-- [ ] Penpals
+### Security & Infrastructure
+- [x] Input sanitization / XSS prevention
+- [x] CSRF protection on all forms
+- [x] Bcrypt password hashing
+- [x] Brute force protection — lockout after repeated failures
+- [x] Rate limiting on all routes
+- [x] Session timeout — auto logout after inactivity
+- [x] REST API
+- [x] Docker & Docker Compose
+- [x] GitHub Actions CI/CD pipeline
+- [x] Admin CLI tool
+- [x] Alembic migrations
+- [x] Dev workflow scripts (`feature.sh`, `ship.sh`, `done.sh`)
+- [x] Error pages (400, 401, 403, 404, 405, 429, 500)
+- [x] User not found returns formatted error page
 
 ---
 
-*Last updated: April 2026*
-*Current focus: v0.3 Alpha Classroom Ready → v1.0 Closed Beta*
+## 🔧 v0.2 — Safety Core
+> **Status: In Progress**
+> Hard floor before any real users touch the platform. Nothing ships to a classroom until this is done.
+
+### COPPA & Access
+- [x] Rate limiting on registration — prevent bot account creation
+- [x] COPPA enforcement — age gate, teacher approval workflow, coppa_status gating
+- [x] COPPA Terms of Service and Privacy Policy pages
+- [x] `teacher_required()` decorator — clean role enforcement utility
+- [x] User blocking — filter content from blocked users
+
+### Content Safety
+- [x] Report system — students flag posts for moderation review
+- [x] Content moderation queue — teacher dashboard for flagged content
+- [x] Auto-hide flagged content — 3+ reports hides post pending review
+- [x] Age-appropriate content filtering — baseline keyword / content rules
+
+---
+
+## 🧪 v0.3 — Alpha Classroom Ready
+> **Status: Blocked on v0.2**
+> Everything required to hand the keys to a real teacher with real students.
+
+### Teacher Experience
+- [x] Teacher onboarding — first-login guide for classroom setup
+- [x] Classroom invite flow polish — copy-to-clipboard join code
+- [x] Assignment status dashboard — quick view of pending grades
+- [x] Teacher provisioned student accounts (CSV + manual)
+- [x] QR code login sheet
+
+### Student Experience
+- [x] Student onboarding — first-login guide for students
+- [x] Submission confirmation — clear success state after submitting
+- [x] Grade notification — student notified when teacher grades their work 
+
+### Stability
+- [x] Structured logging — replace all `print()` statements with proper log levels
+- [x] Health check endpoint — `/health` returns app and DB status
+- [x] Rate limit / lockout recovery UX 
+- [x] Smoke Test/Manual QA pass — full walkthrough as teacher, student, and parent
+
+
+---
+
+## 🎓 v1.0 — Closed Beta (Single Classroom Live)
+> **Status: Planned**
+> Real students. Real teacher. Real stakes. The alpha classroom milestone.
+
+- [ ] Live classroom deployment — single trusted classroom running in production
+- [x] Teacher feedback loop — weekly check-in process with alpha teacher
+- [x] Bug tracking — structured log of issues found in live use
+- [x] Safety incident review — confirm moderation workflow holds under real usage
+- [x] Session stability — confirm WebSocket and session timeout work in production
+- [ ] Database backups — scheduled backup with rotation before go-live
+- [i] Announcements tab - Feed tab that shows new all class announcement
+- [x] Assignments tab - feed assignments tab that shows all assignments, if it was graded and turned in, and your grade.
+
+## 🔐 v1.1 — Trust & Verification
+> **Status: Planned**
+> Expands safety and visibility ahead of multi-classroom rollout.
+
+- [x] Email verification on register
+- [x] Admin dashboard — full moderation UI for platform-level oversight
+- [x] Parent dashboard — visibility into student activity via follow system
+- [ ] Safety visibility modes — teacher toggles full view vs flagged-only
+- [ ] School / district accounts — umbrella accounts managing multiple classrooms
+- [ ] WebSocket update for COPPA pending screen — no re-login required (similar to Netflix /activate flow)
+- [x] Gatekeep different classrooms with different teachers. e.g. teacher A will get notified about students who join teacher B's classroom
+
+
+## 🚀 v1.2 — Public Launch
+> **Status: Planned**
+> Open the doors beyond the alpha classroom.
+
+- [x] Landing page — public marketing site
+- [x] Student Signup with join code - students can enter a join code to their signup. 
+- [x] Onboarding flow — guide new users on first login
+- [x] User mentions — `@username` triggers notification
+- [x] Direct messages — teacher ↔ student only initially
+- [ ] Data export — users can download their own data
+- [ ] Trending algorithm — weight by votes, replies, and time decay
+- [ ] Upgrade COPPA — review and harden compliance for public launch
+- [ ] Update REST API — review and expand for public access
+- [ ] Age appropriate themes — Teacher/Institution can choose from a range of age-appropriate styles. Each style has its own light and dark modes. 
+---
+
+## 🎮 v1.3 — Growth & Engagement
+> **Status: Planned**
+> Deepen engagement without dark patterns.
+
+- [ ] Achievement badges — lightweight milestones for students
+- [ ] Rubric grading — structured scoring within assignments
+- [x] Multiple choice / checkbox assignment types
+- [ ] Homeschool mode — parent receives teacher notifications instead
+- [ ] Penpals — cross-classroom connection feature
+- [ ] PWA support — `manifest.json` + service worker
+- [x] Organization/District accounts
+---
+
+## ⚙️ v2.0 — Ops & Hardening
+> **Status: Planned**
+> Production-grade infrastructure for scale.
+
+- [ ] Full audit log — track all data changes with who / when / what
+- [ ] Dependency vulnerability scanning — `pip-audit` in CI pipeline
+- [ ] Feature flags — toggle features without deploying
+- [x] BBCode standalone install / package
+- [ ] PostgreSQL migration — replace SQLite for multi-tenant scale
+
+---
+
+## 🗂️ Backlog (Unscheduled)
+
+Items captured but not yet assigned to a version.
+
+- [ ] Rubric grading UI improvements
+- [ ] Admin CLI expansion — more management commands
+- [ ] API documentation/update
+- [ ] Rate limit tuning — review thresholds after alpha data
+
+---
+
+*Last updated: March 2026*
+*Current focus: v0.2 Safety Core → v0.3 Alpha Ready → v1.0 Classroom Live*

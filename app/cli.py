@@ -41,7 +41,6 @@ def _wipe_demo(db):
 
     if classroom:
         cid = classroom["id"]
-        # submissions / block_responses
         assignment_ids = [
             r["id"]
             for r in db.execute(
@@ -71,7 +70,6 @@ def _wipe_demo(db):
             db.execute("DELETE FROM lesson_blocks WHERE assignment_id = ?", (aid,))
         db.execute("DELETE FROM assignments WHERE classroom_id = ?", (cid,))
 
-        # posts
         post_ids = [
             r["id"]
             for r in db.execute(
@@ -86,7 +84,6 @@ def _wipe_demo(db):
         db.execute("DELETE FROM classroom_members WHERE classroom_id = ?", (cid,))
         db.execute("DELETE FROM classrooms WHERE id = ?", (cid,))
 
-    # remove all demo user accounts
     demo_users = db.execute(
         "SELECT id FROM users WHERE username LIKE 'demo%'"
     ).fetchall()
@@ -108,8 +105,6 @@ def _wipe_demo(db):
 
 def _seed(db):
     pw = _hash("password123")
-
-    # ── users ────────────────────────────────────────────────────────────
 
     db.execute(
         """
@@ -195,7 +190,6 @@ def _seed(db):
         (parent_id, student_id),
     )
 
-    # ghost students — realistic classroom population, no login needed
     ghosts = [
         ("demo-ghost-1", "Jordan Lee", "🎮", "#FAEEDA", "2009-07-01"),
         ("demo-ghost-2", "Sam Patel", "🚀", "#FCEBEB", "2009-11-12"),
@@ -223,8 +217,6 @@ def _seed(db):
 
     click.echo("  ✓ Users created.")
 
-    # ── classroom ────────────────────────────────────────────────────────
-
     db.execute(
         """
         INSERT INTO classrooms (teacher_id, name, description, join_code, messaging_enabled)
@@ -242,35 +234,21 @@ def _seed(db):
         "SELECT id FROM classrooms WHERE join_code = 'DEMO01'"
     ).fetchone()["id"]
 
-    # enroll teacher + demo student + ghosts
     db.execute(
-        """
-        INSERT INTO classroom_members (classroom_id, user_id, role)
-        VALUES (?, ?, 'teacher')
-    """,
+        "INSERT INTO classroom_members (classroom_id, user_id, role) VALUES (?, ?, 'teacher')",
         (classroom_id, teacher_id),
     )
-
     db.execute(
-        """
-        INSERT INTO classroom_members (classroom_id, user_id, role)
-        VALUES (?, ?, 'student')
-    """,
+        "INSERT INTO classroom_members (classroom_id, user_id, role) VALUES (?, ?, 'student')",
         (classroom_id, student_id),
     )
-
     for gid in ghost_ids:
         db.execute(
-            """
-            INSERT INTO classroom_members (classroom_id, user_id, role)
-            VALUES (?, ?, 'student')
-        """,
+            "INSERT INTO classroom_members (classroom_id, user_id, role) VALUES (?, ?, 'student')",
             (classroom_id, gid),
         )
 
     click.echo("  ✓ Classroom created (join code: DEMO01).")
-
-    # ── topics ───────────────────────────────────────────────────────────
 
     for name, desc in [
         ("Python Basics", "Core language concepts"),
@@ -279,9 +257,7 @@ def _seed(db):
         ("Community Chat", "Off-topic friendly chat"),
     ]:
         db.execute(
-            """
-            INSERT OR IGNORE INTO topics (name, description) VALUES (?, ?)
-        """,
+            "INSERT OR IGNORE INTO topics (name, description) VALUES (?, ?)",
             (name, desc),
         )
 
@@ -292,12 +268,9 @@ def _seed(db):
 
     click.echo("  ✓ Topics inserted.")
 
-    # ── announcements ────────────────────────────────────────────────────
-
     db.execute(
         """
-        INSERT INTO posts (post_type, user_id, topic_id, title, body,
-                           classroom_id, created_at)
+        INSERT INTO posts (post_type, user_id, topic_id, title, body, classroom_id, created_at)
         VALUES ('announcement', ?, NULL, ?, ?, ?, ?)
     """,
         (
@@ -313,8 +286,7 @@ def _seed(db):
 
     db.execute(
         """
-        INSERT INTO posts (post_type, user_id, topic_id, title, body,
-                           classroom_id, created_at)
+        INSERT INTO posts (post_type, user_id, topic_id, title, body, classroom_id, created_at)
         VALUES ('announcement', ?, NULL, ?, ?, ?, ?)
     """,
         (
@@ -330,13 +302,9 @@ def _seed(db):
 
     click.echo("  ✓ Announcements posted.")
 
-    # ── feed posts ───────────────────────────────────────────────────────
-
-    # post 1 — ghost student asks a question, teacher + demo student reply
     db.execute(
         """
-        INSERT INTO posts (user_id, topic_id, title, body, classroom_id,
-                           reply_count, created_at)
+        INSERT INTO posts (user_id, topic_id, title, body, classroom_id, reply_count, created_at)
         VALUES (?, ?, ?, ?, ?, 2, ?)
     """,
         (
@@ -353,10 +321,9 @@ def _seed(db):
 
     db.execute(
         """
-        INSERT INTO posts (user_id, topic_id, title, body, parent_id,
-                           classroom_id, created_at)
+        "INSERT INTO posts (user_id, topic_id, title, body, parent_id, classroom_id, created_at)
         VALUES (?, ?, '', ?, ?, ?, ?)
-    """,
+        """,
         (
             ghost_ids[1],
             topic("Python Basics"),
@@ -366,39 +333,32 @@ def _seed(db):
             _now(-3, -1),
         ),
     )
-
     db.execute(
         """
-        INSERT INTO posts (user_id, topic_id, title, body, parent_id,
-                           classroom_id, created_at)
+        INSERT INTO posts (user_id, topic_id, title, body, parent_id, classroom_id, created_at)
         VALUES (?, ?, '', ?, ?, ?, ?)
-    """,
+        """,
         (
             teacher_id,
             topic("Python Basics"),
-            "Great catch @demo-ghost-2! Exactly right — Python uses indentation "
-            "to show what's inside a block. Indent the [code]print(i)[/code] "
-            "line by 4 spaces and it will work.",
+            "Great catch! Exactly right — Python uses indentation to show what's inside a block.",
             p1,
             classroom_id,
             _now(-3),
         ),
     )
 
-    # post 2 — demo student asks a question (so it shows in their feed)
     db.execute(
         """
-        INSERT INTO posts (user_id, topic_id, title, body, classroom_id,
-                           reply_count, created_at)
+        INSERT INTO posts (user_id, topic_id, title, body, classroom_id, reply_count, created_at)
         VALUES (?, ?, ?, ?, ?, 1, ?)
-    """,
+        """,
         (
             student_id,
             topic("Debugging Help"),
             "Getting a ZeroDivisionError — how do I handle it?",
-            "My calculator crashes when I type 0 for division. "
-            "I know I need to check for it but not sure how.\n\n"
-            "[code]def divide(a, b):\n    return a / b[/code]",
+            "My calculator crashes when I type 0 for division.\n\n[code]def divide(a, b):"
+            "\n    return a / b[/code]",
             classroom_id,
             _now(-2),
         ),
@@ -407,41 +367,29 @@ def _seed(db):
 
     db.execute(
         """
-        INSERT INTO posts (user_id, topic_id, title, body, parent_id,
-                           classroom_id, created_at)
+        INSERT INTO posts (user_id, topic_id, title, body, parent_id, classroom_id, created_at)
         VALUES (?, ?, '', ?, ?, ?, ?)
-    """,
+        """,
         (
             teacher_id,
             topic("Debugging Help"),
-            "Good instinct to check! Try wrapping in an if statement:\n\n"
-            "[code]def divide(a, b):\n    if b == 0:\n        return "
-            "'Error: cannot divide by zero'\n    return a / b[/code]\n\n"
-            "You could also use a try/except — we'll cover that next week.",
+            "Good instinct to check! Try wrapping in an if statement.",
             p2,
             classroom_id,
             _now(-1, -18),
         ),
     )
 
-    # post 3 — project showcase from ghost
     db.execute(
         """
-        INSERT INTO posts (user_id, topic_id, title, body, classroom_id,
-                           reply_count, created_at)
+        INSERT INTO posts (user_id, topic_id, title, body, classroom_id, reply_count, created_at)
         VALUES (?, ?, ?, ?, ?, 3, ?)
-    """,
+        """,
         (
             ghost_ids[2],
             topic("Project Showcase"),
             "I built a number guessing game!",
-            "Finished my calculator assignment early so I kept going. "
-            "Made a number guessing game with a while loop — it gives hints "
-            "like 'too high' or 'too low'. Really proud of it!\n\n"
-            "[code]import random\nnumber = random.randint(1, 100)\nguess = None\n"
-            "while guess != number:\n    guess = int(input('Guess: '))\n    if guess "
-            "< number:\n        print('Too low!')\n    elif guess > number:\n"
-            "        print('Too high!')\nprint('You got it!')[/code]",
+            "Finished my calculator assignment early so I kept going!",
             classroom_id,
             _now(-4),
         ),
@@ -449,24 +397,17 @@ def _seed(db):
     p3 = db.execute("SELECT last_insert_rowid()").fetchone()[0]
 
     for uid, body in [
-        (ghost_ids[3], "This is so cool! I want to try making one too."),
+        (ghost_ids[3], "This is so cool!"),
         (student_id, "Love this — the hint feature is a great idea."),
-        (
-            teacher_id,
-            "Excellent work @demo-ghost-3! Clean loop logic and good use of random. "
-            "Show this to the class on Friday.",
-        ),
+        (teacher_id, "Excellent work! Clean loop logic and good use of random."),
     ]:
         db.execute(
             """
-            INSERT INTO posts (user_id, topic_id, title, body, parent_id,
-                               classroom_id, created_at)
-            VALUES (?, ?, '', ?, ?, ?, ?)
-        """,
+            INSERT INTO posts (user_id, topic_id, title, body, parent_id, classroom_id, created_at)
+            VALUES (?, ?, '', ?, ?, ?, ?)""",
             (uid, topic("Project Showcase"), body, p3, classroom_id, _now(-3)),
         )
 
-    # reactions on p3
     for uid, emoji in [
         (student_id, "❤️"),
         (ghost_ids[0], "🎯"),
@@ -476,35 +417,27 @@ def _seed(db):
         db.execute(
             """
             INSERT OR IGNORE INTO reactions (post_id, user_id, reaction, created_at)
-            VALUES (?, ?, ?, ?)
-        """,
+            VALUES (?, ?, ?, ?)""",
             (p3, uid, emoji, _now(-3)),
         )
 
     click.echo("  ✓ Feed posts and replies seeded.")
 
-    # ── assignments ──────────────────────────────────────────────────────
-
-    # Assignment 1: Hello World (graded — demo student has an A)
     db.execute(
         """
-        INSERT INTO assignments (classroom_id, title, instructions, due_date,
-                                 attempts_allowed, created_at)
-        VALUES (?, ?, ?, ?, 1, ?)
-    """,
+        INSERT INTO assignments (classroom_id, title, instructions, due_date, attempts_allowed, created_at)
+        VALUES (?, ?, ?, ?, 1, ?)""",
         (
             classroom_id,
             "Hello World",
-            "Write a Python program that prints 'Hello, World!' to the screen. "
-            "Then modify it to ask for the user's name and greet them personally.",
+            "Write a Python program that prints 'Hello, World!' to the screen.",
             _now(-10),
             _now(-10),
         ),
     )
     a1 = db.execute("SELECT last_insert_rowid()").fetchone()[0]
 
-    # all students submitted a1
-    submissions_a1 = [
+    for uid, body, grade, feedback, ts in [
         (
             student_id,
             "print('Hello, World!')\nname = input('What is your name? ')\nprint(f'Hello, {name}!')",
@@ -516,14 +449,14 @@ def _seed(db):
             ghost_ids[0],
             "print('Hello, World!')\nname = input('Name: ')\nprint('Hello ' + name)",
             "A",
-            "Good work! Try using an f-string next time.",
+            "Good work!",
             _now(-9),
         ),
         (
             ghost_ids[1],
             "print('Hello World')",
             "C",
-            "Missing the comma and the personalised greeting — reread the instructions.",
+            "Missing the comma and the personalised greeting.",
             _now(-9),
         ),
         (
@@ -537,145 +470,100 @@ def _seed(db):
             ghost_ids[3],
             "print('Hello, World!')\nprint('Hello, friend!')",
             "B",
-            "Good start, but the name should come from input(), not be hardcoded.",
+            "Good start, but use input().",
             _now(-9),
         ),
         (
             ghost_ids[4],
             "print('Hello, World!')\nname = input('Your name: ')\nprint(f'Hey {name}, welcome!')",
             "A",
-            "Love the enthusiasm in the greeting!",
+            "Love the enthusiasm!",
             _now(-9),
         ),
         (
             ghost_ids[5],
             "print('hello world')",
             "B-",
-            "Watch your capitalisation — Python strings are case-sensitive.",
+            "Watch your capitalisation.",
             _now(-9),
         ),
-    ]
-    for uid, body, grade, feedback, ts in submissions_a1:
+    ]:
         db.execute(
             """
-            INSERT INTO submissions (assignment_id, user_id, body, grade,
-                                     feedback, submitted_at, graded_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
+            INSERT INTO submissions (assignment_id, user_id, body, grade, feedback, submitted_at, graded_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)""",
             (a1, uid, body, grade, feedback, ts, _now(-8)),
         )
 
-    # Assignment 2: Build a Calculator (submitted, not yet graded)
     db.execute(
         """
-        INSERT INTO assignments (classroom_id, title, instructions, due_date,
-                                 attempts_allowed, created_at)
-        VALUES (?, ?, ?, ?, 1, ?)
-    """,
+        INSERT INTO assignments (classroom_id, title, instructions, due_date, attempts_allowed, created_at)
+        VALUES (?, ?, ?, ?, 1, ?)""",
         (
             classroom_id,
             "Build a Calculator",
-            "Write a Python calculator using functions for each operation "
-            "(add, subtract, multiply, divide). Your calculator should:\n\n"
-            "1. Loop so the user can keep calculating without restarting\n"
-            "2. Handle division by zero gracefully\n"
-            "3. Let the user type 'quit' to exit\n\n"
-            "Use at least 4 functions and a while loop.",
+            "Write a Python calculator using functions for each operation.",
             _now(3),
             _now(-7),
         ),
     )
     a2 = db.execute("SELECT last_insert_rowid()").fetchone()[0]
 
-    # demo student and a few ghosts submitted, some haven't
-    submissions_a2 = [
+    for uid, body in [
         (
             student_id,
-            "def add(a, b):\n    return a + b\n\ndef subtract(a, b):\n    return a -"
-            "b\n\ndef multiply(a, b):\n    return a * b\n\ndef divide(a, b):\n    if b == 0:\n"
-            "        return 'Error: cannot divide by zero'\n    return a / b\n\ndef calculator():"
-            "\n    while True:\n        op = input('Operation (+, -, *, /) or quit: ')\n        "
-            "if op == 'quit':\n            break\n        a = float(input('First number: '))\n"
-            "        b = float(input('Second number: '))\n        if op == '+':\n            "
-            "print(add(a, b))\n        elif op == '-':\n            print(subtract(a, b))\n        "
-            "elif op == '*':\n            print(multiply(a, b))\n        elif op == '/':\n            "
-            "print(divide(a, b))\n\ncalculator()",
+            "def add(a, b):\n    return a + b\n\ndef calculator():\n    while True:\n        pass\n\ncalculator()",
         ),
-        (
-            ghost_ids[0],
-            "def add(a,b): return a+b\ndef sub(a,b): return a-b\ndef mul(a,b): return a*b\ndef div(a,b):\n"
-            "    if b==0: return 'nope'\n    return a/b\nwhile True:\n    op=input('op: ')\n    if op=='quit':"
-            " break\n    a=float(input('a: '))\n    b=float(input('b: '))\n    if op=='+': print(add(a,b))",
-        ),
+        (ghost_ids[0], "def add(a,b): return a+b\ndef sub(a,b): return a-b"),
         (
             ghost_ids[2],
-            "def add(a, b):\n    return a + b\n\ndef subtract(a, b):\n    return a - b\n\nwhile True:\n    "
-            "choice = input('+ or - or quit: ')\n    if choice == 'quit':\n        break\n    x = float(input('x: "
-            "'))\n    y = float(input('y: '))\n    if choice == '+':\n        print(add(x, y))\n    else:\n        "
-            "print(subtract(x, y))",
+            "def add(a, b):\n    return a + b\n\ndef subtract(a, b):\n    return a - b",
         ),
-    ]
-    for uid, body in submissions_a2:
+    ]:
         db.execute(
-            """
-            INSERT INTO submissions (assignment_id, user_id, body,
-                                     submitted_at)
-            VALUES (?, ?, ?, ?)
-        """,
+            "INSERT INTO submissions (assignment_id, user_id, body, submitted_at) VALUES (?, ?, ?, ?)",
             (a2, uid, body, _now(-1)),
         )
 
-    # Assignment 3: FizzBuzz Quiz (open — not yet submitted by demo student)
     db.execute(
         """
-        INSERT INTO assignments (classroom_id, title, instructions, due_date,
-                                 attempts_allowed, auto_grade, created_at)
+        INSERT INTO assignments (classroom_id, title, instructions, due_date, attempts_allowed, auto_grade, created_at)
         VALUES (?, ?, ?, ?, 1, 1, ?)
-    """,
+        """,
         (
             classroom_id,
             "FizzBuzz Quiz",
-            "Answer the questions below about loops and conditionals. "
-            "Multiple choice questions are graded automatically.",
+            "Answer the questions below about loops and conditionals.",
             _now(7),
             _now(-2),
         ),
     )
     a3 = db.execute("SELECT last_insert_rowid()").fetchone()[0]
 
-    # lesson blocks for the quiz
     db.execute(
-        """
-        INSERT INTO lesson_blocks (assignment_id, type, body, position, points, required)
-        VALUES (?, 'text', ?, 0, 0, 0)
-    """,
-        (
-            a3,
-            "Read the following questions carefully. Select the best answer for each.",
-        ),
+        """INSERT INTO lesson_blocks (assignment_id, type, body, position, points, required)" \
+        VALUES (?, 'text', ?, 0, 0, 0)""",
+        (a3, "Read the following questions carefully."),
     )
-
     db.execute(
         """
-        INSERT INTO lesson_blocks (assignment_id, type, body, position, points, required)
+        INSERT INTO lesson_blocks (assignment_id, type, body, position, points, required)" \
         VALUES (?, 'multiple_choice', ?, 1, 2, 1)
-    """,
+        """,
         (a3, "What does FizzBuzz print when the number is divisible by both 3 and 5?"),
     )
     b1 = db.execute("SELECT last_insert_rowid()").fetchone()[0]
     for body, correct in [("Fizz", 0), ("Buzz", 0), ("FizzBuzz", 1), ("Nothing", 0)]:
         db.execute(
-            """
-            INSERT INTO block_choices (block_id, body, is_correct) VALUES (?, ?, ?)
-        """,
+            "INSERT INTO block_choices (block_id, body, is_correct) VALUES (?, ?, ?)",
             (b1, body, correct),
         )
 
     db.execute(
         """
-        INSERT INTO lesson_blocks (assignment_id, type, body, position, points, required)
+        INSERT INTO lesson_blocks (assignment_id, type, body, position, points, required)" \
         VALUES (?, 'true_false', ?, 2, 1, 1)
-    """,
+        """,
         (
             a3,
             "True or False: A while loop can run zero times if its condition starts as False.",
@@ -684,40 +572,23 @@ def _seed(db):
     b2 = db.execute("SELECT last_insert_rowid()").fetchone()[0]
     for body, correct in [("True", 1), ("False", 0)]:
         db.execute(
-            """
-            INSERT INTO block_choices (block_id, body, is_correct) VALUES (?, ?, ?)
-        """,
+            "INSERT INTO block_choices (block_id, body, is_correct) VALUES (?, ?, ?)",
             (b2, body, correct),
         )
 
     db.execute(
         """
         INSERT INTO lesson_blocks (assignment_id, type, body, position, points, required)
-        VALUES (?, 'short_answer', ?, 3, 3, 1)
-    """,
-        (
-            a3,
-            "In your own words, explain what 'modulo' (%) does and why it's useful for FizzBuzz.",
-        ),
-    )
-
-    db.execute(
-        """
-        INSERT INTO lesson_blocks (assignment_id, type, body, position, points, required)
-        VALUES (?, 'short_answer', ?, 4, 5, 1)
-    """,
-        (a3, "Write a for loop that prints FizzBuzz for numbers 1 to 20."),
+        VALUES (?, 'short_answer', ?, 3, 3, 1)""",
+        (a3, "In your own words, explain what 'modulo' (%) does."),
     )
 
     click.echo("  ✓ Assignments and quiz blocks seeded.")
 
-    # ── notifications for demo-student ───────────────────────────────────
-
     db.execute(
         """
         INSERT INTO notifications (user_id, type, message, link, is_read, created_at)
-        VALUES (?, 'grade', ?, ?, 0, ?)
-    """,
+        VALUES (?, 'grade', ?, ?, 0, ?)""",
         (
             student_id,
             "Your submission for 'Hello World' has been graded — Grade: A",
@@ -725,12 +596,11 @@ def _seed(db):
             _now(-8),
         ),
     )
-
     db.execute(
         """
         INSERT INTO notifications (user_id, type, message, link, is_read, created_at)
         VALUES (?, 'reply', ?, ?, 0, ?)
-    """,
+        """,
         (
             student_id,
             "Ms. Rivera replied to your post: 'Getting a ZeroDivisionError'",
@@ -738,12 +608,11 @@ def _seed(db):
             _now(-1, -18),
         ),
     )
-
     db.execute(
         """
         INSERT INTO notifications (user_id, type, message, link, is_read, created_at)
         VALUES (?, 'announcement', ?, ?, 0, ?)
-    """,
+        """,
         (
             student_id,
             "New announcement: Quiz next Thursday — loops & functions",
@@ -763,12 +632,16 @@ def _seed(db):
 
 
 def register_commands(app):
+
     @app.cli.command("set-role")
     @click.argument("username")
     @click.argument("role")
+    @with_appcontext
     def set_role(username, role):
-        if role not in ("teacher", "student", "admin"):
-            click.echo("Invalid role")
+        """Set a user's role. Valid roles: student, teacher, org_admin, spark_staff."""
+        valid_roles = ("student", "teacher", "org_admin", "spark_staff", "parent")
+        if role not in valid_roles:
+            click.echo(f"Invalid role. Must be one of: {', '.join(valid_roles)}")
             return
         db = get_db()
         user = db.execute(
@@ -780,6 +653,78 @@ def register_commands(app):
         db.execute("UPDATE users SET role = ? WHERE username = ?", (role, username))
         db.commit()
         click.echo(f"Updated {username} to {role}")
+
+    @app.cli.command("migrate-schema")
+    @with_appcontext
+    def migrate_schema():
+        """
+        Run one-time schema migrations:
+          - Add organizations table
+          - Add org_id column to users
+          - Add is_active column to users
+        Safe to run multiple times (skips columns that already exist).
+        """
+        db = get_db()
+
+        # organizations table
+        db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS organizations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                billing_email TEXT NOT NULL,
+                created_by INTEGER REFERENCES users(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        click.echo("  ✓ organizations table ready.")
+
+        # org_id column on users
+        existing_cols = [
+            row[1] for row in db.execute("PRAGMA table_info(users)").fetchall()
+        ]
+
+        if "org_id" not in existing_cols:
+            db.execute(
+                "ALTER TABLE users ADD COLUMN org_id INTEGER REFERENCES organizations(id) DEFAULT NULL"
+            )
+            click.echo("  ✓ Added users.org_id")
+        else:
+            click.echo("  – users.org_id already exists, skipping.")
+
+        if "is_active" not in existing_cols:
+            db.execute(
+                "ALTER TABLE users ADD COLUMN is_active INTEGER NOT NULL DEFAULT 1"
+            )
+            click.echo("  ✓ Added users.is_active")
+        else:
+            click.echo("  – users.is_active already exists, skipping.")
+
+        db.commit()
+        click.echo("  Schema migration complete.")
+
+    @app.cli.command("rename-admin-to-staff")
+    @with_appcontext
+    def rename_admin_to_staff():
+        """
+        One-time migration: rename all existing role='admin' users to role='spark_staff'.
+        Safe to run multiple times.
+        """
+        db = get_db()
+        result = db.execute(
+            "SELECT COUNT(*) FROM users WHERE role = 'admin'"
+        ).fetchone()[0]
+
+        if result == 0:
+            click.echo("No users with role='admin' found. Nothing to migrate.")
+            return
+
+        db.execute("UPDATE users SET role = 'spark_staff' WHERE role = 'admin'")
+        db.commit()
+        click.echo(
+            f"  ✓ Migrated {result} user(s) from role='admin' to role='spark_staff'."
+        )
 
     @app.cli.command("seed-demo")
     @click.option(
