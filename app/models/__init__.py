@@ -76,6 +76,10 @@ def init_db(app):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
                 billing_email TEXT,
+                sub_status TEXT DEFAULT 'free',
+                sub_stripe_id TEXT,
+                sub_price_id TEXT,
+                sub_current_period_end INTEGER,
                 created_by INTEGER REFERENCES users(id),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
@@ -97,6 +101,10 @@ def init_db(app):
                 avatar_emoji TEXT DEFAULT '🌱',
                 avatar_bg TEXT DEFAULT '#E1F5EE',
                 qr_token TEXT DEFAULT NULL,
+                sub_status TEXT DEFAULT 'free',
+                sub_stripe_id TEXT,
+                sub_price_id TEXT,
+                sub_current_period_end INTEGER,
                 created_by INTEGER REFERENCES users(id) DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );

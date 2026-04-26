@@ -200,7 +200,7 @@ spark/
 │   ├── templates/         # jinja2 templates
 │   ├── utils/             # sanitization, rate limiting, brute force protection
 │   └── static/            # css, js
-├── tests/                 # pytest test suite (300+ tests)
+├── tests/                 # pytest test suite (1,000+ tests)
 ├── scripts/               # dev workflow scripts and admin CLI
 ├── Dockerfile
 ├── docker-compose.yml
@@ -231,7 +231,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 | Ops & hardening | v2.0 | 🔲 Planned |
 
 [🔧 In Progress]
-### v0.3 — Alpha Classroom Ready (current)
+### v0.3 — Alpha Classroom Ready
 - [x] Teacher onboarding modal
 - [x] Copy-to-clipboard join code
 - [x] Assignment status dashboard
@@ -245,7 +245,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Rate limit / lockout recovery UX 
 - [x] Manual QA pass
 
-### v1.0 — Closed Beta
+### v1.0 — Closed Beta (current)
 - [ ] Live classroom deployment
 - [x] Teacher feedback loop
 - [ ] Safety incident review
@@ -255,13 +255,13 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Email verification
 - [x] Admin dashboard
 - [x] Parent dashboard
-- [x] School / district accounts
+- [i] School / district accounts - mostly implemented but not yet linked
 
 ### v1.2 — Public Launch
 - [x] Landing page
 - [x] Co-Teachers
 - [x] User mentions
-- [i] Direct messages (teacher ↔ student)
+- [x] Direct messages (teacher ↔ student)
 - [ ] Data export
 - [ ] Trending algorithm
 
@@ -282,6 +282,6 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 
 ---
 
-*Last updated: March 2026*
+*Last updated: April 2026*
 *Current focus: v0.3 Alpha Classroom Ready → v1.0 Closed Beta*
 

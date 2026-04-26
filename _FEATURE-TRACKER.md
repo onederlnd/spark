@@ -124,7 +124,7 @@
 - [x] Safety incident review — confirm moderation workflow holds under real usage
 - [x] Session stability — confirm WebSocket and session timeout work in production
 - [ ] Database backups — scheduled backup with rotation before go-live
-- [i] Announcements tab - Feed tab that shows new all class announcement
+- [x] Announcements tab - Feed tab that shows new all class announcement
 - [x] Assignments tab - feed assignments tab that shows all assignments, if it was graded and turned in, and your grade.
 
 ## 🔐 v1.1 — Trust & Verification
@@ -192,5 +192,5 @@ Items captured but not yet assigned to a version.
 
 ---
 
-*Last updated: March 2026*
+*Last updated: April 2026*
 *Current focus: v0.2 Safety Core → v0.3 Alpha Ready → v1.0 Classroom Live*
