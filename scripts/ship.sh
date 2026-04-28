@@ -12,12 +12,11 @@ fi
 echo "== checks running..."
 echo "== linting..."
 flake8 app/ --max-line-length=120 --ignore=W503
-echo "-- linting complete!"
+echo "-- linting successful!"
 
 if [ "$SKIP_TESTS" = false ]; then
     echo "== running tests..."
     pytest tests/
-    echo "-- tests complete"
 else
     echo "- skipping tests..."
 fi
@@ -28,7 +27,8 @@ echo "== staging changes..."
 git add .
 git status
 echo ""
-read -p "commit message: " msg
+echo -n "commit message: "
+read msg
 
 if [ -z "$msg" ]; then
     echo "== commit message required"
