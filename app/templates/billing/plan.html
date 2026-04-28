@@ -1,0 +1,257 @@
+{# app/templates/billing/plan.html — NEW FILE #}
+{# Standalone layout — no base.html, just logo header #}
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Subscription — SparK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css?v=6"/>
+  <script>
+    (function () {
+      const t = localStorage.getItem("spark-theme") || "dark";
+      document.documentElement.setAttribute("data-theme", t);
+    })();
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--soft); color: var(--text); font-family: 'Nunito', sans-serif; min-height: 100vh; }
+
+    .billing-header {
+      height: 56px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 1.5rem;
+    }
+    .billing-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 900;
+      font-size: 1rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .billing-body {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .billing-title { font-size: 1.4rem; font-weight: 900; margin: 0 0 4px; }
+    .billing-desc  { font-size: 0.88rem; color: var(--muted); margin: 0 0 2rem; }
+
+    /* Current status card */
+    .status-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .status-label { font-size: 0.72rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+    .status-value { font-size: 1.1rem; font-weight: 900; }
+    .status-active   { color: var(--teal); }
+    .status-free     { color: var(--muted); }
+    .status-past-due { color: var(--rose); }
+    .status-canceled { color: var(--rose); }
+
+    /* Plan grid */
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .plan-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      position: relative;
+    }
+    .plan-card-featured { border-color: var(--teal); }
+    .plan-badge {
+      position: absolute;
+      top: -11px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 3px 12px;
+      border-radius: 999px;
+      background: var(--teal);
+      color: #fff;
+      white-space: nowrap;
+    }
+    .plan-tier { font-size: 0.72rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+    .plan-price { font-size: 2rem; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 4px; }
+    .plan-price span { font-size: 0.85rem; font-weight: 500; color: var(--muted); }
+    .plan-desc { font-size: 0.8rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.4; }
+    .plan-perks { list-style: none; padding: 0; margin: 0 0 1.25rem; display: flex; flex-direction: column; gap: 6px; }
+    .plan-perks li { font-size: 0.82rem; color: var(--muted); font-weight: 600; display: flex; align-items: flex-start; gap: 6px; }
+    .plan-perks li::before { content: '✓'; color: var(--teal); font-weight: 800; font-size: 0.72rem; flex-shrink: 0; margin-top: 1px; }
+
+    .btn-plan {
+      display: block;
+      text-align: center;
+      padding: 10px;
+      border-radius: var(--radius-sm);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      background: var(--teal);
+      color: #fff;
+      transition: opacity 0.15s;
+    }
+    .btn-plan:hover { opacity: 0.85; }
+    .btn-plan-ghost { background: none; border: 1px solid var(--border); color: var(--muted); }
+    .btn-plan-ghost:hover { border-color: var(--teal); color: var(--teal); opacity: 1; }
+    .btn-plan-disabled { background: var(--soft); color: var(--muted); cursor: default; border: 1px solid var(--border); }
+    .btn-plan-disabled:hover { opacity: 1; }
+
+    .manage-link {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .manage-link a { color: var(--teal); font-weight: 700; text-decoration: none; }
+    .manage-link a:hover { text-decoration: underline; }
+
+    /* Flash */
+    .flash { padding: 10px 14px; border-radius: var(--radius-sm); margin-bottom: 1rem; font-size: 0.88rem; border: 1px solid; }
+    .flash-error   { background: #3a1a1a; color: var(--rose); border-color: var(--rose); }
+    .flash-success { background: #1a3a2a; color: #4ade80; border-color: #4ade80; }
+
+    @media (max-width: 480px) {
+      .plan-grid { grid-template-columns: 1fr; }
+      .status-card { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="billing-header">
+  <a href="{{ url_for('feed.index') }}" class="billing-logo">
+    <span>⚡</span> SparK
+  </a>
+</header>
+
+<div class="billing-body">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+    <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="billing-title">Your Subscription</div>
+  <div class="billing-desc">Manage your SparK plan.</div>
+
+  {# Current status #}
+  <div class="status-card">
+    <div>
+      <div class="status-label">Current Plan</div>
+      <div class="status-value
+        {% if sub and sub.sub_status in ('active', 'trialing') %}status-active
+        {% elif sub and sub.sub_status == 'past_due' %}status-past-due
+        {% elif sub and sub.sub_status == 'canceled' %}status-canceled
+        {% else %}status-free{% endif %}">
+        {% if sub and sub.sub_status == 'active' %}Pro — Active
+        {% elif sub and sub.sub_status == 'trialing' %}Pro — Trial
+        {% elif sub and sub.sub_status == 'past_due' %}Pro — Payment Past Due
+        {% elif sub and sub.sub_status == 'canceled' %}Canceled
+        {% else %}Free{% endif %}
+      </div>
+    </div>
+    {% if sub and sub.sub_stripe_customer_id %}
+    <a href="{{ url_for('billing.portal') }}" class="btn-plan btn-plan-ghost" style="width:auto; padding:8px 20px;">
+      Manage &amp; Invoices →
+    </a>
+    {% endif %}
+  </div>
+
+  {# Plan cards #}
+  <div class="plan-grid">
+
+    {# Free #}
+    <div class="plan-card">
+      <div class="plan-tier">Starter</div>
+      <div class="plan-price">Free</div>
+      <div class="plan-desc">1 classroom · up to 30 learners · core features</div>
+      <ul class="plan-perks">
+        <li>Feed, topics, announcements</li>
+        <li>Assignments &amp; grading</li>
+        <li>Learner provisioning</li>
+        <li>Moderation queue</li>
+      </ul>
+      {% if not sub or sub.sub_status in ('free', 'canceled') %}
+      <button class="btn-plan btn-plan-disabled" disabled>Current plan</button>
+      {% else %}
+      <a href="{{ url_for('billing.portal') }}" class="btn-plan btn-plan-ghost">Downgrade</a>
+      {% endif %}
+    </div>
+
+    {# Pro #}
+    <div class="plan-card plan-card-featured">
+      <div class="plan-badge">Most popular</div>
+      <div class="plan-tier">Instructor</div>
+      <div class="plan-price">$15<span>/mo</span></div>
+      <div class="plan-desc">Up to 5 classrooms · 30 learners each · all features</div>
+      <ul class="plan-perks">
+        <li>Everything in Starter</li>
+        <li>Direct messaging</li>
+        <li>Quiz builder + auto-grade</li>
+        <li>CSV export &amp; bulk import</li>
+        <li>Priority support</li>
+      </ul>
+      {% if sub and sub.sub_status in ('active', 'trialing') %}
+      <button class="btn-plan btn-plan-disabled" disabled>Current plan</button>
+      {% else %}
+      <a href="{{ url_for('billing.checkout', plan='pro') }}" class="btn-plan">
+        Upgrade to Pro →
+      </a>
+      {% endif %}
+    </div>
+
+    {# Org #}
+    <div class="plan-card">
+      <div class="plan-tier">Organization</div>
+      <div class="plan-price">$5<span>/learner/yr</span></div>
+      <div class="plan-desc">Admin dashboard · bulk onboarding · full platform</div>
+      <ul class="plan-perks">
+        <li>Everything in Instructor</li>
+        <li>Organization admin panel</li>
+        <li>Bulk CSV provisioning</li>
+        <li>Usage analytics</li>
+        <li>SSO (coming Q4)</li>
+      </ul>
+      <a href="{{ url_for('landing.pricing') }}" class="btn-plan btn-plan-ghost">See org plans →</a>
+    </div>
+
+  </div>
+
+  {% if sub and sub.sub_stripe_customer_id %}
+  <p class="manage-link">
+    Need to update your card or view past invoices?
+    <a href="{{ url_for('billing.portal') }}">Open billing portal →</a>
+  </p>
+  {% endif %}
+
+</div>
+</body>
+</html>

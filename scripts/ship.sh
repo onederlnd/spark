@@ -9,16 +9,20 @@ if [[ "$1" == "--skip" ]]; then
 fi
 . .venv/bin/activate
 
-echo "== running..."
+echo "== checks running..."
+echo "== linting..."
+flake8 app/ --max-line-length=120 --ignore=W503
+echo "-- linting complete!"
+
 if [ "$SKIP_TESTS" = false ]; then
     echo "== running tests..."
     pytest tests/
+    echo "-- tests complete"
 else
-    echo "== skipping tests..."
+    echo "- skipping tests..."
 fi
 
-echo "== linting..."
-flake8 app/ --max-line-length=120 --ignore=W503
+
 
 echo "== staging changes..."
 git add .

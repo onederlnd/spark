@@ -3,6 +3,7 @@ from flask import Flask, render_template
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 from flask_wtf.csrf import CSRFProtect
+from app.models import init_db
 from app.sockets import init_socketio
 from app.extensions import mail
 from app.utils.bbcode import render_bbcode
@@ -59,6 +60,9 @@ def create_app(config=None):
     app.config["SESSION_TIMEOUT_MINUTES"] = int(
         os.environ.get("SESSION_TIMEOUT_MINUTES", 30)
     )
+    if config:
+        app.config.update(config)
+
     # Mail Config
     app.config["MAIL_SERVER"] = os.environ.get("MAIL_SERVER")
     app.config["MAIL_PORT"] = int(os.environ.get("MAIL_PORT", 587))
@@ -70,12 +74,14 @@ def create_app(config=None):
     app.config["ADMIN_EMAIL"] = os.environ.get("ADMIN_EMAIL")
 
     mail.init_app(app)
-
-    if config:
-        app.config.update(config)
-
-    # Initialize database
-    from app.models import init_db
+    # Stripe Config
+    app.config["STRIPE_PUBLISHABLE_KEY"] = os.environ.get("STRIPE_PUBLISHABLE_KEY", "")
+    app.config["STRIPE_WEBHOOK_SECRET"] = os.environ.get("STRIP_WEBHOOK_SECRET", "")
+    app.config["STRIPE_PRICE_PRO"] = os.environ.get("STRIPE_PRICE_PRO", "")
+    app.config["STRIPE_PRICE_ORG"] = os.environ.get("STRIPE_PRICE_ORG", "")
+    app.config["FREEMIUM_ENABLED"] = (
+        os.environ.get("FREEMIUM ENABLED", "true").lower() == "true"
+    )
 
     init_db(app)
     csrf.init_app(app)
@@ -103,6 +109,7 @@ def create_app(config=None):
     from app.routes.onboarding import onboarding_bp
     from app.routes.redirects import redirects_bp
     from app.routes.org_admin import org_admin_bp
+    from app.routes.billing import billing_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -126,12 +133,14 @@ def create_app(config=None):
     app.register_blueprint(onboarding_bp)
     app.register_blueprint(redirects_bp)
     app.register_blueprint(org_admin_bp)
+    app.register_blueprint(billing_bp)
 
     app.jinja_env.filters["time_ago"] = time_ago
 
     csrf.exempt(api_bp)
     csrf.exempt(admin_bp)
     csrf.exempt(parent_bp)
+    csrf.exempt(billing_bp)
 
     # ---- Session timeout ----
     @app.before_request

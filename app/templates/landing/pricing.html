@@ -1,0 +1,218 @@
+{# app/templates/landing/pricing.html — NEW FILE #}
+{% extends "base.html" %}
+{% block title %}Pricing — SparK{% endblock %}
+
+{% block content %}
+<style>
+  .pricing-wrap { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .pricing-eyebrow { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal); margin-bottom: 8px; }
+  .pricing-title { font-size: 1.8rem; font-weight: 900; margin: 0 0 8px; line-height: 1.15; }
+  .pricing-sub   { font-size: 0.95rem; color: var(--muted); margin: 0 0 2.5rem; line-height: 1.6; max-width: 480px; }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 2.5rem;
+  }
+
+  .price-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    position: relative;
+  }
+  .price-card-featured { border-color: var(--teal); box-shadow: 0 0 0 1px rgba(45,212,191,0.15); }
+  .price-badge {
+    position: absolute; top: -11px; left: 50%; transform: translateX(-50%);
+    font-size: 0.65rem; font-weight: 800; padding: 3px 14px; border-radius: 999px;
+    background: var(--teal); color: #fff; white-space: nowrap;
+  }
+  .price-tier  { font-size: 0.72rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+  .price-amount { font-size: 2.4rem; font-weight: 900; color: var(--text); line-height: 1; margin-bottom: 4px; }
+  .price-amount span { font-family: inherit; font-size: 0.85rem; font-weight: 500; color: var(--muted); }
+  .price-desc  { font-size: 0.82rem; color: var(--muted); margin-bottom: 1.25rem; line-height: 1.4; }
+
+  .price-perks { list-style: none; padding: 0; margin: 0 0 1.5rem; display: flex; flex-direction: column; gap: 7px; }
+  .price-perks li { font-size: 0.82rem; color: var(--muted); font-weight: 600; display: flex; align-items: flex-start; gap: 7px; }
+  .price-perks li::before { content: '✓'; color: var(--teal); font-weight: 900; font-size: 0.72rem; flex-shrink: 0; margin-top: 2px; }
+  .price-perks li.muted::before { color: var(--border); }
+  .price-perks li.muted { color: var(--border); }
+
+  .price-cta {
+    display: block; text-align: center; padding: 10px 20px;
+    border-radius: var(--radius-sm); font-size: 0.88rem; font-weight: 700;
+    text-decoration: none; transition: all 0.15s; cursor: pointer;
+    background: var(--teal); color: #fff; border: none; width: 100%;
+  }
+  .price-cta:hover { opacity: 0.85; }
+  .price-cta-ghost { background: none; color: var(--muted); border: 1px solid var(--border); }
+  .price-cta-ghost:hover { border-color: var(--teal); color: var(--teal); opacity: 1; }
+
+  /* Comparison table */
+  .compare-title { font-size: 1rem; font-weight: 900; margin: 0 0 1rem; }
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .compare-table th {
+    text-align: left; padding: 10px 14px;
+    font-size: 0.72rem; font-weight: 800; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    border-bottom: 2px solid var(--border);
+    background: var(--card);
+  }
+  .compare-table th:not(:first-child) { text-align: center; }
+  .compare-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text); font-weight: 600; }
+  .compare-table td:not(:first-child) { text-align: center; }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table .section-row td {
+    font-size: 0.7rem; font-weight: 800; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.1em; padding: 14px 14px 6px; background: var(--soft);
+  }
+  .check { color: var(--teal); font-weight: 900; }
+  .dash  { color: var(--border); }
+
+  .faq-title { font-size: 1rem; font-weight: 900; margin: 2.5rem 0 1rem; }
+  .faq-item  { border-bottom: 1px solid var(--border); padding: 1rem 0; }
+  .faq-q { font-size: 0.9rem; font-weight: 800; margin-bottom: 6px; }
+  .faq-a { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+  @media (max-width: 520px) {
+    .pricing-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="pricing-wrap">
+
+  <div class="pricing-eyebrow">Pricing</div>
+  <h1 class="pricing-title">Priced the way<br>instructors actually work.</h1>
+  <p class="pricing-sub">Start free. Upgrade when you need more. Schools and districts get a single plan that covers everyone.</p>
+
+  <!-- Plan cards -->
+  <div class="pricing-grid">
+
+    <!-- Free -->
+    <div class="price-card">
+      <div class="price-tier">Starter</div>
+      <div class="price-amount">Free</div>
+      <div class="price-desc">1 classroom · up to 30 learners · forever free</div>
+      <ul class="price-perks">
+        <li>Social feed &amp; topics</li>
+        <li>Assignments &amp; grading</li>
+        <li>Learner provisioning</li>
+        <li>Content moderation queue</li>
+        <li>COPPA compliance tools</li>
+        <li class="muted">Direct messaging</li>
+        <li class="muted">Quiz builder</li>
+        <li class="muted">Multiple classrooms</li>
+      </ul>
+      <a href="{{ url_for('auth.register') }}" class="price-cta price-cta-ghost">Get started free</a>
+    </div>
+
+    <!-- Pro -->
+    <div class="price-card price-card-featured">
+      <div class="price-badge">Most popular</div>
+      <div class="price-tier">Instructor</div>
+      <div class="price-amount">$15<span>/mo</span></div>
+      <div class="price-desc">Up to 5 classrooms · 30 learners each · billed monthly</div>
+      <ul class="price-perks">
+        <li>Everything in Starter</li>
+        <li>Direct messaging</li>
+        <li>Quiz builder + auto-grade</li>
+        <li>CSV export &amp; bulk import</li>
+        <li>Up to 5 classrooms</li>
+        <li>Priority support</li>
+        <li class="muted">Organization admin panel</li>
+        <li class="muted">Usage analytics</li>
+      </ul>
+      <a href="{{ url_for('auth.register') }}?next=checkout&plan=pro" class="price-cta">Start free trial →</a>
+    </div>
+
+    <!-- Org -->
+    <div class="price-card">
+      <div class="price-tier">Organization</div>
+      <div class="price-amount">$5<span>/learner/yr</span></div>
+      <div class="price-desc">Admin dashboard · unlimited teachers · billed annually</div>
+      <ul class="price-perks">
+        <li>Everything in Instructor</li>
+        <li>Organization admin panel</li>
+        <li>Covers all org teachers</li>
+        <li>Bulk CSV provisioning</li>
+        <li>Usage analytics dashboard</li>
+        <li>SSO (coming Q4 2026)</li>
+      </ul>
+      <a href="{{ url_for('auth.register') }}?next=checkout&plan=org" class="price-cta price-cta-ghost">Get started →</a>
+    </div>
+
+  </div>
+
+  <!-- Comparison table -->
+  <div class="card" style="overflow:hidden; margin-bottom:2.5rem;">
+    <div class="card-body" style="padding:1.5rem;">
+      <div class="compare-title">Full feature comparison</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="min-width:200px;">Feature</th>
+            <th>Starter</th>
+            <th>Instructor</th>
+            <th>Organization</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="section-row"><td colspan="4">Classroom</td></tr>
+          <tr><td>Classrooms</td><td>1</td><td>Up to 5</td><td>Unlimited</td></tr>
+          <tr><td>Learners per classroom</td><td>30</td><td>30</td><td>30</td></tr>
+          <tr><td>Assignments &amp; grading</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+          <tr><td>Quiz builder + auto-grade</td><td class="dash">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+          <tr><td>Learner provisioning (CSV)</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+          <tr><td>QR login sheets</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+
+          <tr class="section-row"><td colspan="4">Social</td></tr>
+          <tr><td>Feed, topics, reactions</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+          <tr><td>Direct messaging</td><td class="dash">—</td><td class="check">✓</td><td class="check">✓</td></tr>
+          <tr><td>Announcements</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+
+          <tr class="section-row"><td colspan="4">Safety</td></tr>
+          <tr><td>Content moderation queue</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+          <tr><td>COPPA compliance tools</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+          <tr><td>Custom content filter</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td></tr>
+
+          <tr class="section-row"><td colspan="4">Organization</td></tr>
+          <tr><td>Org admin panel</td><td class="dash">—</td><td class="dash">—</td><td class="check">✓</td></tr>
+          <tr><td>Covers all org teachers</td><td class="dash">—</td><td class="dash">—</td><td class="check">✓</td></tr>
+          <tr><td>Usage analytics</td><td class="dash">—</td><td class="dash">—</td><td class="check">✓</td></tr>
+          <tr><td>SSO / SAML</td><td class="dash">—</td><td class="dash">—</td><td>Q4 2026</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq-title">Common questions</div>
+
+  <div class="faq-item">
+    <div class="faq-q">Can I switch plans later?</div>
+    <div class="faq-a">Yes — upgrade or downgrade any time. If you upgrade mid-cycle, you're only charged the prorated difference. If you downgrade, the change takes effect at the next billing date.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">What happens to my classrooms if I downgrade?</div>
+    <div class="faq-a">Your data is always safe. If you drop below the free tier limits (1 classroom, 30 learners), existing classrooms become read-only until you either upgrade again or archive the extras.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Does the Organization plan cover all my teachers?</div>
+    <div class="faq-a">Yes. Any teacher provisioned under your organization automatically gets full Instructor-tier access — no separate subscriptions needed.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">Is there a free trial?</div>
+    <div class="faq-a">The Instructor plan comes with a free trial so you can test the full feature set before being charged. No credit card required to start.</div>
+  </div>
+  <div class="faq-item">
+    <div class="faq-q">What payment methods do you accept?</div>
+    <div class="faq-a">All major credit and debit cards via Stripe. Purchase orders for school districts — <a href="mailto:hello@go-spark.app" style="color:var(--teal);font-weight:700;">contact us</a>.</div>
+  </div>
+
+</div>
+{% endblock %}

@@ -10,6 +10,7 @@ from flask import (
     flash,
 )
 from app.models import get_db
+from app.models.billing import get_org_sub
 from app.models.user import create_user
 from app.models.organization import (
     get_organization_by_id,
@@ -23,6 +24,10 @@ from app.utils.auth import (
     login_required,
     org_admin_required,
     current_user,
+)
+from app.utils.stripe_client import (
+    create_checkout_session,
+    create_billing_portal_session,
 )
 from app.utils.email import send_welcome_email
 
@@ -238,4 +243,69 @@ def coppa_pending():
 @org_admin_required
 def billing():
     org = _get_org_or_403()
-    return render_template("org_admin/billing.html", org=org)
+    org_sub = get_org_sub(org["id"])
+
+    created_at_display = org["created_at"][:10] if org["created_at"] else "—"
+
+    org = dict(org)
+    org["created_at_display"] = created_at_display
+
+    return render_template(
+        "org_admin/billing.html",
+        org=org,
+        org_sub=org_sub,
+    )
+
+
+@org_admin_bp.route("/billing/checkout")
+@login_required
+@org_admin_required
+def checkout():
+    from flask import current_app
+
+    org = _get_org_or_403()
+    org_sub = get_org_sub(org["id"])
+    price_id = current_app.config.get("STRIPE_PRICE_ORG")
+
+    if not price_id:
+        flash("Org billing is not configured yet.", "error")
+        return redirect(url_for("org_admin.billing"))
+
+    existing_customer = org_sub["sub_stripe_customer_id"] if org_sub else None
+    try:
+        session_obj = create_checkout_session(
+            customer_email=org["billing_email"],
+            price_id=price_id,
+            success_url=url_for("org_admin.billing", _external=True) + "?upgraded=1",
+            cancel_url=url_for("org_admin.billing", _external=True),
+            metadata={"org_id": str(org["id"])},
+            existing_customr_id=existing_customer,
+        )
+        return redirect(session_obj.url, code=303)
+    except Exception as e:
+        current_app.logger.error(f"Org Stripe checkout error: {e}")
+        flash("Something went wrong. Please try again", "error")
+        return redirect(url_for("org_admin.billing"))
+
+
+@org_admin_bp.route("/billing/portal")
+@login_required
+@org_admin_required
+def billing_portal():
+    from flask import current_app
+
+    org = _get_org_or_403()
+    org_sub = get_org_sub(org["id"])
+    if not org_sub or not org_sub["sub_stripe_customer_id"]:
+        flash("No active subscription found.", "error")
+        return redirect(url_for("org_admin.billing"))
+    try:
+        portal = create_billing_portal_session(
+            stripe_customer_id=org_sub["sub_stripe_customer_id"],
+            return_url=url_for("org_admin.billing", _external=True),
+        )
+        return redirect(portal.url, code=303)
+    except Exception as e:
+        current_app.logger.error(f"Org Stripe portal error: {e}")
+        flash("Could not open billing portal. Please try again.", "error")
+        return redirect(url_for("org_admin.billing"))

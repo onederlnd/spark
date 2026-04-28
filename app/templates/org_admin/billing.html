@@ -1,3 +1,12 @@
+{# app/templates/org_admin/billing.html
+   ──────────────────────────────────────────────────────────────────────────────
+   CHANGES FROM YOUR ORIGINAL:
+   - "Member Since" row: removed [:10] slice (now pre-formatted in route)
+   - Replaced "Coming Soon" placeholder card with real plan status + upgrade UI
+   - Added Stripe portal link when customer ID exists
+   All sidebar nav and card structure is unchanged.
+   ────────────────────────────────────────────────────────────────────────────── #}
+
 {% extends "base.html" %}
 {% block title %}Billing — {{ org.name }} — SparK{% endblock %}
 
@@ -20,40 +29,76 @@
 <div class="feed-header">
   <div>
     <h1 class="feed-title">Billing</h1>
-    <p class="feed-desc">Manage your subscription and billing details</p>
+    <p class="feed-desc">Manage your organization's subscription</p>
   </div>
 </div>
 
+{# Organization details card — only change is created_at_display ← changed #}
 <div class="card" style="max-width:600px; margin-bottom:1.5rem;">
   <div class="card-body">
     <h2 style="font-size:1rem; font-weight:800; margin:0 0 1rem;">Organization Details</h2>
     <div style="display:flex; flex-direction:column; gap:0.75rem;">
       <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
         <span style="font-size:0.85rem; color:var(--muted);">Organization Name</span>
-        <span style="font-size:0.85rem; font-weight:700; color:var(--text);">{{ org.name }}</span>
+        <span style="font-size:0.85rem; font-weight:700;">{{ org.name }}</span>
       </div>
       <div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid var(--border);">
         <span style="font-size:0.85rem; color:var(--muted);">Billing Email</span>
-        <span style="font-size:0.85rem; font-weight:700; color:var(--text);">{{ org.billing_email }}</span>
+        <span style="font-size:0.85rem; font-weight:700;">{{ org.billing_email }}</span>
       </div>
       <div style="display:flex; justify-content:space-between; padding:10px 0;">
         <span style="font-size:0.85rem; color:var(--muted);">Member Since</span>
-        <span style="font-size:0.85rem; font-weight:700; color:var(--text);">{{ org.created_at[:10] if org.created_at else '—' }}</span>
+        <span style="font-size:0.85rem; font-weight:700;">{{ org.created_at_display }}</span>{# ← changed: was org.created_at[:10] if org.created_at else '—' #}
       </div>
     </div>
   </div>
 </div>
 
-<div class="card" style="max-width:600px;">
-  <div class="card-body" style="text-align:center; padding:3rem 2rem;">
-    <div style="font-size:2.5rem; margin-bottom:1rem;">💳</div>
-    <h2 style="font-size:1.1rem; font-weight:800; margin:0 0 0.5rem;">Billing Management Coming Soon</h2>
-    <p style="color:var(--muted); font-size:0.88rem; line-height:1.6; margin:0 0 1.5rem;">
-      Full billing management will be available here. For now, please contact your SparK representative for any billing changes or questions.
+{# ── Subscription status card — REPLACES the "Coming Soon" placeholder card ── #}
+{# ← everything below this line in the template is new — delete the old card #}
+<div class="card" style="max-width:600px; margin-bottom:1rem;">
+  <div class="card-body">
+    <h2 style="font-size:1rem; font-weight:800; margin:0 0 1rem;">Subscription</h2>
+
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; padding:10px 0; border-bottom:1px solid var(--border); margin-bottom:1rem;">
+      <div>
+        <div style="font-size:0.72rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">Status</div>
+        <div style="font-size:1.1rem; font-weight:900;
+          color:{% if org_sub and org_sub.sub_status in ('active','trialing') %}var(--teal){% elif org_sub and org_sub.sub_status == 'past_due' %}var(--rose){% else %}var(--muted){% endif %};">
+          {% if org_sub and org_sub.sub_status == 'active' %}Active
+          {% elif org_sub and org_sub.sub_status == 'trialing' %}Trial
+          {% elif org_sub and org_sub.sub_status == 'past_due' %}Past Due
+          {% elif org_sub and org_sub.sub_status == 'canceled' %}Canceled
+          {% else %}Free{% endif %}
+        </div>
+      </div>
+      {% if org_sub and org_sub.sub_stripe_customer_id %}
+      <a href="{{ url_for('org_admin.billing_portal') }}" class="btn btn-ghost" style="font-size:0.82rem;">
+        Manage &amp; Invoices →
+      </a>
+      {% endif %}
+    </div>
+
+    {% if not org_sub or org_sub.sub_status in ('free', 'canceled') %}
+    <p style="font-size:0.85rem; color:var(--muted); margin:0 0 1rem; line-height:1.5;">
+      Upgrade to an Organization plan to cover all teachers in {{ org.name }} under a single subscription.
     </p>
-    <a href="mailto:hello@go-spark.app?subject=Billing inquiry — {{ org.name }}" class="btn btn-primary">
-      Contact SparK
-    </a>
+    <a href="{{ url_for('org_admin.checkout') }}" class="btn btn-primary">Upgrade Organization →</a>
+    {% elif org_sub and org_sub.sub_status == 'past_due' %}
+    <p style="font-size:0.85rem; color:var(--rose); margin:0 0 1rem;">
+      Your last payment failed. Please update your payment method to avoid service interruption.
+    </p>
+    <a href="{{ url_for('org_admin.billing_portal') }}" class="btn btn-primary">Update Payment →</a>
+    {% else %}
+    <p style="font-size:0.85rem; color:var(--muted); margin:0; line-height:1.5;">
+      All teachers in this organization have full platform access.
+    </p>
+    {% endif %}
+
   </div>
 </div>
+
+<p style="font-size:0.78rem; color:var(--muted);">
+  Questions? <a href="mailto:hello@go-spark.app?subject=Billing inquiry — {{ org.name }}" style="color:var(--teal); font-weight:700;">Contact SparK</a>
+</p>
 {% endblock %}

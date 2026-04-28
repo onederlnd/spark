@@ -1,0 +1,36 @@
+{# ══════════════════════════════════════════════════════════════════════════════
+   app/templates/billing/success.html — NEW FILE
+   ══════════════════════════════════════════════════════════════════════════════ #}
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Subscription Active — SparK</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/static/style.css?v=6"/>
+  <script>(function(){const t=localStorage.getItem("spark-theme")||"dark";document.documentElement.setAttribute("data-theme",t);})();</script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;}
+    html,body{margin:0;padding:0;background:var(--soft);color:var(--text);font-family:'Nunito',sans-serif;min-height:100vh;}
+    .billing-header{height:56px;background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1.5rem;}
+    .billing-logo{display:flex;align-items:center;gap:.5rem;font-weight:900;font-size:1rem;color:var(--text);text-decoration:none;}
+    .center{max-width:480px;margin:0 auto;padding:5rem 1.5rem;text-align:center;}
+    .icon{font-size:3.5rem;margin-bottom:1.25rem;}
+    .title{font-size:1.5rem;font-weight:900;margin:0 0 .5rem;}
+    .desc{font-size:.9rem;color:var(--muted);line-height:1.6;margin:0 0 2rem;}
+  </style>
+</head>
+<body>
+<header class="billing-header">
+  <a href="{{ url_for('feed.index') }}" class="billing-logo">⚡ SparK</a>
+</header>
+<div class="center">
+  <div class="icon">🎉</div>
+  <div class="title">You're all set!</div>
+  <p class="desc">Your SparK Pro subscription is now active. Head back to your dashboard to start using all the features.</p>
+  <a href="{{ url_for('feed.index') }}" class="btn btn-primary">Go to dashboard →</a>
+</div>
+</body>
+</html>

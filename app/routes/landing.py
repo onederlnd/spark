@@ -7,6 +7,7 @@ from flask import (
     request,
     flash,
     current_app,
+    session,
 )
 from app import csrf
 from app.models.waitlist import add_to_waitlist, verify_waitlist_email
@@ -17,8 +18,6 @@ marketing_bp = Blueprint("landing", __name__)
 
 @marketing_bp.route("/")
 def index():
-    from flask import session
-
     if session.get("user_id"):
         return redirect(url_for("feed.index"))
     return render_template("landing/index.html")
@@ -61,3 +60,11 @@ def verify_waitlist(token):
 @marketing_bp.route("/waitlist/thank-you")
 def thankyou():
     return render_template("landing/thankyou.html")
+
+
+@marketing_bp.route("/pricing")
+def pricing():
+    if session.get("user_id"):
+        return redirect(url_for("billing.plan"))
+
+    return render_template("landing/pricing.html")

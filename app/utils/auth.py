@@ -1,4 +1,4 @@
-from flask import session, redirect, url_for, abort
+from flask import session, redirect, url_for, abort, flash
 from functools import wraps
 from app.models.user import get_user_by_id
 from app.models.classroom import get_member_role
@@ -85,6 +85,38 @@ def staff_required(f):
         user = current_user()
         if not user or user["role"] != "spark_staff":
             abort(403)
+        return f(*args, **kwargs)
+
+    return decorated
+
+
+def subscription_required(f):
+    """
+    Restricts a route to teachers with an active subscription
+    either through personal or org-level -- unless FREEMIUM_ENABLED
+    is True in app config.
+
+    Must be used AFTER @login_required and @teacher_required
+
+    On failure: redirects to /billing/plan with a flash message.
+
+    """
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        from flask import current_app
+        from app.models.billing import teacher_has_access
+
+        user = current_user()
+        if not user:
+            return redirect(url_for("auth.login"))
+
+        freemium_enabled = current_app.config.get("FREEMIUM_ENABLED", True)
+
+        if not teacher_has_access(user, freemium_enabled):
+            flash("This feature requires an active SparK subscription", "error")
+            return redirect(url_for("billing.plan"))
+
         return f(*args, **kwargs)
 
     return decorated
