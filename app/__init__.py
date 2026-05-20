@@ -110,6 +110,7 @@ def create_app(config=None):
     from app.routes.redirects import redirects_bp
     from app.routes.org_admin import org_admin_bp
     from app.routes.billing import billing_bp
+    from app.routes.curiosity import curiosity_bp
 
     # register blueprints
     app.register_blueprint(auth_bp)
@@ -134,6 +135,7 @@ def create_app(config=None):
     app.register_blueprint(redirects_bp)
     app.register_blueprint(org_admin_bp)
     app.register_blueprint(billing_bp)
+    app.register_blueprint(curiosity_bp)
 
     app.jinja_env.filters["time_ago"] = time_ago
 
@@ -141,6 +143,7 @@ def create_app(config=None):
     csrf.exempt(admin_bp)
     csrf.exempt(parent_bp)
     csrf.exempt(billing_bp)
+    csrf.exempt(curiosity_bp)
 
     # ---- Session timeout ----
     @app.before_request

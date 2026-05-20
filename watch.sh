@@ -6,7 +6,7 @@ PID=""
 
 start() {
     echo "▶ Starting server..."
-    python run.py &
+    /home/randy/Documents/Python/SparK/.venv/bin/python run.py &
     PID=$!
     echo "  PID: $PID"
 }

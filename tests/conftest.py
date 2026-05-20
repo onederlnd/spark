@@ -1,8 +1,10 @@
 # tests/conftest.py
 import os
+import json
 import re
 import pytest
 import tempfile
+from unittest.mock import MagicMock
 from app import create_app
 from app.utils.rate_limit import _request_counts
 from app.utils.brute_force import _lockouts
@@ -278,3 +280,33 @@ def db(app):
         from app.models import get_db
 
         yield get_db()
+
+
+@pytest.fixture(autouse=True)
+def mock_subject_file(tmp_path, monkeypatch):
+    """Create a minimal subjects.json so Curiosity routes don't crash."""
+    fake = [{"name": "Science", "area": []}]
+    subjects_file = tmp_path / "subjects.json"
+    subjects_file.write_text(json.dumps(fake))
+    import app.routes.curiosity as curiosity_module
+
+    monkeypatch.setattr(curiosity_module, "SUBJECT_FILE", str(subjects_file))
+
+
+@pytest.fixture(autouse=True)
+def mock_subjects_json(tmp_path, monkeypatch):
+    """Creates a fake subjects.json in a temp dir and patches SUBJECT_FILE to point at it."""
+    fake = [{"name": "Science", "areas": []}]
+    subjects_file = tmp_path / "subjects.json"
+    subjects_file.write_text(json.dumps(fake))
+    import app.routes.curiosity as curiosity_module
+
+    monkeypatch.setattr(curiosity_module, "SUBJECT_FILE", str(subjects_file))
+
+
+@pytest.fixture(autouse=True)
+def patch_anthropic(monkeypatch):
+    """Patches Anthropic so it returns a mock instead of trying to connect."""
+    import app.routes.curiosity as curiosity_module
+
+    monkeypatch.setattr(curiosity_module, "client", MagicMock())

@@ -48,6 +48,20 @@ def teacher_required(f):
     return decorated
 
 
+def student_required(f):
+    """Restrictrs routes to SparK students with role = 'student'"""
+
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        user = current_user()
+        if not user or user["role"] != "student":
+            abort(403)
+
+        return f(*args, **kwargs)
+
+    return decorated
+
+
 def teacher_or_admin_required(f):
     """
     Restricts route to users with role='teacher' or role='org_admin'.
