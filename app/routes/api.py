@@ -67,13 +67,17 @@ def create_new_post():
 
     title = data.get("title", "").strip()
     body = data.get("body", "").strip()
-    topic_id = data.get("topic_id")
+    topic_id = data.get("topic_id") or None
 
     if not title or not body:
         return jsonify({"error": "Title and body are required"}), 400
 
     post_id = create_post(
-        session["user_id"], session["username"], title, body, topic_id=topic_id
+        session["user_id"],
+        title,
+        body,
+        author_username=session["username"],
+        topic_id=topic_id,
     )
 
     return jsonify({"post_id": post_id}), 201

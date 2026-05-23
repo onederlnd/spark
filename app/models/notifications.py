@@ -1,19 +1,20 @@
-# app/models/notifications.py
-
 from app.models import get_db
 
 
 def create_notification(user_id, type, message, link=None):
     """Creates a new notification"""
     db = get_db()
-    db.execute(
-        """
-        INSERT INTO notifications (user_id, type, message, link)
-                        VALUES (?,?,?,?)""",
-        (user_id, type, message, link),
-    )
-    db.commit()
-    # emit real-time even to the user's room
+    try:
+        db.execute(
+            """
+            INSERT INTO notifications (user_id, type, message, link)
+            VALUES (?,?,?,?)""",
+            (user_id, type, message, link),
+        )
+        db.commit()
+    except Exception:
+        return  # nonexistent user or FK violation — fail silently
+
     try:
         from app.sockets import socketio
 

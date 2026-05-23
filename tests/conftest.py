@@ -144,12 +144,22 @@ def classroom(teacher_client):
     return int(match.group(1))
 
 
-@pytest.fixture
-def post(classroom):
-    """Create a post by student in a classroom."""
-    return create_post(
-        user_id=2, title="Test Post", body="test body", classroom_id=classroom
-    )
+@pytest.fixture()
+def post(app, classroom, teacher_client):
+    with app.app_context():
+        from app.models import get_db
+
+        user = (
+            get_db()
+            .execute("SELECT id FROM users WHERE username = 'teacher1'")
+            .fetchone()
+        )
+        return create_post(
+            user_id=user["id"],
+            title="Test Post",
+            body="test body",
+            classroom_id=classroom,
+        )
 
 
 @pytest.fixture()

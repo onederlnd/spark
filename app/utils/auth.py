@@ -49,12 +49,23 @@ def teacher_required(f):
 
 
 def student_required(f):
-    """Restrictrs routes to SparK students with role = 'student'"""
+    """Restricts routes to SparK students with role = 'student'"""
 
     @wraps(f)
     def decorated(*args, **kwargs):
         user = current_user()
-        if not user or user["role"] != "student":
+
+        print("[DEBUG] student_required user:", user)
+
+        if not user:
+            return redirect(url_for("auth.login"))
+
+        role = user["role"] if "role" in user.keys() else None
+
+        print("[DEBUG] role:", role)
+
+        if role != "student":
+            print("[DEBUG] forbidden role:", role)
             abort(403)
 
         return f(*args, **kwargs)

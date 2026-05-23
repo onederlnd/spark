@@ -53,6 +53,7 @@ def get_db():
         g.db = sqlite3.connect(
             db_path, detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
         )
+        g.db.execute("PRAGMA foreign_keys = ON")
         sqlite3.register_converter("TIMESTAMP", lambda val: val.decode())
         g.db.row_factory = sqlite3.Row
     return g.db
@@ -392,7 +393,7 @@ def init_db(app):
             CREATE TABLE IF NOT EXISTS conversations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 classroom_id INTEGER NOT NULL REFERENCES classrooms(id),
-                created_by INTEGER NOT NULL REFERENCES user(id),
+                created_by INTEGER NOT NULL REFERENCES users(id),
                 title TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
@@ -409,6 +410,57 @@ def init_db(app):
                 body TEXT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 is_hidden INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS curiosity_conversations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                subject TEXT,
+                area TEXT,
+                category TEXT,
+                topic TEXT,
+                description TEXT,
+                classroom_id INTEGER REFERENCES classrooms(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+            );
+            CREATE TABLE IF NOT EXISTS curiosity_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                conversation_id INTEGER NOT NULL REFERENCES curiosity_conversations(id) ON DELETE CASCADE,
+                role TEXT NOT NULL CHECK(role IN ('user', 'assistant')),
+                content TEXT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS curiosity_cache (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic_key TEXT NOT NULL,
+                question_hash TEXT NOT NULL,
+                question_text TEXT NOT NULL,
+                response_text TEXT NOT NULL,
+                hit_count INTEGER NOT NULL DEFAULT 0,
+                cached_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(topic_key, question_hash)
+            );
+            CREATE TABLE IF NOT EXISTS curiosity_cache_feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                cache_id INTEGER NOT NULL REFERENCES curiosity_cache(id) ON DELETE CASCADE,
+                signal TEXT NOT NULL CHECK(signal IN ('positive', 'negative')),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS curiosity_topic_prompts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic_key TEXT NOT NULL UNIQUE,
+                prompt_text TEXT NOT NULL,
+                created_by INTEGER NOT NULL REFERENCES users(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS curiosity_social_starters (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                topic_key TEXT NOT NULL,
+                classroom_id INTEGER REFERENCES classrooms(id) ON DELETE CASCADE,
+                prompt_text TEXT NOT NULL,
+                created_by INTEGER NOT NULL REFERENCES users(id),
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
             """
             )

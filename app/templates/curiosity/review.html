@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Curiosity Review — {{ topic_key }} — SparK{% endblock %}
+
+{% block content %}
+<div class="form-page" style="max-width:860px;">
+
+  <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.75rem; margin-bottom:1.5rem;">
+    <div>
+      <h1 class="form-title" style="margin-bottom:0.2rem;">Cache Review</h1>
+      <div style="font-size:0.82rem; color:var(--muted); font-weight:700; font-family:monospace;">{{ topic_key }}</div>
+    </div>
+    <a href="{{ url_for('curiosity.index') }}" class="btn btn-ghost" style="font-size:0.85rem;">← Back to Curiosity</a>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  {% if not entries %}
+    <div class="card" style="text-align:center; padding:3rem 1rem; color:var(--muted);">
+      <div style="font-size:2rem; margin-bottom:0.5rem;">📭</div>
+      <div style="font-weight:700;">No cached responses yet for this topic.</div>
+      <div style="font-size:0.85rem; margin-top:0.4rem;">Responses appear here after students ask questions.</div>
+    </div>
+
+  {% else %}
+    <div style="font-size:0.82rem; color:var(--muted); font-weight:700; margin-bottom:1rem;">
+      {{ entries|length }} cached response{{ 's' if entries|length != 1 else '' }}
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:1rem;">
+      {% for entry in entries %}
+      <div class="card" style="padding:1.25rem 1.5rem;">
+
+        <!-- Question + meta row -->
+        <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:0.75rem;">
+          <div style="flex:1; min-width:0;">
+            <div style="font-weight:800; font-size:0.95rem; margin-bottom:0.2rem;">{{ entry.question_text }}</div>
+            <div style="font-size:0.78rem; color:var(--muted); font-weight:600; font-family:monospace;">
+              {{ entry.question_hash }}
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem; flex-shrink:0;">
+            <!-- Hit count badge -->
+            <span style="background:var(--soft); border:1px solid var(--border); border-radius:999px; padding:3px 10px; font-size:0.78rem; font-weight:800; color:var(--text);">
+              🔁 {{ entry.hit_count }} hit{{ 's' if entry.hit_count != 1 else '' }}
+            </span>
+            <!-- Feedback badges -->
+            {% if entry.feedback %}
+            <span style="background:var(--soft); border:1px solid var(--border); border-radius:999px; padding:3px 10px; font-size:0.78rem; font-weight:800; color:var(--text);">
+              👍 {{ entry.feedback.positive }}
+            </span>
+            <span style="background:var(--soft); border:1px solid var(--border); border-radius:999px; padding:3px 10px; font-size:0.78rem; font-weight:800; color:var(--text);">
+              👎 {{ entry.feedback.negative }}
+            </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Cached response -->
+        <div style="background:var(--soft); border-radius:var(--radius-sm); padding:0.875rem 1rem; font-size:0.87rem; line-height:1.65; color:var(--text); margin-bottom:1rem; white-space:pre-wrap;">{{ entry.response_text }}</div>
+
+        <!-- Footer row: cached date + invalidate -->
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem;">
+          <div style="font-size:0.78rem; color:var(--muted); font-weight:600;">
+            Cached {{ entry.cached_at }}
+          </div>
+          <form method="POST" action="{{ url_for('curiosity.invalidate_entry', topic_key=topic_key, cache_id=entry.id) }}"
+                onsubmit="return confirm('Remove this cached response? The next matching question will go live to Claude.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-ghost"
+              style="font-size:0.8rem; color:var(--rose,#e24b4a); border-color:var(--rose,#e24b4a); padding:4px 12px;">
+              🗑 Invalidate
+            </button>
+          </form>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

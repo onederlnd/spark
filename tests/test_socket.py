@@ -8,6 +8,22 @@ from app.models.notifications import create_notification
 # ---------------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------------
+@pytest.fixture(autouse=True)
+def seeded_users(app):
+    """Seed users so socket notification tests have valid FK targets."""
+    with app.app_context():
+        from app.models import get_db
+
+        db = get_db()
+        db.execute(
+            "INSERT OR IGNORE INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+            ("socketuser1", "hash", "student"),
+        )
+        db.execute(
+            "INSERT OR IGNORE INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+            ("socketuser2", "hash", "student"),
+        )
+        db.commit()
 
 
 def make_socket_client(app, user_id=None):
@@ -23,6 +39,20 @@ def enter_user_room(sc, user_id):
     """Manually place a socket client into a user room (for tests that skip handle_connect)."""
     sid = list(socketio.server.manager.rooms["/"][None].keys())[0]
     socketio.server.enter_room(sid, f"user_{user_id}", namespace="/")
+
+
+@pytest.fixture(autouse=True)
+def seeded_user(app):
+    """Ensure user id=1 exists for socket notification tests."""
+    with app.app_context():
+        from app.models import get_db
+
+        db = get_db()
+        db.execute(
+            "INSERT OR IGNORE INTO users (username, password_hash, role) "
+            "VALUES ('socketuser', 'hash', 'student')"
+        )
+        db.commit()
 
 
 # ---------------------------------------------------------------------------

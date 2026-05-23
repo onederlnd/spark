@@ -61,24 +61,34 @@ def _make_org_and_admin(app, client, suffix=""):
 
         pw = bcrypt.hashpw(b"pass123", bcrypt.gensalt(rounds=4)).decode()
         db = get_db()
-        db.execute(
-            "INSERT INTO organizations (name, billing_email, created_by) VALUES (?, ?, ?)",
-            (f"Test Org {suffix}", f"org{suffix}@school.edu", 1),
-        )
-        db.commit()
-        org_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+        # 1. Insert user first (no org_id yet)
         db.execute(
             """INSERT INTO users
                (username, password_hash, dob, bio, role, coppa_status, onboarded,
-                display_name, email, org_id)
-               VALUES (?, ?, '1980-01-01', '', 'org_admin', 'approved', 1, ?, ?, ?)""",
-            (username, pw, f"Org Admin{suffix}", f"org{suffix}@school.edu", org_id),
+                display_name, email)
+               VALUES (?, ?, '1980-01-01', '', 'org_admin', 'approved', 1, ?, ?)""",
+            (username, pw, f"Org Admin{suffix}", f"org{suffix}@school.edu"),
         )
         db.commit()
+        user_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+        # 2. Now create org with a valid created_by
+        db.execute(
+            "INSERT INTO organizations (name, billing_email, created_by) VALUES (?, ?, ?)",
+            (f"Test Org {suffix}", f"org{suffix}@school.edu", user_id),
+        )
+        db.commit()
+        org_id = db.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+        # 3. Link user back to org
+        db.execute("UPDATE users SET org_id = ? WHERE id = ?", (org_id, user_id))
+        db.commit()
+
     resp = client.post(
         "/auth/login", data={"username": username, "password": "pass123"}
     )
-    print(resp.data[:500])  # remove after debugging
+    print(resp.data[:500])
     assert resp.status_code == 302, (
         f"org_admin login failed (status {resp.status_code}). "
         "Check the INSERT matches all fields the login route requires."

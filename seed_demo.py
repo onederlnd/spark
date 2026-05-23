@@ -912,7 +912,7 @@ def seed(db):
     for a, b in pairs:
         try:
             db.execute(
-                "INSERT INTO follows (follower_id, followed_id, create_at) VALUES (?, ?, ?)",
+                "INSERT INTO follows (follower_id, followed_id, created_at) VALUES (?, ?, ?)",
                 (student_ids[a], student_ids[b], ts(72)),
             )
         except sqlite3.IntegrityError:

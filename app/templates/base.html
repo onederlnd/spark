@@ -14,7 +14,9 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=6" />
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.min.js"></script>
-  <script>
+  <script><a href="/curiosity" class="btn btn-primary" style="gap:4px;">📚</a>
+
+<div style="position:relative;" id="create-menu-wrap">
     (function () {
       const t = localStorage.getItem("spark-theme") || "dark";
       document.documentElement.setAttribute("data-theme", t);
@@ -165,34 +167,36 @@
       {% endif %}
       <a href="/topics" class="nav-link {% if request.path == '/topics' %}active{% endif %}">Topics</a>
 
-      
-<div style="position:relative;" id="create-menu-wrap">
-  <button class="btn btn-primary" onclick="toggleCreateMenu()" style="gap:4px;">+</button>
-  <div id="create-menu" style="
-    display:none;
-    position:absolute;
-    right:0;
-    top:calc(100% + 8px);
-    background:var(--color-background-primary, var(--card));
-    border:1px solid var(--border);
-    border-radius:var(--radius-sm);
-    min-width:190px;
-    z-index:1000;
-    box-shadow:0 4px 12px rgba(0,0,0,0.1);
-  ">
-    {% if session.get("role") == "student" %}
-    <a href="/posts/new" class="create-menu-item">✏️ New Post</a>
-    {% endif %}
-    {% if session.get("role") in ("teacher", "admin") %}
-    <a href="/posts/new?type=announcement" class="create-menu-item">📢 New Announcement</a>
-    <a href="/posts/new?type=announcement" class="create-menu-item">✦ New Post</a>
-    <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
-    <a href="/classrooms/new" class="create-menu-item">🏫 New Classroom</a>
-    <a href="/auth/register/student" class="create-menu-item">🎓 New Student</a>
-    <a href="/auth/register/parent" class="create-menu-item">👪 New Parent</a>
-    {% endif %}
-  </div>
-</div>
+    <a href="/curiosity" class="btn btn-primary" style="gap:4px;">✨</a>
+
+    <div style="position:relative;" id="create-menu-wrap">
+      <button class="btn btn-primary" onclick="toggleCreateMenu()" style="gap:4px;">+</button>
+      <div id="create-menu" style="
+        display:none;
+        position:absolute;
+        right:0;
+        top:calc(100% + 8px);
+        background:var(--color-background-primary, var(--card));
+        border:1px solid var(--border);
+        border-radius:var(--radius-sm);
+        min-width:190px;
+        z-index:1000;
+        box-shadow:0 4px 12px rgba(0,0,0,0.1);
+      ">
+        {% if session.get("role") == "student" %}
+        <a href="/posts/new" class="create-menu-item">✏️ New Post</a>
+        {% endif %}
+        {% if session.get("role") in ("teacher", "admin") %}
+        <a href="/posts/new?type=announcement" class="create-menu-item">📢 New Announcement</a>
+        <a href="/posts/new?type=announcement" class="create-menu-item">✦ New Post</a>
+        <div style="border-top:1px solid var(--border); margin:4px 0;"></div>
+        <a href="/classrooms/new" class="create-menu-item">🏫 New Classroom</a>
+        <a href="/auth/register/student" class="create-menu-item">🎓 New Student</a>
+        <a href="/auth/register/parent" class="create-menu-item">👪 New Parent</a>
+        {% endif %}
+      </div>
+    </div>
+
 
 
 
