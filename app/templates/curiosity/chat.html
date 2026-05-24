@@ -25,6 +25,19 @@
   ✦ Start Chat
 </button>
 
+{% if session.get('role') in ('teacher', 'admin') %}
+<div id="teacher-links" style="display:none; flex-direction:column; gap:0.5rem; margin-top:0.5rem;">
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-title">Teacher Tools</div>
+  <a id="link-review" href="#" class="btn btn-ghost" style="width:100%; justify-content:center; font-size:0.82rem;">
+    📋 Review Cache
+  </a>
+  <a id="link-starters" href="#" class="btn btn-ghost" style="width:100%; justify-content:center; font-size:0.82rem;">
+    💬 Discussion Starters
+  </a>
+</div>
+{% endif %}
+
 <div class="sidebar-divider"></div>
 <div class="sidebar-title" id="convs-label" style="display:none;">Past Conversations</div>
 <ul class="sidebar-nav" id="conv-list"></ul>
@@ -72,7 +85,6 @@
 </div>
 
 <style>
-  /* Only the things base.css genuinely doesn't have */
   .spark-select, .spark-input {
     width:100%; padding:8px 10px; border-radius:var(--radius-sm,8px);
     border:1px solid var(--border); background:var(--soft); color:var(--text);
@@ -103,6 +115,9 @@
   const convList    = document.getElementById('conv-list');
   const convsLabel  = document.getElementById('convs-label');
   const subjectsLoading = document.getElementById('subjects-loading');
+  const teacherLinks = document.getElementById('teacher-links');
+  const linkReview   = document.getElementById('link-review');
+  const linkStarters = document.getElementById('link-starters');
 
   let subjectsData  = [];
   let currentConvId = null;
@@ -189,6 +204,22 @@
     btnStart.disabled = !selTopic.value;
   }
 
+  // ── Teacher tool links ─────────────────────────────────────
+  function buildTopicKey(ctx) {
+    return [ctx.subject, ctx.area, ctx.category, ctx.topic]
+      .map(v => (v || '').toLowerCase().replace(/ /g, '-'))
+      .join('_');
+  }
+
+  function updateTeacherLinks() {
+    if (!teacherLinks) return;
+    if (!currentCtx.topic) { teacherLinks.style.display = 'none'; return; }
+    const key = buildTopicKey(currentCtx);
+    teacherLinks.style.display = 'flex';
+    linkReview.href   = `/curiosity/review/${key}`;
+    linkStarters.href = `/curiosity/starters/${key}`;
+  }
+
   // ── Start / new chat ───────────────────────────────────────
   btnStart.addEventListener('click', () => {
     currentCtx = {
@@ -205,6 +236,7 @@
     chatInput.disabled  = false;
     btnSend.disabled    = false;
     chatInput.focus();
+    updateTeacherLinks();
   });
 
   // ── Send message ───────────────────────────────────────────
@@ -218,7 +250,8 @@
     chatInput.style.height = 'auto';
     chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
   });
-function sendMessage() {
+
+  function sendMessage() {
     const text = chatInput.value.trim();
     if (!text || sending) return;
     sending = true;
@@ -228,7 +261,6 @@ function sendMessage() {
     chatInput.value = '';
     chatInput.style.height = 'auto';
 
-    // Create the AI bubble upfront and stream into it
     const bubble = appendStreamingBubble();
 
     fetch('/curiosity/chat', {
@@ -250,7 +282,7 @@ function sendMessage() {
 
                 buffer += decoder.decode(value, { stream: true });
                 const lines = buffer.split('\n');
-                buffer = lines.pop(); // keep incomplete line
+                buffer = lines.pop();
 
                 lines.forEach(line => {
                     if (!line.startsWith('data: ')) return;
@@ -263,7 +295,6 @@ function sendMessage() {
                         }
 
                         if (payload.chunk) {
-                            // Unescape newlines
                             const text = payload.chunk.replace(/\\n/g, '\n');
                             bubble.textContent += text;
                             messages.scrollTop = messages.scrollHeight;
@@ -297,9 +328,9 @@ function sendMessage() {
         sending = false;
         btnSend.disabled = false;
     });
-}
+  }
 
-function appendStreamingBubble() {
+  function appendStreamingBubble() {
     if (welcome) welcome.style.display = 'none';
     const wrap = document.createElement('div');
     wrap.style.display = 'flex';
@@ -311,7 +342,7 @@ function appendStreamingBubble() {
     messages.appendChild(wrap);
     messages.scrollTop = messages.scrollHeight;
     return bubble;
-}
+  }
 
   // ── Message rendering ──────────────────────────────────────
   function appendMessage(role, text) {
@@ -374,6 +405,7 @@ function appendStreamingBubble() {
         chatInput.disabled = false;
         btnSend.disabled   = false;
         chatInput.focus();
+        updateTeacherLinks();
       });
   }
 

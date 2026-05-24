@@ -1,14 +1,6 @@
 # tests/test_curiosity.py
 import json
 from unittest.mock import MagicMock
-import pytest
-from app.utils.curiosity_helpers import (
-    normalize_question,
-    build_topic_key,
-    hash_question,
-    check_response_quality,
-    build_enriched_prompt,
-)
 
 # ---------------------------------------------------------------------------
 # helpers

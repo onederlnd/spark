@@ -8,11 +8,15 @@ A safe, moderated learning platform for students and educators of all kinds — 
 
 ## Vision
 
-Most learning platforms are engineered for engagement at any cost. SparK is built around a different idea — that learners of all ages deserve a space to ask questions, explore ideas, and connect with teachers without the noise and distractions of traditional social platforms.
+Most learning platforms are engineered for engagement at any cost. Recommendation algorithms, infinite scroll, notification floods — all designed to keep eyes on screens, not to support learning. The result is a generation of students who have grown up online but have nowhere to go that's genuinely built for them.
 
-SparK is a tool for education first. Safety, privacy, and pedagogical integrity aren't features — they're the foundation.
+SparK is built around a different idea: that learners of all ages deserve a space to ask questions, explore ideas, and connect with teachers without the noise and manipulation of traditional social platforms.
 
-Safety and privacy aren't just feature on SparK. They're the entire point.
+The problems with existing platforms aren't incidental — they're structural. Ad-driven products need to maximize time-on-site. That goal is fundamentally incompatible with what education actually requires: focus, reflection, and safety. You can't bolt those values onto an engagement-first architecture. You have to start from them.
+
+So that's what SparK does. Safety and privacy aren't features here — they're the entire foundation. There is no algorithm optimizing for clicks. There is no data harvesting. There's just a well-moderated space where kids can learn, teachers can teach, and parents can trust that their children are somewhere designed with their interests as the first priority.
+
+This also means SparK isn't trying to replace every tool in an educator's toolkit. It's designed to be a focused, purposeful environment: structured social learning, classroom management, and AI-assisted study — nothing else. The scope is intentional.
 
 ---
 
@@ -22,7 +26,7 @@ Safety and privacy aren't just feature on SparK. They're the entire point.
 The core social environment and classroom system are complete. SparK is preparing for closed beta with a single trusted classroom.
 
 | Area | Status |
-| ------ | -------- |
+| --- | --- |
 | Core social loop | ✅ Complete |
 | Authentication & COPPA enforcement | ✅ Complete |
 | Input sanitization / XSS prevention | ✅ Complete |
@@ -37,7 +41,7 @@ The core social environment and classroom system are complete. SparK is preparin
 | Teacher onboarding | ✅ Complete |
 | Teacher-provisioned student accounts | ✅ Complete |
 | QR code login sheets | ✅ Complete |
-| Curiosity AI study buddy | 🔄 In Progress |
+| Curiosity AI study buddy | ✅ Complete |
 | Student onboarding | 🔲 Planned |
 | Closed beta (single classroom) | 🔲 Planned |
 
@@ -47,60 +51,37 @@ The core social environment and classroom system are complete. SparK is preparin
 
 ### Social Platform
 
-- Post, reply, react, and bookmark in topic channels
-- Four emoji reactions per post (🔥 💡 🤔 ❤️) — low-lift engagement designed for kids
-- Follow other users and get a personalized feed
-- Full-text search across posts and topics
-- Real-time notifications via WebSockets
-- Trending posts widget
-- Pagination
-- Dark and light theme
-- Mobile-responsive with hamburger drawer
+The core of SparK is a structured social environment organized around topic channels. Students can post, reply, react, and bookmark content. There are four emoji reactions per post (🔥 💡 🤔 ❤️) — low-lift, age-appropriate engagement that doesn't gamify attention the way like counts do.
+
+Users can follow each other to get a personalized feed, search full-text across posts and topics, and receive real-time notifications via WebSockets. The interface is mobile-responsive with a hamburger drawer, supports both dark and light themes, and includes a trending posts widget and pagination.
 
 ### Classroom System
 
-- Teacher-owned classrooms with student enrollment via join code
-- Copy-to-clipboard join code sharing
-- Assignment status dashboard — pending grades visible at a glance
-- Assignments with due dates and student submission workflow
-- Grading with inline feedback and submission grid
-- Role gating — teacher / student enforcement across all classroom routes
-- Teacher onboarding modal on first login
-- Custom content filter — teachers add words to the moderation queue
+Teachers own their classrooms. Students join via a shareable join code. From there, teachers get a complete assignment and grading workflow: create assignments with due dates, review student submissions, grade with inline feedback, and track pending grades from a status dashboard at a glance.
+
+Role gating enforces teacher/student permissions across all classroom routes. Teachers can add custom words to the content filter — anything that needs to go into the moderation queue for their specific context. Teacher onboarding is handled by a modal on first login.
 
 ### Curiosity
 
-- AI-powered study buddy built on Claude — for students, study groups, and learners of all ages
-- Guided Socratic conversation — Curiosity asks questions and helps users discover answers rather than handing them over
-- Subject and topic context passed into every conversation so responses stay focused and relevant
-- Persistent conversation history — pick up where you left off per topic
-- Chat route with full Claude integration and conversation history management
-- DB-backed conversation and message models
+Curiosity is SparK's AI-powered study buddy, built on Claude. It's designed for students, study groups, and learners of any age.
+
+The key design decision: Curiosity doesn't hand students answers. It uses a guided Socratic approach — asking questions, prompting reflection, helping students arrive at understanding rather than just handing it over. Subject and topic context is passed into every conversation so responses stay focused and relevant. Conversation history is persistent, so students can pick up where they left off per topic.
 
 ### Student Provisioning
 
-- Teachers provision student accounts by CSV upload or manual entry
-- Usernames auto-generated as `firstname.lastname` with collision resolution
-- Temporary passwords generated as two words + two digits (e.g. `sunnybird42`)
-- Students optionally auto-enrolled in classrooms via join codes at provisioning
-- Printable credentials sheet with Print and CSV download
-- QR code login sheet — one card per student with a scannable login QR code
-- QR codes encode a secure persistent token — no password in the URL
-- "Scan QR Code" button on login page opens device camera via jsQR
-- Teachers can regenerate a student's QR token if their sheet is lost
+Teachers can provision student accounts in bulk via CSV upload or individually via manual entry. Usernames are auto-generated as `firstname.lastname` with collision resolution. Temporary passwords are generated as two words plus two digits (e.g. `sunnybird42`) — memorable enough for kids, random enough to be secure.
+
+Students can optionally be auto-enrolled in classrooms at provisioning. Once accounts are created, teachers get a printable credentials sheet with a Print button and CSV download. There's also a QR code login sheet — one card per student with a scannable QR code that encodes a secure persistent token (no password in the URL). The login page has a "Scan QR Code" button that opens the device camera via jsQR. If a sheet is lost, teachers can regenerate any student's token.
 
 ### COPPA Compliance
 
-- Age gate on registration — students under 13 require teacher approval
-- Teacher COPPA approval dashboard
-- Provisioned students set to `approved` under the school official exception — no parent consent flow required for teacher-created accounts
-- Self-registered students under 13 go through the standard pending approval flow
-- Provisional flag distinguishes teacher-created accounts from self-registered ones
-- Terms of Service and Privacy Policy pages
+SparK enforces COPPA compliance at the registration level. Self-registered students under 13 go through a standard pending approval flow and require teacher approval before they can access the platform. Teacher-provisioned accounts are set to `approved` under the school official exception, bypassing the parent consent flow for accounts the teacher has created directly.
+
+A provisional flag distinguishes teacher-created accounts from self-registered ones. The platform includes Terms of Service and Privacy Policy pages.
 
 ### Safety & Security
 
-- Input sanitization and XSS prevention on all user input
+- Input sanitization and XSS prevention on all user content
 - BBCode rendering — safe rich formatting without raw HTML
 - Brute force login protection with automatic lockout
 - Rate limiting on all routes including QR login
@@ -108,7 +89,7 @@ The core social environment and classroom system are complete. SparK is preparin
 - Bcrypt password hashing
 - Role-based access (teacher, student)
 - Report system — students flag posts for moderation review
-- Content moderation queue — teacher reviews flagged content
+- Content moderation queue — teachers review flagged content
 - Auto-hide after 3+ reports pending teacher review
 - Age-appropriate keyword content filter
 
@@ -124,21 +105,28 @@ The core social environment and classroom system are complete. SparK is preparin
 
 ## Who It's For
 
-- **Students** — a structured space to ask questions, share ideas, and learn from peers
-- **Kids / minors** — a safer alternative to unmoderated social platforms
-- **Teachers & educators** — visibility and moderation tools, fast grading, and organized classroom content
-- **Parents** — a platform designed with their kids' safety as the first priority
+SparK is designed for four distinct groups with different needs:
+
+**Students** want a structured space to ask questions, share ideas, and learn from peers without the pressure and chaos of public social platforms.
+
+**Kids and minors** deserve a safer alternative to unmoderated spaces online — a place designed with their wellbeing as the constraint, not their engagement.
+
+**Teachers and educators** need visibility and control: moderation tools, fast grading, organized classroom content, and the ability to provision and manage student accounts without depending on students to self-register correctly.
+
+**Parents** want to know their kids are somewhere that's actually designed for them — where the platform's incentives align with their child's safety, not against it.
 
 ---
 
 ## Tech Stack
 
-- **Backend:** Python, Flask
-- **Database:** SQLite with FTS5 full-text search
-- **Frontend:** Jinja2, Vanilla JS
-- **Real-time:** Flask-SocketIO (WebSockets)
-- **AI:** Anthropic Claude (Curiosity)
-- **DevOps:** Docker, GitHub Actions CI
+| Layer | Technology |
+| --- | --- |
+| Backend | Python, Flask |
+| Database | SQLite with FTS5 full-text search |
+| Frontend | Jinja2, Vanilla JS |
+| Real-time | Flask-SocketIO (WebSockets) |
+| AI | Anthropic Claude (Curiosity) |
+| DevOps | Docker, GitHub Actions CI |
 
 ---
 
@@ -148,6 +136,18 @@ The core social environment and classroom system are complete. SparK is preparin
 
 - Python 3.13+
 - Docker & Docker Compose
+
+### Environment Variables
+
+Copy `.env.example` to `.env` before running. Required variables:
+
+| Variable | Description |
+| --- | --- |
+| `SECRET_KEY` | Flask session secret key |
+| `ANTHROPIC_API_KEY` | Anthropic API key for Curiosity |
+| `DATABASE_URL` | SQLite database path (default: `sqlite:///spark.db`) |
+| `FLASK_ENV` | `development` or `production` |
+| `RATE_LIMIT_ENABLED` | Enable rate limiting (`true`/`false`) |
 
 ### Local Setup
 
@@ -165,12 +165,13 @@ pip install -r requirements-dev.txt
 
 # create .env file
 cp .env.example .env
+# edit .env and add your keys
 
 # run the app
 python run.py
 ```
 
-App runs at `http://localhost:5000`
+App runs at `http://localhost:5000`.
 
 ### Running with Docker
 
@@ -197,7 +198,7 @@ pytest tests/ -v
 ### Dev Scripts
 
 | Command | Description |
-| --------- | ------------- |
+| --- | --- |
 | `./scripts/feature.sh` | Start a new feature branch |
 | `./scripts/ship.sh` | Run tests, lint, commit, and push |
 | `./scripts/done.sh` | Clean up after a PR is merged |
@@ -216,7 +217,8 @@ pytest tests/ -v
 
 ## Project Structure
 
-``` bash
+```python
+
 spark/
 ├── app/
 │   ├── __init__.py        # app factory
@@ -245,7 +247,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 ### 🏁 Next: Closed Beta (single trusted classroom)
 
 | Milestone | Version | Status |
-| ----------- | --------- | -------- |
+| --- | --- | --- |
 | Core platform complete | v0.1 | ✅ Done |
 | Safety core complete | v0.2 | ✅ Done |
 | Alpha classroom ready | v0.3 | ✅ Done |
@@ -254,8 +256,6 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 | Public launch | v1.2 | 🔲 Planned |
 | Growth & engagement | v1.3 | 🔲 Planned |
 | Ops & hardening | v2.0 | 🔲 Planned |
-
-[🔧 In Progress]
 
 ### v0.3 — Alpha Classroom Ready
 
@@ -272,7 +272,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Rate limit / lockout recovery UX
 - [x] Manual QA pass
 
-### v1.0 — Closed Beta (current)
+### v1.0 — Closed Beta
 
 - [ ] Live classroom deployment
 - [x] Teacher feedback loop
@@ -284,12 +284,12 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Email verification
 - [x] Admin dashboard
 - [x] Parent dashboard
-- [i] School / district accounts - mostly implemented but not yet linked
+- [i] School / district accounts — mostly implemented, not yet linked
 
 ### v1.2 — Public Launch
 
 - [x] Landing page
-- [x] Co-Teachers
+- [x] Co-teachers
 - [x] User mentions
 - [x] Direct messages (teacher ↔ student)
 - [ ] Data export
@@ -305,7 +305,7 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [ ] Penpals
 - [ ] PWA support
 
-### 🤔 Curiosity
+### v1.4 Curiosity
 
 - [x] Core chat — Claude integration + subject/topic context
 - [x] Persistent conversations — DB model (save & resume)
@@ -317,9 +317,9 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 - [x] Cache feedback — anonymous thumbs up/down, COPPA-clean
 - [x] Topic prompt overrides — teacher-customisable per topic
 - [x] Social suggestions — trending questions, discussion starters, classmate counts
-- [ ] Teacher review dashboard — cache entries visible but no UI yet
-- [ ] Discussion starter UI — save_discussion_starter exists, no route or template
-- [x] Cache hit counter — hit_count column exists but never incremented
+- [x] Teacher review dashboard
+- [x] Discussion starter UI
+- [x] Cache hit counter
 
 ### v2.0 — Ops & Hardening
 
@@ -330,9 +330,19 @@ GitHub Actions runs tests and linting on every push. See `.github/workflows/ci.y
 
 ---
 
-> **Note:** SparK is being developed with future separation in mind — core platform, classroom system, and Curiosity AI are designed as distinct modules that will eventually live as independent projects.
+## Contributing
+
+SparK is in closed beta. Contributions aren't open yet, but if you're an educator, developer, or researcher interested in the project, reach out.
 
 ---
 
-*Last updated: May 2026*
+## License
+
+All rights reserved. SparK is not open source at this time.
+
+---
+
+> SparK is being developed with future separation in mind — the core platform, classroom system, and Curiosity AI are designed as distinct modules that will eventually live with independent development.
+
+*Last updated: May 2026*  
 *Current focus: v0.3 Alpha Classroom Ready → v1.0 Closed Beta*

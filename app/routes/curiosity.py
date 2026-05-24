@@ -280,3 +280,55 @@ def invalidate_entry(topic_key, cache_id):
         "success",
     )
     return redirect(url_for("curiosity.review_topic", topic_key=topic_key))
+
+
+@curiosity_bp.route("/starters/<topic_key>", methods=["GET"])
+@teacher_required
+def list_starters(topic_key):
+    from app.models.social_suggestions import get_discussion_starters
+
+    starters = get_discussion_starters(topic_key)
+    return render_template(
+        "curiosity/starters.html",
+        topic_key=topic_key,
+        starters=starters,
+    )
+
+
+@curiosity_bp.route("/starters/<topic_key>/new", methods=["POST"])
+@teacher_required
+def create_starter(topic_key):
+    from app.models.social_suggestions import save_discussion_starter
+
+    prompt_text = request.form.get("prompt_text", "").strip()
+    classroom_id = request.form.get("classroom_id") or None
+    if not prompt_text:
+        flash("Prompt text is required.", "error")
+        return redirect(url_for("curiosity.list_starters", topic_key=topic_key))
+    save_discussion_starter(
+        topic_key=topic_key,
+        prompt_text=prompt_text,
+        created_by=session["user_id"],
+        classroom_id=int(classroom_id) if classroom_id else None,
+    )
+    flash("Discussion starter added.", "success")
+    return redirect(url_for("curiosity.list_starters", topic_key=topic_key))
+
+
+@curiosity_bp.route("/starters/<topic_key>/delete/<int:starter_id>", methods=["POST"])
+@teacher_required
+def delete_starter(topic_key, starter_id):
+    from app.models import get_db
+
+    db = get_db()
+    starter = db.execute(
+        "SELECT * FROM curiosity_social_starters WHERE id = ?", (starter_id,)
+    ).fetchone()
+    if not starter:
+        return "Not Found", 404
+    if starter["created_by"] != session["user_id"]:
+        return "Forbidden", 403
+    db.execute("DELETE FROM curiosity_social_starters WHERE id = ?", (starter_id,))
+    db.commit()
+    flash("Starter removed.", "success")
+    return redirect(url_for("curiosity.list_starters", topic_key=topic_key))
